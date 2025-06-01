@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  qv-generator:
+    build: 
+      context: ../
+      dockerfile: docker/generator/Dockerfile
+    container_name: qv-generator
+    volumes:
+      - qv-files:/app/output
+      - ../config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  qv-files:
+    name: qv-files
