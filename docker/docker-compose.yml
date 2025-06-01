@@ -10,6 +10,19 @@ services:
       - qv-files:/app/output
       - ../config.yaml:/app/config.yaml:ro
     restart: unless-stopped
+    
+  qv-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: qv-web
+    volumes:
+      - qv-files:/usr/share/nginx/html/plots:ro
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - qv-generator
 
 volumes:
   qv-files:
