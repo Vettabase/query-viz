@@ -212,7 +212,9 @@ class QueryViz:
             self.queries.append(query)
             
             # Initialize data file for this query
-            data_file = os.path.join(self.output_dir, f"data_{i}.dat")
+            # Normalize query name for filename
+            normalized_name = re.sub(r'[^a-zA-Z0-9\s_-]', '', query.name).lower().replace(' ', '-').replace('_', '-')
+            data_file = os.path.join(self.output_dir, f"{normalized_name}.dat")
             self.data_files[query.name] = {
                 'filename': data_file,
                 'handle': None,
