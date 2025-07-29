@@ -384,6 +384,9 @@ class QueryViz:
             self.setup_connections()
             self.setup_queries()
             
+            # Open data files for writing
+            self.open_data_files()
+            
             # Start query threads
             self.running = True
             for query in self.queries:
@@ -414,6 +417,7 @@ class QueryViz:
             return 1
         finally:
             self.running = False
+            self.close_data_files()
             for conn in self.connections.values():
                 conn.close()
         
