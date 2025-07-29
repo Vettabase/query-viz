@@ -34,6 +34,7 @@ plot:
   title: 'MariaDB Performance Metrics'
   xlabel: 'Time (seconds)'
   ylabel: 'Count / Connections'
+  # will be placed in the output directory
   output_file: 'mariadb_metrics.png'
   terminal: 'png enhanced font "Arial,12" size 1400,900'
   grid: true
