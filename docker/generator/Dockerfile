@@ -3,7 +3,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for MariaDB client, and gnuplot
+# Install system dependencies for MariaDB, and gnuplot
 RUN apt-get update && \
     apt-get install -y \
     pkg-config \
@@ -20,11 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY qv.py .
 COPY template.plt .
 
+# Create output directory and set proper permissions
+RUN mkdir -p /app/output && chmod 755 /app/output
+
 # Create volume mount point for generated files
 VOLUME ["/app/output"]
-
-# Create output directory
-RUN mkdir -p /app/output
 
 # Set default command
 CMD ["python", "qv.py"]
