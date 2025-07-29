@@ -26,6 +26,12 @@ To view the charts, point your browser to:
 http://localhost:8080
 
 
+## Usage Notes
+
+If you modify the configuration file, you should restart Query-Viz.
+In the Docker environment, you should recreate the containers.
+
+
 ## Copyright and License
 
 Copyright: Vettabase 2025
