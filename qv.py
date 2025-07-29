@@ -11,6 +11,7 @@ import yaml
 import mariadb
 import subprocess
 import threading
+import signal
 from datetime import datetime
 from collections import defaultdict, deque
 import re
@@ -114,6 +115,19 @@ class QueryViz:
         self.threads = []
         self.data_files = {}  # Track data file handles
         self.data_lock = threading.Lock()  # Protect file operations
+        # TODO: output_dir should be created if it doesn't exist
+        self.output_dir = '/app/output'
+        
+    def clean_shutdown(self, signum = None, frame = None):
+        """Handle SIGINT and SIGTERM for clean shutdown"""
+        if signum is not None:
+            print(f"\nReceived signal {signum}")
+        print(f"\nShutting down...")
+        self.running = False
+        self.close_data_files()
+        for conn in self.connections.values():
+            conn.close()
+        sys.exit(0)
         
     def load_config(self):
         """Load and validate configuration"""
@@ -198,7 +212,7 @@ class QueryViz:
             self.queries.append(query)
             
             # Initialize data file for this query
-            data_file = f"data_{i}.dat"
+            data_file = os.path.join(self.output_dir, f"data_{i}.dat")
             self.data_files[query.name] = {
                 'filename': data_file,
                 'handle': None,
@@ -341,7 +355,7 @@ class QueryViz:
         # Replace template variables
         script_content = template.replace('{{TIMESTAMP}}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         script_content = script_content.replace('{{TERMINAL}}', plot_config['terminal'])
-        script_content = script_content.replace('{{OUTPUT_FILE}}', plot_config['output_file'])
+        script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, plot_config['output_file']))
         script_content = script_content.replace('{{TITLE}}', plot_config['title'])
         script_content = script_content.replace('{{XLABEL}}', plot_config['xlabel'])
         script_content = script_content.replace('{{YLABEL}}', plot_config['ylabel'])
@@ -365,7 +379,7 @@ class QueryViz:
             if result.returncode != 0:
                 print(f"GNU Plot error: {result.stderr}")
             else:
-                print(f"Plot generated: {self.config['plot']['output_file']}")
+                print(f"Plot generated: {os.path.join(self.output_dir, self.config['plot']['output_file'])}")
         except FileNotFoundError:
             print("Warning: gnuplot not found, script generated but plot not created")
         
@@ -378,6 +392,10 @@ class QueryViz:
     def run(self):
         """Run the main application"""
         print("Starting query-viz...")
+        
+        # Register signal handlers for clean shutdown
+        signal.signal(signal.SIGINT, self.clean_shutdown)
+        signal.signal(signal.SIGTERM, self.clean_shutdown)
         
         try:
             self.load_config()
