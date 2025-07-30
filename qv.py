@@ -17,6 +17,10 @@ from collections import defaultdict, deque
 import re
 import os
 
+# Global constants for connection status
+SUCCESS = "SUCCESS"
+FAIL = "FAIL"
+
 class QueryVizError(Exception):
     """Custom exception for query-viz errors"""
     pass
@@ -32,6 +36,7 @@ class DatabaseConnection:
         self.user = config['user']
         self.password = config['password']
         self.connection = None
+        self.status = None
         
     def connect(self):
         """Establish database connection"""
@@ -44,9 +49,12 @@ class DatabaseConnection:
                     password=self.password
                 )
                 print(f"Connected to {self.dbms} at {self.host}:{self.port}")
+                self.status = SUCCESS
             except mariadb.Error as e:
+                self.status = FAIL
                 raise QueryVizError(f"Failed to connect to {self.host}: {e}")
         else:
+            self.status = FAIL
             raise QueryVizError(f"Unsupported DBMS: {self.dbms}")
     
     def execute_query(self, query):
@@ -193,6 +201,10 @@ class QueryViz:
         # Validate global interval
         if 'interval' not in self.config:
             raise QueryVizError("Global 'interval' is required")
+        
+        # Validate failed connections interval
+        if 'failed_connections_interval' not in self.config:
+            raise QueryVizError("'failed_connections_interval' is required")
     
     def setup_connections(self):
         """Setup database connections"""
@@ -202,6 +214,59 @@ class QueryViz:
         
         # Set default connection
         self.default_connection = self.config['connections'][0]['name']
+    
+    def test_connections(self):
+        """Test all database connections before starting main loop"""
+        print("Testing connections...")
+        
+        failed_connections = 0
+        total_connections = len(self.connections)
+        
+        for conn_name, connection in self.connections.items():
+            try:
+                connection.connect()
+                print(f"Connection '{conn_name}': Success")
+                # Keep connection open for reuse
+            except QueryVizError as e:
+                print(f"Connection '{conn_name}': Fail")
+                failed_connections += 1
+        
+        if failed_connections > 0:
+            print(f"{failed_connections}/{total_connections} connections are not working")
+        
+        if failed_connections == total_connections:
+            print("Aborting")
+            # Close any connections that might have been opened
+            for conn in self.connections.values():
+                conn.close()
+            return False
+        else:
+            print("Execution will continue")
+            return True
+    
+    def retry_failed_connections(self):
+        """Periodically retry failed connections"""
+        failed_connections_interval = QueryConfig(
+            {'interval': self.config['failed_connections_interval']}, 
+            None, None
+        )._parse_interval(self.config['failed_connections_interval'])
+        
+        while self.running:
+            time.sleep(failed_connections_interval)
+            
+            if not self.running:
+                break
+                
+            # Check for failed connections and try to reconnect
+            for conn_name, connection in self.connections.items():
+                if connection.status == FAIL:
+                    try:
+                        print(f"Retrying connection '{conn_name}'...")
+                        connection.connect()
+                        print(f"Connection '{conn_name}': Reconnected successfully")
+                    except QueryVizError:
+                        # Connection still failed, status already set to FAIL in connect()
+                        pass
     
     def setup_queries(self):
         """Setup query configurations"""
@@ -248,6 +313,11 @@ class QueryViz:
         
         while self.running:
             try:
+                # Skip query if connection has failed
+                if connection.status == FAIL:
+                    time.sleep(query_config.interval)
+                    continue
+                
                 start_time = time.time()
                 columns, results = connection.execute_query(query_config.query)
                 
@@ -407,6 +477,11 @@ class QueryViz:
         try:
             self.load_config()
             self.setup_connections()
+            
+            # Test connections before proceeding
+            if not self.test_connections():
+                return 1
+            
             self.setup_queries()
             
             # Open data files for writing
@@ -420,7 +495,14 @@ class QueryViz:
                 thread.start()
                 self.threads.append(thread)
             
+            # Start failed connection retry thread
+            retry_thread = threading.Thread(target=self.retry_failed_connections)
+            retry_thread.daemon = True
+            retry_thread.start()
+            self.threads.append(retry_thread)
+            
             print(f"Started {len(self.queries)} query threads")
+            print("Started connection retry thread")
             
             # Main loop - generate plots periodically
             plot_interval = 30  # Generate plot every 30 seconds

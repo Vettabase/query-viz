@@ -45,4 +45,10 @@ plot:
 # Global interval between queries. By default, the interval is in seconds.
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.
+# This interval doesn't apply to failed connections.
 interval: 10s
+
+# Interval between attempts to establish a previously failed connection.
+# A time unit can be specified with a suffix: s for seconds, m for minutes,
+# h for hours.
+failed_connections_interval: 1m
