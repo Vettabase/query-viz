@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
 # Install system dependencies for MariaDB, and gnuplot
@@ -27,4 +26,8 @@ RUN mkdir -p /app/output && chmod 755 /app/output
 VOLUME ["/app/output"]
 
 # Set default command
-CMD ["python", "qv.py"]
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONIOENCODING=utf-8
+ENV PYTHONPATH=/app
+CMD ["python", "-u", "qv.py"]
