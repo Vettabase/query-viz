@@ -2,7 +2,7 @@
 
 if [ ! -d "docker" ]; then
   echo "This script should be called by the parent directory, in this way:"
-  echo "docker/rebuild.sh"
+  echo "docker/start.sh"
   exit 2
 fi
 
