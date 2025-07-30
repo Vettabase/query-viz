@@ -45,7 +45,7 @@ class DatabaseConnection:
                 )
                 print(f"Connected to {self.dbms} at {self.host}:{self.port}")
             except mariadb.Error as e:
-                raise QueryVizError(f"Failed to connect to {self.name}: {e}")
+                raise QueryVizError(f"Failed to connect to {self.host}: {e}")
         else:
             raise QueryVizError(f"Unsupported DBMS: {self.dbms}")
     
