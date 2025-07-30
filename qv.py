@@ -114,7 +114,9 @@ class QueryViz:
         self.running = False
         self.threads = []
         self.data_files = {}  # Track data file handles
-        self.data_lock = threading.Lock()  # Protect file operations
+        # this is a basic, incomplete protection
+        # but it's enough, because in practice no file can be written by multiple threads
+        self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
         
