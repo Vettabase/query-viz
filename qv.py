@@ -109,11 +109,14 @@ class QueryViz:
         self.config = None
         self.connections = {}
         self.queries = []
-        self.data = defaultdict(lambda: deque(maxlen=1000))  # Store last 1000 points
+        # store max 1000 data points
+        self.data = defaultdict(lambda: deque(maxlen=1000))
+        # store max 1000 timestamps
         self.timestamps = deque(maxlen=1000)
+        # if True, we'll cleanly exit the execution loop
         self.running = False
         self.threads = []
-        self.data_files = {}  # Track data file handles
+        self.data_files = {}
         # this is a basic, incomplete protection
         # but it's enough, because in practice no file can be written by multiple threads
         self.data_lock = threading.Lock()
