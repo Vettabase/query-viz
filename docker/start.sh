@@ -6,6 +6,4 @@ if [ ! -d "docker" ]; then
   exit 2
 fi
 
-docker/stop.sh
-git pull || exit 1
-docker/start.sh
+docker-compose --project-directory docker -f docker/docker-compose.yml up -d --build
