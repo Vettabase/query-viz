@@ -6,10 +6,12 @@ services:
       context: ../
       dockerfile: docker/generator/Dockerfile
     container_name: qv-generator
+    environment:
+      - IN_DOCKER=1
     volumes:
       - qv-files:/app/output
       - ../config.yaml:/app/config.yaml:ro
-    restart: unless-stopped
+    restart: on-failure
     
   qv-web:
     build:

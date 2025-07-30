@@ -130,6 +130,13 @@ class QueryViz:
         self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
+    
+    def exit(self, code=0):
+        """Exit with code 0 if running in Docker, otherwise use specified code"""
+        if os.environ.get('IN_DOCKER') == '1':
+            sys.exit(0)
+        else:
+            sys.exit(code)
         
     def clean_shutdown(self, signum = None, frame = None):
         """Handle SIGINT and SIGTERM for clean shutdown"""
@@ -140,7 +147,7 @@ class QueryViz:
         self.close_data_files()
         for conn in self.connections.values():
             conn.close()
-        sys.exit(0)
+        self.exit(0)
         
     def load_config(self):
         """Load and validate configuration"""
@@ -480,7 +487,7 @@ class QueryViz:
             
             # Test connections before proceeding
             if not self.test_connections():
-                return 1
+                self.exit(1)
             
             self.setup_queries()
             
@@ -521,14 +528,14 @@ class QueryViz:
             print("\nShutting down...")
         except Exception as e:
             print(f"Error: {e}")
-            return 1
+            self.exit(1)
         finally:
             self.running = False
             self.close_data_files()
             for conn in self.connections.values():
                 conn.close()
         
-        return 0
+        self.exit(0)
 
 def main():
     """Main entry point"""
