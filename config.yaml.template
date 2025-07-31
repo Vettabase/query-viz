@@ -74,7 +74,7 @@ grace_period_retry_interval: 5s
 #   1m      - 1 minute
 #   0.5m    - 30 seconds
 #   10s     - 10 seconds
-#   10 s    - 10 seconds
+#   "10 s"  - 10 seconds
 #   10      - 10 seconds
 # num can be an integer or a float.
 # unit can be one of the following:
