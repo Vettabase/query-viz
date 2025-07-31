@@ -116,20 +116,28 @@ class QueryViz:
         if isinstance(interval_str, (int, float)):
             return float(interval_str)
         
-        pattern = r'^(\d+(?:\.\d+)?)\s*([smh]?)$'
-        match = re.match(pattern, str(interval_str))
-        if not match:
-            raise QueryVizError(f"Invalid interval format: {interval_str}")
+        interval_str = str(interval_str).strip()
         
-        value, unit = match.groups()
-        value = float(value)
+        # Extract numeric part and unit
+        if interval_str[-1].isalpha():
+            unit = interval_str[-1]
+            value = float(interval_str[:-1])
+        else:
+            unit = 's'  # default to seconds
+            value = float(interval_str)
         
-        if unit == 'm':
+        if unit == 's':
+            return value
+        elif unit == 'm':
             return value * 60
         elif unit == 'h':
             return value * 3600
-        else:  # 's' or no unit
-            return value
+        elif unit == 'd':
+            return value * 86400
+        elif unit == 'w':
+            return value * 604800
+        else:
+            raise QueryVizError(f"Invalid interval format: {interval_str}")
     
     def exit(self, code=0):
         """Exit with code 0 if running in Docker, otherwise use specified code"""
