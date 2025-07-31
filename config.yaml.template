@@ -35,7 +35,10 @@ plot:
   xlabel: 'Time (seconds)'
   ylabel: 'Count / Connections'
   # will be placed in the output directory
-  output_file: 'mariadb_metrics.png'
+  # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
+  # However, if you don't use the web interface, you can safely
+  # change the file name.
+  output_file: 'metrics.png'
   terminal: 'png enhanced font "Arial,12" size 1400,900'
   grid: true
   key_position: 'outside right top'
