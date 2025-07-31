@@ -389,7 +389,7 @@ class QueryViz:
                 # Extract metric value
                 if query_config.column:
                     if query_config.column not in columns:
-                        raise QueryVizError(f"Column '{query_config.column}' not found in query results for '{query_config.name}'")
+                        raise QueryVizError(f"Column '{query_config.column}' not found in query results for '{query_config.name}'. Available columns: {columns}")
                     
                     col_index = columns.index(query_config.column)
                     value = results[0][col_index]
