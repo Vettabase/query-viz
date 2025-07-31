@@ -85,29 +85,9 @@ class QueryConfig:
         self.query = config['query']
         self.connection_name = config.get('connection', default_connection)
         self.column = config.get('column')
-        self.interval = self._parse_interval(config.get('interval', global_interval))
+        self.interval = config.get('interval', global_interval)
         self.description = config.get('description')
         self.color = config.get('color')
-        
-    def _parse_interval(self, interval_str):
-        """Parse interval string to seconds"""
-        if isinstance(interval_str, (int, float)):
-            return float(interval_str)
-        
-        pattern = r'^(\d+(?:\.\d+)?)\s*([smh]?)$'
-        match = re.match(pattern, str(interval_str))
-        if not match:
-            raise QueryVizError(f"Invalid interval format: {interval_str}")
-        
-        value, unit = match.groups()
-        value = float(value)
-        
-        if unit == 'm':
-            return value * 60
-        elif unit == 'h':
-            return value * 3600
-        else:  # 's' or no unit
-            return value
 
 class QueryViz:
     """Main query-viz application"""
@@ -130,6 +110,26 @@ class QueryViz:
         self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
+    
+    def _parse_interval(self, interval_str):
+        """Parse interval string to seconds"""
+        if isinstance(interval_str, (int, float)):
+            return float(interval_str)
+        
+        pattern = r'^(\d+(?:\.\d+)?)\s*([smh]?)$'
+        match = re.match(pattern, str(interval_str))
+        if not match:
+            raise QueryVizError(f"Invalid interval format: {interval_str}")
+        
+        value, unit = match.groups()
+        value = float(value)
+        
+        if unit == 'm':
+            return value * 60
+        elif unit == 'h':
+            return value * 3600
+        else:  # 's' or no unit
+            return value
     
     def exit(self, code=0):
         """Exit with code 0 if running in Docker, otherwise use specified code"""
@@ -216,6 +216,11 @@ class QueryViz:
         # Validate initial grace period
         if 'initial_grace_period' not in self.config:
             raise QueryVizError("'initial_grace_period' is required")
+        
+        # Intervals specified in the "10m" format can now be parsed
+        self.config['interval'] = self._parse_interval(self.config['interval'])
+        self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
+        self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
     
     def setup_connections(self):
         """Setup database connections"""
@@ -230,15 +235,8 @@ class QueryViz:
         """Test all database connections before starting main loop"""
         print("Testing connections...")
         
-        failed_connections_interval = QueryConfig(
-            {'interval': self.config['failed_connections_interval']}, 
-            None, None
-        )._parse_interval(self.config['failed_connections_interval'])
-        
-        initial_grace_period = QueryConfig(
-            {'interval': self.config['initial_grace_period']}, 
-            None, None
-        )._parse_interval(self.config['initial_grace_period'])
+        failed_connections_interval = self.config['failed_connections_interval']
+        initial_grace_period = self.config['initial_grace_period']
         
         start_time = time.time()
         
@@ -276,10 +274,7 @@ class QueryViz:
     
     def retry_failed_connections(self):
         """Periodically retry failed connections"""
-        failed_connections_interval = QueryConfig(
-            {'interval': self.config['failed_connections_interval']}, 
-            None, None
-        )._parse_interval(self.config['failed_connections_interval'])
+        failed_connections_interval = self.config['failed_connections_interval']
         
         while self.running:
             time.sleep(failed_connections_interval)
@@ -304,6 +299,9 @@ class QueryViz:
         
         for i, query_config in enumerate(self.config['queries']):
             query = QueryConfig(query_config, self.default_connection, global_interval)
+            
+            # Parse query interval
+            query.interval = self._parse_interval(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
