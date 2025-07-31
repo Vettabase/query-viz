@@ -484,10 +484,7 @@ class QueryViz:
             data_file = file_info['filename']
             
             title = query.description if query.description else query.name
-            if i == 0:
-                plot_lines.append(f"plot '{data_file}' using 1:2 with {plot_config['point_type']} linestyle {i+1} title '{title}'")
-            else:
-                plot_lines.append(f"     '{data_file}' using 1:2 with {plot_config['point_type']} linestyle {i+1} title '{title}'")
+            plot_lines.append(f"plot '{data_file}' using 1:2 with {plot_config['point_type']} linestyle {i+1} title '{title}'")
         
         # Replace template variables
         script_content = template.replace('{{TIMESTAMP}}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -498,7 +495,7 @@ class QueryViz:
         script_content = script_content.replace('{{YLABEL}}', plot_config['ylabel'])
         script_content = script_content.replace('{{KEY_POSITION}}', plot_config['key_position'])
         script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
-        script_content = script_content.replace('{{PLOT_LINES}}', ' \\\n'.join(plot_lines))
+        script_content = script_content.replace('{{PLOT_LINES}}', '\n'.join(plot_lines))
         
         # Write script file
         script_file = 'current_plot.plt'
