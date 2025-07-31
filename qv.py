@@ -118,7 +118,8 @@ class QueryViz:
         if isinstance(interval_str, (int, float)):
             return float(interval_str)
         
-        interval_str = str(interval_str).strip()
+        # ignore all space-like characters
+        interval_str = str(interval_str).translate(str.maketrans('', '', ' \t\n\r\f\v'))
         
         # Extract numeric part and unit
         if interval_str[-1].isalpha():

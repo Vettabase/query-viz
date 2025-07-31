@@ -43,8 +43,7 @@ plot:
   point_type: 'linespoints'
 
 # Global interval between queries. By default, the interval is in seconds.
-# A time unit can be specified with a suffix: s for seconds, m for minutes,
-# h for hours.
+# For a format explanation, see below.
 # This interval doesn't apply to failed connections.
 interval: 10s
 
@@ -52,8 +51,7 @@ interval: 10s
 db_connection_timeout_seconds: 2
 
 # Interval between attempts to establish a previously failed connection.
-# A time unit can be specified with a suffix: s for seconds, m for minutes,
-# h for hours.
+# For a format explanation, see below.
 failed_connections_interval: 1m
 
 # During startup, we might want to allow test databases some time to start.
@@ -61,12 +59,28 @@ failed_connections_interval: 1m
 # establish connections.
 # If the grace period passes and we didn't manage to establish at least one
 # connection, the applicaiton exits.
-# A time unit can be specified with a suffix: s for seconds, m for minutes,
-# h for hours.
+# For a format explanation, see below.
 initial_grace_period: 1m
 
 # During the grace period, failed connections are retried repeatedly,
 # but this interval is used rather than failed_connections_interval.
-# A time unit can be specified with a suffix: s for seconds, m for minutes,
-# h for hours.
+# For a format explanation, see below.
 grace_period_retry_interval: 5s
+
+# Timeouts that don't include a time unit in their name can be specified
+# in the following format:
+#   <num>[unit]
+# Examples:
+#   1m      - 1 minute
+#   0.5m    - 30 seconds
+#   10s     - 10 seconds
+#   10 s    - 10 seconds
+#   10      - 10 seconds
+# num can be an integer or a float.
+# unit can be one of the following:
+#   s = seconds
+#   m = minutes
+#   h = hours
+#   d = days
+#   w = weeks
+# Space-like characters are ignored.
