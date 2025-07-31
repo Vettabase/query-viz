@@ -40,7 +40,7 @@ services:
 
   mariadb:
     image: mariadb:11.8
-    container_name: qv-mariadb
+    container_name: qv-test-mariadb
     environment:
       - MYSQL_ROOT_PASSWORD=rSecret
       - MYSQL_DATABASE=test_data
