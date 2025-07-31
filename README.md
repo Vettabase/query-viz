@@ -2,7 +2,7 @@
 A tool to generate real-time charts using GNU Plot.
 
 
-## Configuration
+## Configuration (with Docker Compose)
 
 Create the configuration file:
 
@@ -13,11 +13,17 @@ cp config.yaml.template config.yaml
 Then, edit the configuration file. The file contains comments that explain the meaning
 of the various settings.
 
-Now you can start the containers with Docker Compose:
+Now you can start the containers with our helper scripts
+(note that Docker Compose is required):
 
 ```
-cd docker
-docker-compose up -d
+COMPOSE_PROFILES=default docker/rebuild.sh
+```
+
+To also create a test MariaDB container:
+
+```
+COMPOSE_PROFILES=default,mariadb docker/rebuild.sh
 ```
 
 Now Query Viz should start to collect data and compose charts.
