@@ -52,3 +52,10 @@ interval: 10s
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.
 failed_connections_interval: 1m
+
+# Maximum time to retry failed connections during initial startup.
+# After the initial grace period, if no connection is working the application
+# will exit.
+# A time unit can be specified with a suffix: s for seconds, m for minutes,
+# h for hours.
+initial_grace_period: 5m

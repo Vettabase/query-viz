@@ -212,6 +212,10 @@ class QueryViz:
         # Validate failed connections interval
         if 'failed_connections_interval' not in self.config:
             raise QueryVizError("'failed_connections_interval' is required")
+
+        # Validate initial grace period
+        if 'initial_grace_period' not in self.config:
+            raise QueryVizError("'initial_grace_period' is required")
     
     def setup_connections(self):
         """Setup database connections"""
@@ -226,30 +230,49 @@ class QueryViz:
         """Test all database connections before starting main loop"""
         print("Testing connections...")
         
-        failed_connections = 0
-        total_connections = len(self.connections)
+        failed_connections_interval = QueryConfig(
+            {'interval': self.config['failed_connections_interval']}, 
+            None, None
+        )._parse_interval(self.config['failed_connections_interval'])
         
-        for conn_name, connection in self.connections.items():
-            try:
-                connection.connect()
-                print(f"Connection '{conn_name}': Success")
-                # Keep connection open for reuse
-            except QueryVizError as e:
-                print(f"Connection '{conn_name}': Fail")
-                failed_connections += 1
+        initial_grace_period = QueryConfig(
+            {'interval': self.config['initial_grace_period']}, 
+            None, None
+        )._parse_interval(self.config['initial_grace_period'])
         
-        if failed_connections > 0:
-            print(f"{failed_connections}/{total_connections} connections are not working")
+        start_time = time.time()
         
-        if failed_connections == total_connections:
-            print("Aborting")
-            # Close any connections that might have been opened
-            for conn in self.connections.values():
-                conn.close()
-            return False
-        else:
-            print("Execution will continue")
-            return True
+        while True:
+            failed_connections = 0
+            total_connections = len(self.connections)
+            
+            for conn_name, connection in self.connections.items():
+                try:
+                    connection.connect()
+                    print(f"Connection '{conn_name}': Success")
+                    # Keep connection open for reuse
+                except QueryVizError as e:
+                    print(f"Connection '{conn_name}': Fail")
+                    failed_connections += 1
+            
+            if failed_connections > 0:
+                print(f"{failed_connections}/{total_connections} connections are not working")
+            
+            if failed_connections == 0:
+                print("Execution will continue")
+                return True
+            
+            # Check if grace period has expired
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= initial_grace_period:
+                print("Aborting")
+                # Close any connections that might have been opened
+                for conn in self.connections.values():
+                    conn.close()
+                return False
+            
+            # Wait before retrying
+            time.sleep(failed_connections_interval)
     
     def retry_failed_connections(self):
         """Periodically retry failed connections"""
