@@ -54,6 +54,29 @@
             justify-content: space-between;
             align-items: center;
         }
+        .left-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .auto-refresh-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 14px;
+        }
+        input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
         button {
             background-color: #3498db;
             color: white;
@@ -61,6 +84,9 @@
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
         }
     </style>
 </head>
@@ -71,10 +97,25 @@
         </header>
         
         <div class="controls">
-            <div>
-                Last updated: <span id="update-time">Never</span>
+            <div class="left-controls">
+                <div>
+                    Last updated: <span id="update-time">Never</span>
+                </div>
+                <div class="auto-refresh-control">
+                    <label for="auto-refresh-select">Auto-refresh every</label>
+                    <select id="auto-refresh-select">
+                        <option value="10000">10 seconds</option>
+                        <option value="30000" selected>30 seconds</option>
+                        <option value="60000">1 minute</option>
+                        <option value="600000">10 minutes</option>
+                        <option value="3600000">1 hour</option>
+                        <option value="0">Disable auto-refresh</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="number" id="custom-interval" placeholder="seconds" min="1" style="display: none; width: 80px; margin-left: 8px;">
+                </div>
             </div>
-            <button id="refresh-btn">Refresh</button>
+            <button id="refresh-btn">Refresh Now</button>
         </div>
         
         <div class="chart-container">
@@ -91,12 +132,30 @@
             const updateTime = document.getElementById('update-time');
             const refreshBtn = document.getElementById('refresh-btn');
             const errorMessage = document.getElementById('error-message');
+            const autoRefreshSelect = document.getElementById('auto-refresh-select');
+            const customIntervalInput = document.getElementById('custom-interval');
+            
+            let refreshInterval = null;
             
             // Function to refresh the chart
             function refreshChart() {
                 const timestamp = new Date().getTime();
                 chartImage.src = `/plots/mariadb_metrics.png?t=${timestamp}`;
                 updateTime.textContent = new Date().toLocaleTimeString();
+            }
+            
+            // Function to set up auto-refresh based on selected interval
+            function setupAutoRefresh(intervalMs) {
+                // Clear existing interval
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+                
+                // Set up new interval if not disabled
+                if (intervalMs > 0) {
+                    refreshInterval = setInterval(refreshChart, intervalMs);
+                }
             }
             
             // Handle image load error
@@ -111,14 +170,34 @@
                 errorMessage.style.display = 'none';
             });
             
-            // Initial load
-            refreshChart();
+            // Handle auto-refresh dropdown change
+            autoRefreshSelect.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    customIntervalInput.style.display = 'inline-block';
+                    customIntervalInput.focus();
+                } else {
+                    customIntervalInput.style.display = 'none';
+                    const selectedInterval = parseInt(this.value);
+                    setupAutoRefresh(selectedInterval);
+                }
+            });
             
-            // Set up auto-refresh (every 30 seconds)
-            setInterval(refreshChart, 30000);
+            // Handle custom interval input
+            customIntervalInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const seconds = parseInt(this.value);
+                    if (seconds && seconds > 0) {
+                        setupAutoRefresh(seconds * 1000);
+                    }
+                }
+            });
             
             // Manual refresh button
             refreshBtn.addEventListener('click', refreshChart);
+            
+            // Initial setup
+            refreshChart();
+            setupAutoRefresh(parseInt(autoRefreshSelect.value));
         });
     </script>
 </body>
