@@ -61,3 +61,9 @@ failed_connections_interval: 1m
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.
 initial_grace_period: 1m
+
+# During the grace period, failed connections are retried repeatedly,
+# but this interval is used rather than failed_connections_interval.
+# A time unit can be specified with a suffix: s for seconds, m for minutes,
+# h for hours.
+grace_period_retry_interval: 5s

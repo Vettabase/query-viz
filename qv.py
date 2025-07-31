@@ -225,10 +225,15 @@ class QueryViz:
         if 'initial_grace_period' not in self.config:
             raise QueryVizError("'initial_grace_period' is required")
         
+        # Validate grace period retry interval
+        if 'grace_period_retry_interval' not in self.config:
+            raise QueryVizError("'grace_period_retry_interval' is required")
+        
         # Intervals specified in the "10m" format can now be parsed
         self.config['interval'] = self._parse_interval(self.config['interval'])
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
+        self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
     
     def setup_connections(self):
         """Setup database connections"""
@@ -243,7 +248,7 @@ class QueryViz:
         """Test all database connections before starting main loop"""
         print("Testing connections...")
         
-        failed_connections_interval = self.config['failed_connections_interval']
+        grace_period_retry_interval = self.config['grace_period_retry_interval']
         initial_grace_period = self.config['initial_grace_period']
         
         start_time = time.time()
@@ -278,7 +283,7 @@ class QueryViz:
                 return False
             
             # Wait before retrying
-            time.sleep(failed_connections_interval)
+            time.sleep(grace_period_retry_interval)
     
     def retry_failed_connections(self):
         """Periodically retry failed connections"""
