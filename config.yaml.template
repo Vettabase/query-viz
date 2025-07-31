@@ -53,9 +53,11 @@ interval: 10s
 # h for hours.
 failed_connections_interval: 1m
 
-# Maximum time to retry failed connections during initial startup.
-# After the initial grace period, if no connection is working the application
-# will exit.
+# During startup, we might want to allow test databases some time to start.
+# We call this the connections grace period. During this period we try to
+# establish connections.
+# If the grace period passes and we didn't manage to establish at least one
+# connection, the applicaiton exits.
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.
 initial_grace_period: 1m
