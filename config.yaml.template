@@ -48,6 +48,9 @@ plot:
 # This interval doesn't apply to failed connections.
 interval: 10s
 
+# A single database connection timeout, in seconds.
+db_connection_timeout_seconds: 2
+
 # Interval between attempts to establish a previously failed connection.
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.

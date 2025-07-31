@@ -28,7 +28,7 @@ class QueryVizError(Exception):
 class DatabaseConnection:
     """Manages database connections"""
     
-    def __init__(self, config):
+    def __init__(self, config, db_timeout):
         self.name = config['name']
         self.dbms = config['dbms']
         self.host = config['host']
@@ -37,6 +37,7 @@ class DatabaseConnection:
         self.password = config['password']
         self.connection = None
         self.status = None
+        self.db_timeout = db_timeout
         
     def connect(self):
         """Establish database connection"""
@@ -46,7 +47,8 @@ class DatabaseConnection:
                     host=self.host,
                     port=self.port,
                     user=self.user,
-                    password=self.password
+                    password=self.password,
+                    connect_timeout=self.db_timeout
                 )
                 print(f"Connected to {self.dbms} at {self.host}:{self.port}")
                 self.status = SUCCESS
@@ -229,6 +231,14 @@ class QueryViz:
         if 'grace_period_retry_interval' not in self.config:
             raise QueryVizError("'grace_period_retry_interval' is required")
         
+        # Validate database connection timeout
+        if 'db_connection_timeout_seconds' not in self.config:
+            raise QueryVizError("'db_connection_timeout_seconds' is required")
+        
+        timeout = self.config['db_connection_timeout_seconds']
+        if not isinstance(timeout, int) or timeout <= 0:
+            raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
+        
         # Intervals specified in the "10m" format can now be parsed
         self.config['interval'] = self._parse_interval(self.config['interval'])
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
@@ -237,8 +247,9 @@ class QueryViz:
     
     def setup_connections(self):
         """Setup database connections"""
+        db_timeout = self.config['db_connection_timeout_seconds']
         for conn_config in self.config['connections']:
-            conn = DatabaseConnection(conn_config)
+            conn = DatabaseConnection(conn_config, db_timeout)
             self.connections[conn_config['name']] = conn
         
         # Set default connection
