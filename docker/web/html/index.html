@@ -124,7 +124,7 @@
             <div class="right-controls">
                 <div class="auto-refresh-control">
                     <label for="auto-refresh-select">Auto-refresh every</label>
-                    <select id="auto-refresh-select">
+                    <select id="auto-refresh-select" aria-label="Set automatic refresh interval">
                         <option value="10000">10 seconds</option>
                         <option value="30000" selected>30 seconds</option>
                         <option value="60000">1 minute</option>
@@ -133,9 +133,12 @@
                         <option value="0">Disable auto-refresh</option>
                         <option value="other">Other</option>
                     </select>
-                    <input type="number" id="custom-interval" placeholder="seconds" min="1" style="display: none; width: 80px; margin-left: 8px;">
+                    <input type="number" id="custom-interval" placeholder="seconds" min="1" style="display: none; width: 80px; margin-left: 8px;"
+                        aria-labelledby="auto-refresh-select"
+                        aria-describedby="custom-help">
+                    <span id="custom-help" class="sr-only">Enter refresh interval in seconds</span>
                 </div>
-                <button id="refresh-btn">Refresh Now</button>
+                <button id="refresh-btn" aria-label="Manually refresh the chart data">Refresh Now</button>
             </div>
         </div>
         
