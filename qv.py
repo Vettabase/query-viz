@@ -26,7 +26,7 @@ class QueryVizError(Exception):
     pass
 
 class DatabaseConnection:
-    """Manages database connections"""
+    """Base class for database connections"""
     
     def __init__(self, config, db_timeout):
         self.name = config['name']
@@ -35,37 +35,54 @@ class DatabaseConnection:
         self.port = config['port']
         self.user = config['user']
         self.password = config['password']
-        self.connection = None
         self.status = None
         self.db_timeout = db_timeout
         
     def connect(self):
-        """Establish database connection"""
-        if self.dbms == 'mariadb':
-            try:
-                self.connection = mariadb.connect(
-                    host=self.host,
-                    port=self.port,
-                    user=self.user,
-                    password=self.password,
-                    connect_timeout=self.db_timeout
-                )
-                print(f"Connected to {self.dbms} at {self.host}:{self.port}")
-                self.status = SUCCESS
-            except mariadb.Error as e:
-                self.status = FAIL
-                raise QueryVizError(f"Failed to connect to {self.host}: {e}")
-        else:
-            self.status = FAIL
-            raise QueryVizError(f"Unsupported DBMS: {self.dbms}")
+        """Establish database connection (abstract method)"""
+        raise NotImplementedError("connect() is an abstract method")
     
     def execute_query(self, query):
-        """Execute a query and return results"""
-        if not self.connection:
+        """Execute a query and return results (abstract method)"""
+        raise NotImplementedError("execute_query() is an abstract method")
+    
+    def close(self):
+        """Close database connection (abstract method)"""
+        raise NotImplementedError("close() is an abstract method")
+
+class MariaDBConnection(DatabaseConnection):
+    """MariaDB database connection, with connection pooling support"""
+    
+    def __init__(self, config, db_timeout):
+        super().__init__(config, db_timeout)
+        self.pool = None
+        
+    def connect(self):
+        """Create connection pool"""
+        try:
+            self.pool = mariadb.ConnectionPool(
+                pool_name=f"pool_{self.name}",
+                pool_size=5,  # Adjustable
+                host=self.host,
+                port=self.port,
+                user=self.user,
+                password=self.password,
+                connect_timeout=self.db_timeout
+            )
+            print(f"Created connection pool for {self.dbms} at {self.host}:{self.port}")
+            self.status = SUCCESS
+        except mariadb.Error as e:
+            self.status = FAIL
+            raise QueryVizError(f"Failed to create connection pool for {self.host}: {e}")
+    
+    def execute_query(self, query):
+        """Get connection from pool, execute query, return connection"""
+        if not self.pool:
             self.connect()
         
+        connection = self.pool.get_connection()
         try:
-            cursor = self.connection.cursor()
+            cursor = connection.cursor()
             cursor.execute(query)
             columns = [desc[0] for desc in cursor.description]
             results = cursor.fetchall()
@@ -73,11 +90,13 @@ class DatabaseConnection:
             return columns, results
         except mariadb.Error as e:
             raise QueryVizError(f"Query execution failed on {self.name}: {e}")
+        finally:
+            connection.close()  # Returns to pool, doesn't actually close
     
     def close(self):
-        """Close database connection"""
-        if self.connection:
-            self.connection.close()
+        """Close connection pool"""
+        if self.pool:
+            self.pool = None
 
 class QueryConfig:
     """Represents a query configuration"""
@@ -250,7 +269,10 @@ class QueryViz:
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
         for conn_config in self.config['connections']:
-            conn = DatabaseConnection(conn_config, db_timeout)
+            if conn_config['dbms'] == 'mariadb':
+                conn = MariaDBConnection(conn_config, db_timeout)
+            else:
+                raise QueryVizError(f"Unsupported DBMS: {conn_config['dbms']}")
             self.connections[conn_config['name']] = conn
         
         # Set default connection
@@ -485,7 +507,6 @@ class QueryViz:
             
             title = query.description if query.description else query.name
             plot_lines.append(f"'{data_file}' using 1:2 with {plot_config['point_type']} linestyle {i+1} title '{title}'")
-
         
         # Replace template variables
         script_content = template.replace('{{TIMESTAMP}}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
