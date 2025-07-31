@@ -52,12 +52,17 @@
             margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
         .left-controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+        }
+        .right-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
         }
         .auto-refresh-control {
             display: flex;
@@ -101,6 +106,8 @@
                 <div>
                     Last updated: <span id="update-time">Never</span>
                 </div>
+            </div>
+            <div class="right-controls">
                 <div class="auto-refresh-control">
                     <label for="auto-refresh-select">Auto-refresh every</label>
                     <select id="auto-refresh-select">
@@ -114,8 +121,8 @@
                     </select>
                     <input type="number" id="custom-interval" placeholder="seconds" min="1" style="display: none; width: 80px; margin-left: 8px;">
                 </div>
+                <button id="refresh-btn">Refresh Now</button>
             </div>
-            <button id="refresh-btn">Refresh Now</button>
         </div>
         
         <div class="chart-container">
