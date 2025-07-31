@@ -58,4 +58,4 @@ failed_connections_interval: 1m
 # will exit.
 # A time unit can be specified with a suffix: s for seconds, m for minutes,
 # h for hours.
-initial_grace_period: 5m
+initial_grace_period: 1m
