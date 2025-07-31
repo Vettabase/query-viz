@@ -271,6 +271,7 @@ class QueryViz:
                         print("fail. WON'T RETRY")
                     else:
                         print("fail. Will retry")
+                    print(f"    Reason: {e}")
             
             if failed_connections > 0:
                 print(f"{failed_connections}/{total_connections} connections are not working")
