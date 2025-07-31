@@ -12,6 +12,12 @@ services:
       - qv-files:/app/output
       - ../config.yaml:/app/config.yaml:ro
     restart: on-failure
+    networks:
+      - qv
+    profiles:
+      - default
+      - mariadb
+      - full
     
   qv-web:
     build:
@@ -25,6 +31,34 @@ services:
     restart: unless-stopped
     depends_on:
       - qv-generator
+    networks:
+      - qv
+    profiles:
+      - default
+      - mariadb
+      - full
+
+  mariadb:
+    image: mariadb:11.4
+    container_name: qv-mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=rSecret
+      - MYSQL_DATABASE=test_data
+      - MYSQL_USER=queryviz
+      - MYSQL_PASSWORD=S3cretz
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - qv
+    profiles:
+      - mariadb
+      - full
+    command: --max-connections=200 --innodb-buffer-pool-size=256M
+
+networks:
+  qv:
+    external: true
 
 volumes:
   qv-files:

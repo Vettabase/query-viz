@@ -6,4 +6,7 @@ if [ ! -d "docker" ]; then
   exit 2
 fi
 
+# create the network manually to give it an arbitrary name
+docker network create --driver=bridge qv 2> /dev/null
+
 docker-compose --project-directory docker -f docker/docker-compose.yml up -d --build
