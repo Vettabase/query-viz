@@ -39,7 +39,7 @@ services:
       - full
 
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:11.8
     container_name: qv-mariadb
     environment:
       - MYSQL_ROOT_PASSWORD=rSecret
