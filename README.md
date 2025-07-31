@@ -34,8 +34,23 @@ http://localhost:8080
 
 ## Usage Notes
 
+If you only want to generate GNU Plot charts and don't need a ready-made
+interface, you don't need the `qv-web` container.
+
 If you modify the configuration file, you should restart Query-Viz.
 In the Docker environment, you should recreate the containers.
+
+To only start the containers if they're not already up:
+
+```
+COMPOSE_PROFILES=default docker/start.sh
+```
+
+To destroy the containers and volumes:
+
+```
+COMPOSE_PROFILES=default docker/stop.sh
+```
 
 
 ## Copyright and License
