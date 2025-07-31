@@ -259,12 +259,18 @@ class QueryViz:
             
             for conn_name, connection in self.connections.items():
                 try:
+                    print(f"Connection attempt to '{connection.host}'... ", end="")
                     connection.connect()
-                    print(f"Connection '{conn_name}': Success")
+                    print("success")
                     # Keep connection open for reuse
                 except QueryVizError as e:
-                    print(f"Connection '{conn_name}': Fail")
                     failed_connections += 1
+                    # Check if grace period has expired to determine retry message
+                    elapsed_time = time.time() - start_time
+                    if elapsed_time >= initial_grace_period:
+                        print("fail. WON'T RETRY")
+                    else:
+                        print("fail. Will retry")
             
             if failed_connections > 0:
                 print(f"{failed_connections}/{total_connections} connections are not working")
