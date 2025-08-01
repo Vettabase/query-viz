@@ -101,3 +101,41 @@ def test_mariadb_query_with_no_connection(mariadb_config):
     with pytest.raises(QueryVizError, match=r"\[mariadb\] No connection.*"):
         conn.execute_query('SELECT 1;')
     assert conn.pool is None
+
+
+@pytest.mark.dependency(depends=["test_mariadb_connection"])
+@pytest.mark.integration
+def test_mariadb_query_with_syntax_error(mariadb_config):
+    """Test that MariaDBConnection raises an error for invalid SQL syntax,
+    and this error contains the MariaDB error number (1064)."""
+    # Use unique name for this test
+    config = mariadb_config.copy()
+    config['name'] = inspect.currentframe().f_code.co_name
+    
+    conn = MariaDBConnection(config, db_timeout=5)
+    conn.connect()
+    
+    with pytest.raises(QueryVizError, match=r"\[mariadb\] .*1064.*"):
+        conn.execute_query('wrong syntax;')
+    
+    conn.close()
+
+
+@pytest.mark.dependency(depends=["test_mariadb_connection"])
+@pytest.mark.integration
+def test_mariadb_query(mariadb_config):
+    """Test that MariaDBConnection can execute a simple query successfully."""
+    # Use unique name for this test
+    config = mariadb_config.copy()
+    config['name'] = inspect.currentframe().f_code.co_name
+    
+    conn = MariaDBConnection(config, db_timeout=5)
+    conn.connect()
+    
+    columns, results = conn.execute_query('SELECT 1 AS one;')
+    
+    assert columns == ['one']
+    assert len(results) == 1
+    assert results[0] == (1,)
+    
+    conn.close()
