@@ -27,7 +27,7 @@ def test_mariadb_connection_wrong_credentials(mariadb_config):
     """Test that MariaDBConnection fails with wrong credentials."""
     # Use wrong password
     config = mariadb_config.copy()
-    config['name'] = current_function_name
+    config['name'] = inspect.currentframe().f_code.co_name
     config['password'] = 'wrong'
     
     conn = MariaDBConnection(config, db_timeout=5)
@@ -44,7 +44,7 @@ def test_mariadb_connection(mariadb_config):
     """Test that MariaDBConnection can establish a connection."""
     # Use unique name for this test
     config = mariadb_config.copy()
-    config['name'] = current_function_name
+    config['name'] = inspect.currentframe().f_code.co_name
     
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
@@ -61,7 +61,7 @@ def test_mariadb_connection_close(mariadb_config):
     """Test that MariaDBConnection can properly close its connection pool."""
     # Use unique name for this test
     config = mariadb_config.copy()
-    config['name'] = current_function_name
+    config['name'] = inspect.currentframe().f_code.co_name
     
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
