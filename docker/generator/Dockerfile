@@ -61,7 +61,8 @@ COPY pytest.ini .
 COPY conftest.py .
 COPY tests/ ./tests/
 
-CMD ["pytest", "-v"]
+# run pytest and generate a coverage report
+CMD ["pytest", "-v", "--cov=query_viz", "--cov-report=term-missing"]
 
 
 # Stage 3: Production application image
