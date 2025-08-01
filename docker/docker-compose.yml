@@ -10,7 +10,7 @@
 # here and then we pass them to the relevant containers
 x-mariadb-env: &mariadb-env
   MYSQL_ROOT_PASSWORD: rSecret
-  MYSQL_DATABASE: test_data
+  MYSQL_DATABASE:
   MYSQL_USER: queryviz
   MYSQL_PASSWORD: S3cretz
 
