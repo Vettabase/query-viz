@@ -74,6 +74,7 @@ def test_mariadb_nothing_to_close(mariadb_config):
     config = mariadb_config.copy()
     config['name'] = inspect.currentframe().f_code.co_name
 
+    conn = MariaDBConnection(config, db_timeout=5)
     with pytest.raises(QueryVizError, match=r"\[mariadb\] No connection to close.*"):
         conn.close()
     assert conn.pool is None
