@@ -1,0 +1,45 @@
+# Git files
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Testing artifacts
+.pytest_cache
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local config (users create from template)
+config.yaml
+
+# Documentation
+README.md
+TO-DO.md
+LICENSE
+
+# Output directory (created at runtime)
+output/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
