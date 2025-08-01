@@ -54,4 +54,5 @@ class MariaDBConnection(DatabaseConnection):
     def close(self):
         """Close connection pool"""
         if self.pool:
-            self.pool = None
+            raise QueryVizError(f"[mariadb] No connection to close")
+        self.pool = None
