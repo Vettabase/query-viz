@@ -110,7 +110,8 @@ def test_concrete_methods_work(connection_config):
 
 @pytest.mark.unit
 def test_status_constants():
-    """Test that status constants are properly defined"""
+    """Test that status constants are defined"""
+    import query_viz.database.base_module
     assert hasattr(base_module, 'SUCCESS')
     assert hasattr(base_module, 'FAIL')
 
