@@ -26,11 +26,11 @@ class MariaDBConnection(DatabaseConnection):
                 password=self.password,
                 connect_timeout=self.db_timeout
             )
-            print(f"Created connection pool for {self.dbms} at {self.host}:{self.port}")
+            print(f"[mariadb] Created connection pool to {self.host}:{self.port}")
             self.status = SUCCESS
         except mariadb.Error as e:
             self.status = FAIL
-            raise QueryVizError(f"Failed to create connection pool for {self.host}: {e}")
+            raise QueryVizError(f"[mariadb] Failed to create connection pool for {self.host}: {e}")
     
     def execute_query(self, query):
         """Get connection from pool, execute query, return connection"""
@@ -46,7 +46,7 @@ class MariaDBConnection(DatabaseConnection):
             cursor.close()
             return columns, results
         except mariadb.Error as e:
-            raise QueryVizError(f"Query execution failed on {self.name}: {e}")
+            raise QueryVizError(f"[mariadb] Query execution failed on {self.name}: {e}")
         finally:
             # Return connection to pool
             connection.close()

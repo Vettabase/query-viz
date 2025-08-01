@@ -32,7 +32,7 @@ def test_mariadb_connection_wrong_credentials(mariadb_config):
     
     conn = MariaDBConnection(config, db_timeout=5)
     
-    with pytest.raises(QueryVizError, match="Failed to create connection pool"):
+    with pytest.raises(QueryVizError, match="[mariadb] Failed to create connection pool"):
         conn.connect()
     
     assert conn.status == FAIL
