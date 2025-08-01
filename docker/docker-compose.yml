@@ -72,7 +72,6 @@ services:
       - mariadb
       - test
       - full
-    command: --max-connections=200 --innodb-buffer-pool-size=256M
 
 networks:
   qv:
