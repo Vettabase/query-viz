@@ -59,9 +59,14 @@ Query-Viz' directory structure is the following:
 
 ```
 query-viz/
-├── qv.py                      # Main entry point (simplified)
-├── config.yaml                # Configuration file
+├── qv.py                      # Main entry point
+├── config.yaml.template       # Configuration file template
+├── config.yaml                # Configuration file (you should create it!)
 ├── template.plt               # GNU Plot template
+├── requirements.txt           # Python dependencies (production)
+├── requirements-test.txt      # Python dependencies (tests)
+├── pytest.ini                 # pytest configuration
+├── conftest.py                # Test fixtures
 ├── query_viz/                 # Main package
 │   ├── __init__.py            # Package initialization
 │   ├── core.py                # QueryViz main class
@@ -72,6 +77,7 @@ query-viz/
 │   │   └── mariadb.py         # MariaDBConnection implementation
 │   └── exceptions.py          # Custom exceptions
 ├── output/                    # Output directory, created by the program
+├── tests/                     # Automated tests
 └── docker/                    # Files to build Docker containers
     ├── generator              # Generator container (qv-generator)
     ├── web                    # Web application and its container (qv-web)
