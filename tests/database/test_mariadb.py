@@ -1,9 +1,11 @@
 """Tests for MariaDBConnection."""
 
+import inspect
 import os
 import pytest
 from query_viz.database.mariadb import MariaDBConnection
-from query_viz.database.base import SUCCESS
+from query_viz.database.base import SUCCESS, FAIL
+from query_viz.exceptions import QueryVizError
 
 
 @pytest.fixture
@@ -20,13 +22,29 @@ def mariadb_config():
     }
 
 
+@pytest.mark.integration
+def test_mariadb_connection_wrong_credentials(mariadb_config):
+    """Test that MariaDBConnection fails with wrong credentials."""
+    # Use wrong password
+    config = mariadb_config.copy()
+    config['name'] = current_function_name
+    config['password'] = 'wrong'
+    
+    conn = MariaDBConnection(config, db_timeout=5)
+    
+    with pytest.raises(QueryVizError, match="Failed to create connection pool"):
+        conn.connect()
+    
+    assert conn.status == FAIL
+
+
 @pytest.mark.dependency()
 @pytest.mark.integration
 def test_mariadb_connection(mariadb_config):
     """Test that MariaDBConnection can establish a connection."""
     # Use unique name for this test
     config = mariadb_config.copy()
-    config['name'] = 'test_mariadb_connection'
+    config['name'] = current_function_name
     
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
@@ -43,7 +61,7 @@ def test_mariadb_connection_close(mariadb_config):
     """Test that MariaDBConnection can properly close its connection pool."""
     # Use unique name for this test
     config = mariadb_config.copy()
-    config['name'] = 'test_mariadb_close'
+    config['name'] = current_function_name
     
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
