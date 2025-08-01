@@ -99,5 +99,5 @@ def test_mariadb_query_with_no_connection(mariadb_config):
 
     conn = MariaDBConnection(config, db_timeout=5)
     with pytest.raises(QueryVizError, match=r"\[mariadb\] No connection.*"):
-        conn.query('SELECT 1;')
+        conn.execute_query('SELECT 1;')
     assert conn.pool is None
