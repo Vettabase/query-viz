@@ -3,7 +3,7 @@
 #   - mariadb         A MariaDB service for manual tests
 #   - test            A container for automated tests, plus
 #                     any database container used by the tests
-#  - full             All testing and production services
+#   - full            All testing and production services
 
 
 # To test databases, we set their authentication variables
