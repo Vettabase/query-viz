@@ -53,6 +53,35 @@ COMPOSE_PROFILES=default docker/stop.sh
 ```
 
 
+## Directory Tree
+
+Query-Viz' directory structure is the following:
+
+```
+query-viz/
+├── qv.py                      # Main entry point (simplified)
+├── config.yaml                # Configuration file
+├── template.plt               # GNU Plot template
+├── query_viz/                 # Main package
+│   ├── __init__.py            # Package initialization
+│   ├── core.py                # QueryViz main class
+│   ├── query.py               # QueryConfig class
+│   ├── database/              # Database connections package
+│   │   ├── __init__.py        # Database package init
+│   │   ├── base.py            # DatabaseConnection base class
+│   │   └── mariadb.py         # MariaDBConnection implementation
+│   └── exceptions.py          # Custom exceptions
+├── output/                    # Output directory, created by the program
+└── docker/                    # Files to build Docker containers
+    ├── generator              # Generator container (qv-generator)
+    ├── web                    # Web application and its container (qv-web)
+    ├── docker-compose.yml     # Docker Compose configuration, don't call directly
+    ├── start.sh               # Create Docker env
+    ├── rebuild.sh             # Recreate existing Docker env
+    └── stop.sh                # Stop and destroy Docker env
+```
+
+
 ## Copyright and License
 
 Copyright: Vettabase 2025
