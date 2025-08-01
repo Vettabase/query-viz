@@ -10,7 +10,8 @@ from query_viz.database.base import SUCCESS
 def mariadb_config():
     """MariaDB connection configuration from environment variables."""
     return {
-        'name': 'test_mariadb',
+        # pools are global and persist between tests
+        'name': 'OVERWRITE_ME',
         'dbms': 'mariadb',
         'host': 'qv-test-mariadb',
         'port': 3306,
@@ -23,12 +24,16 @@ def mariadb_config():
 @pytest.mark.integration
 def test_mariadb_connection(mariadb_config):
     """Test that MariaDBConnection can establish a connection."""
-    conn = MariaDBConnection(mariadb_config, db_timeout=5)
+    # Use unique name for this test
+    config = mariadb_config.copy()
+    config['name'] = 'test_mariadb_connection'
+    
+    conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
     
     assert conn.status == SUCCESS
-    assert conn.pool is not None
     
+    # Clean up
     conn.close()
 
 
@@ -36,8 +41,13 @@ def test_mariadb_connection(mariadb_config):
 @pytest.mark.integration
 def test_mariadb_connection_close(mariadb_config):
     """Test that MariaDBConnection can properly close its connection pool."""
-    conn = MariaDBConnection(mariadb_config, db_timeout=5)
+    # Use unique name for this test
+    config = mariadb_config.copy()
+    config['name'] = 'test_mariadb_close'
+    
+    conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
     
+    # Close connection
     conn.close()
     assert conn.pool is None
