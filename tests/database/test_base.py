@@ -111,8 +111,8 @@ def test_concrete_methods_work(connection_config):
 @pytest.mark.unit
 def test_status_constants():
     """Test that status constants are defined"""
-    assert hasattr(base, 'SUCCESS')
-    assert hasattr(base, 'FAIL')
+    assert SUCCESS is not None
+    assert FAIL is not None
 
 
 @pytest.mark.unit
