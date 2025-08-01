@@ -7,11 +7,14 @@ if [ ! -d "docker" ]; then
 fi
 
 # Make sure that all containers are stopped.
+# Pull from git.
 # Run the services in the "test" profile. This will run the tests.
 # Show the stdout of the stopped qv-test container.
 # Finally, stop all services that are still running.
 
 docker/stop.sh
+
+git pull
 
 docker network create --driver=bridge qv 2> /dev/null
 COMPOSE_PROFILES=test \
