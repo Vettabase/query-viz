@@ -48,10 +48,8 @@ def test_mariadb_connection(mariadb_config):
     
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
-    
     assert conn.status == SUCCESS
     
-    # Clean up
     conn.close()
 
 
@@ -66,6 +64,5 @@ def test_mariadb_connection_close(mariadb_config):
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
     
-    # Close connection
     conn.close()
     assert conn.pool is None
