@@ -43,11 +43,11 @@ services:
       - mariadb
       - full
 
-  qv-tests:
+  qv-test:
     build:
       context: ../
       dockerfile: docker/generator/Dockerfile
-      target: qv-gen-tests
+      target: qv-gen-test
     container_name: qv-tests
     profiles:
       - test

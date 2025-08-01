@@ -2,7 +2,7 @@
 # We create thes images:
 #   - qv-gen-base     Base environment
 #   - qv-gen-app      Daemonised application
-#   - qv-gen-tests    Run pytest and exit
+#   - qv-gen-test     Run pytest and exit
 
 
 # Stage 1: Base image with all system dependencies and application files
@@ -47,7 +47,7 @@ ENV IN_DOCKER=1
 
 
 # Stage 2: Test image with test dependencies and test files
-FROM qv-gen-base AS qv-gen-tests
+FROM qv-gen-base AS qv-gen-test
 
 LABEL org.opencontainers.image.title="Query-Viz Generator Tests"
 LABEL org.opencontainers.image.description="Query-Viz test image"
