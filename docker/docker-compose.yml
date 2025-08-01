@@ -1,11 +1,18 @@
+# We have the following profiles:
+#   - default         Only services needed for production
+#   - mariadb         A MariaDB service for manual tests
+#   - test            A container for automated tests, plus
+#                     any database container used by the tests
+#  - full             All testing and production services
+
+
 services:
   qv-generator:
     build: 
       context: ../
       dockerfile: docker/generator/Dockerfile
+      target: qv-gen-app
     container_name: qv-generator
-    environment:
-      - IN_DOCKER=1
     volumes:
       - qv-files:/app/output
       - ../config.yaml:/app/config.yaml:ro
@@ -36,6 +43,18 @@ services:
       - mariadb
       - full
 
+  qv-tests:
+    build:
+      context: ../
+      dockerfile: docker/generator/Dockerfile
+      target: qv-gen-tests
+    container_name: qv-tests
+    profiles:
+      - test
+      - full
+    networks:
+      - qv
+
   mariadb:
     image: mariadb:11.8
     container_name: qv-test-mariadb
@@ -51,6 +70,7 @@ services:
       - qv
     profiles:
       - mariadb
+      - test
       - full
     command: --max-connections=200 --innodb-buffer-pool-size=256M
 
