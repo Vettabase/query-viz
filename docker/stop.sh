@@ -7,3 +7,5 @@ if [ ! -d "docker" ]; then
 fi
 
 docker-compose -f docker/docker-compose.yml down
+
+docker network rm qv 2> /dev/null
