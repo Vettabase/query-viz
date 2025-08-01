@@ -64,6 +64,9 @@ services:
       - full
     networks:
       - qv
+    depends_on:
+      mariadb:
+        condition: service_healthy
 
   mariadb:
     image: mariadb:11.8
@@ -79,6 +82,12 @@ services:
       - mariadb
       - test
       - full
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+      start_period: 30s
 
 networks:
   qv:
