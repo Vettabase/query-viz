@@ -48,7 +48,8 @@ class MariaDBConnection(DatabaseConnection):
         except mariadb.Error as e:
             raise QueryVizError(f"Query execution failed on {self.name}: {e}")
         finally:
-            connection.close()  # Returns to pool, doesn't actually close
+            # Return connection to pool
+            connection.close()
     
     def close(self):
         """Close connection pool"""
