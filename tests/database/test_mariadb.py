@@ -22,6 +22,16 @@ def mariadb_config():
     }
 
 
+def test_mariadb_no_initial_status(mariadb_config):
+    """Test that MariaDBConnection status is None before we attempt to connect."""
+    # Use wrong password
+    config = mariadb_config.copy()
+    config['name'] = inspect.currentframe().f_code.co_name
+    
+    conn = MariaDBConnection(config, db_timeout=5)
+    assert conn.status is None
+
+
 @pytest.mark.integration
 def test_mariadb_connection_wrong_credentials(mariadb_config):
     """Test that MariaDBConnection fails with wrong credentials."""
