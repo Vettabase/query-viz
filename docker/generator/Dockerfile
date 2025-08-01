@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY qv.py .
 COPY template.plt .
+COPY query_viz/ ./query_viz/
 
 # Create output directory and set proper permissions
 RUN mkdir -p /app/output && chmod 755 /app/output
