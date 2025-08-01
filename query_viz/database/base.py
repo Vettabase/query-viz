@@ -2,13 +2,15 @@
 Base database connection class
 """
 
+from abc import ABC, abstractmethod
+
 # Global constants for connection status
 SUCCESS = "SUCCESS"
 FAIL = "FAIL"
 
 
-class DatabaseConnection:
-    """Base class for database connections"""
+class DatabaseConnection(ABC):
+    """Abstract class for database connections"""
     
     def __init__(self, config, db_timeout):
         self.name = config['name']
@@ -19,15 +21,18 @@ class DatabaseConnection:
         self.password = config['password']
         self.status = None
         self.db_timeout = db_timeout
-        
+    
+    @abstractmethod
     def connect(self):
-        """Establish database connection (abstract method)"""
-        raise NotImplementedError("connect() is an abstract method")
+        """Establish database connection"""
+        pass
     
+    @abstractmethod
     def execute_query(self, query):
-        """Execute a query and return results (abstract method)"""
-        raise NotImplementedError("execute_query() is an abstract method")
+        """Execute a query and return results"""
+        pass
     
+    @abstractmethod
     def close(self):
-        """Close database connection (abstract method)"""
-        raise NotImplementedError("close() is an abstract method")
+        """Close database connection"""
+        pass
