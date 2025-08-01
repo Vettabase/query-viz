@@ -12,7 +12,7 @@ fi
 # Show the stdout of the stopped qv-test container.
 # Finally, stop all services that are still running.
 
-COMPOSE_PROFILES=test docker/stop.sh
+COMPOSE_PROFILES=full docker/stop.sh
 
 git pull
 
@@ -22,4 +22,4 @@ COMPOSE_PROFILES=test \
 sleep 2
 docker logs qv-test
 
-COMPOSE_PROFILES=test docker/stop.sh
+COMPOSE_PROFILES=full docker/stop.sh
