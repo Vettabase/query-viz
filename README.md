@@ -84,7 +84,9 @@ query-viz/
     ├── docker-compose.yml     # Docker Compose configuration, don't call directly
     ├── start.sh               # Create Docker env
     ├── rebuild.sh             # Recreate existing Docker env
-    └── stop.sh                # Stop and destroy Docker env
+    ├── stop.sh                # Stop and destroy Docker env
+    └── test.sh                # Destroy current environment, run tests, show results,
+                               # destroy test environment
 ```
 
 
