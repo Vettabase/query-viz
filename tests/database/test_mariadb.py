@@ -107,7 +107,7 @@ def test_mariadb_query_with_no_connection(mariadb_config):
 @pytest.mark.integration
 def test_mariadb_query_with_syntax_error(mariadb_config):
     """Test that MariaDBConnection raises an error for invalid SQL syntax,
-    and this error contains the MariaDB error number (1064)."""
+    and this error contains the MariaDB error message."""
     # Use unique name for this test
     config = mariadb_config.copy()
     config['name'] = inspect.currentframe().f_code.co_name
@@ -115,7 +115,9 @@ def test_mariadb_query_with_syntax_error(mariadb_config):
     conn = MariaDBConnection(config, db_timeout=5)
     conn.connect()
     
-    with pytest.raises(QueryVizError, match=r"\[mariadb\] .*1064.*"):
+    with pytest.raises(QueryVizError,
+            match=r"\[mariadb\] Query execution failed.*You have an error in your SQL syntax.*"
+        ):
         conn.execute_query('wrong syntax;')
     
     conn.close()
