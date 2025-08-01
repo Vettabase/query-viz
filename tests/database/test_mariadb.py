@@ -19,6 +19,7 @@ def mariadb_config():
     }
 
 
+@pytest.mark.dependency()
 @pytest.mark.integration
 def test_mariadb_connection(mariadb_config):
     """Test that MariaDBConnection can establish a connection."""
@@ -26,6 +27,17 @@ def test_mariadb_connection(mariadb_config):
     conn.connect()
     
     assert conn.status == SUCCESS
+    assert conn.pool is not None
     
-    # Clean up
     conn.close()
+
+
+@pytest.mark.dependency(depends=["test_mariadb_connection"])
+@pytest.mark.integration
+def test_mariadb_connection_close(mariadb_config):
+    """Test that MariaDBConnection can properly close its connection pool."""
+    conn = MariaDBConnection(mariadb_config, db_timeout=5)
+    conn.connect()
+    
+    conn.close()
+    assert conn.pool is None
