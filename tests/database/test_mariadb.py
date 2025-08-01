@@ -89,3 +89,16 @@ def test_mariadb_nothing_to_close(mariadb_config):
         conn.close()
     assert conn.pool is None
     assert conn.status is None
+
+
+def test_mariadb_query_with_no_connection(mariadb_config):
+    """Test that MariaDBConnection raises an error on execute_query() if no connection was established."""
+    # Use unique name for this test
+    config = mariadb_config.copy()
+    config['name'] = inspect.currentframe().f_code.co_name
+
+    conn = MariaDBConnection(config, db_timeout=5)
+    conn.query('SELECT 1;')
+    with pytest.raises(QueryVizError, match=r"\[mariadb\] No connection.*"):
+        conn.close()
+    assert conn.pool is None

@@ -35,7 +35,7 @@ class MariaDBConnection(DatabaseConnection):
     def execute_query(self, query):
         """Get connection from pool, execute query, return connection"""
         if not self.pool:
-            self.connect()
+            raise QueryVizError(f"[mariadb] No connection")
         
         connection = self.pool.get_connection()
         try:
