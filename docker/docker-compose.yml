@@ -48,7 +48,7 @@ services:
       context: ../
       dockerfile: docker/generator/Dockerfile
       target: qv-gen-test
-    container_name: qv-tests
+    container_name: qv-test
     profiles:
       - test
       - full
