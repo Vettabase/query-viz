@@ -19,6 +19,7 @@ git pull
 docker network create --driver=bridge qv 2> /dev/null
 COMPOSE_PROFILES=test \
     docker-compose --project-directory docker -f docker/docker-compose.yml up -d --build
+sleep 2
 docker logs qv-test
 
 docker/stop.sh
