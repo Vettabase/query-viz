@@ -5,15 +5,21 @@ Chart generation using GNU Plot
 import os
 import subprocess
 from datetime import datetime
+from .exceptions import QueryVizError
 
 
 class ChartGenerator:
     """Handles GNU Plot chart generation"""
     
-    def __init__(self, plot_config, output_dir, template_file='template.plt'):
+    def __init__(self, plot_config, output_dir, chart_type='line_chart'):
         self.plot_config = plot_config
         self.output_dir = output_dir
-        self.template_file = template_file
+        self.chart_type = chart_type
+        self.template_file = f'chart_templates/{chart_type}.plt'
+        
+        # Validate chart type and template file
+        if not os.path.exists(self.template_file):
+            raise QueryVizError(f"Template file for chart type '{chart_type}' not found: {self.template_file}")
     
     def generate_chart(self, queries, data_files):
         """Generate chart using GNU Plot"""
@@ -26,7 +32,6 @@ class ChartGenerator:
             with open(self.template_file, 'r') as f:
                 template = f.read()
         except FileNotFoundError:
-            from .exceptions import QueryVizError
             raise QueryVizError(f"{self.template_file} not found")
         
         # Generate style lines

@@ -143,6 +143,10 @@ class QueryViz:
             if field not in plot:
                 raise QueryVizError(f"Plot configuration: '{field}' is required")
         
+        # Set default chart type if not specified
+        if 'type' not in plot:
+            plot['type'] = 'line_chart'
+        
         # Validate global interval
         if 'interval' not in self.config:
             raise QueryVizError("Global 'interval' is required")
@@ -282,10 +286,11 @@ class QueryViz:
             }
         
         # Initialize chart generator
+        chart_type = self.config['plot'].get('type', 'line_chart')
         self.chart_generator = ChartGenerator(
             self.config['plot'], 
             self.output_dir, 
-            'template.plt'
+            chart_type
         )
     
     def open_data_files(self):
