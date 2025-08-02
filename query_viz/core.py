@@ -132,20 +132,26 @@ class QueryViz:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
         
-        # Validate plot configuration
-        if 'plot' not in self.config:
-            raise QueryVizError("'plot' section is required")
+        # Validate charts configuration
+        if 'charts' not in self.config:
+            raise QueryVizError("'charts' section is required")
         
-        plot = self.config['plot']
-        required_plot_fields = ['title', 'xlabel', 'ylabel', 'output_file', 'terminal', 
-                               'grid', 'key_position', 'line_width', 'point_type']
-        for field in required_plot_fields:
-            if field not in plot:
-                raise QueryVizError(f"Plot configuration: '{field}' is required")
+        charts = self.config['charts']
+        if not isinstance(charts, list) or len(charts) == 0:
+            raise QueryVizError("The 'charts' list cannot be empty")
         
-        # Set default chart type if not specified
-        if 'type' not in plot:
-            plot['type'] = 'line_chart'
+        for i, chart in enumerate(charts):
+            required_chart_fields = ['xlabel', 'ylabel', 'output_file', 'terminal', 
+                                   'grid', 'key_position', 'line_width', 'point_type']
+            for field in required_chart_fields:
+                if field not in chart:
+                    raise QueryVizError(f"Chart {i}: '{field}' is required")
+            
+            # Set default values where necessary
+            if 'type' not in chart:
+                chart['type'] = 'line_chart'
+            if 'title' not in chart:
+                chart['title'] = f"Chart #{i}"
         
         # Validate global interval
         if 'interval' not in self.config:
@@ -285,10 +291,11 @@ class QueryViz:
                 'point_count': 0
             }
         
-        # Initialize chart generator
-        chart_type = self.config['plot'].get('type', 'line_chart')
+        # FIXME: Currently we only visualise the first chart. We'll need to visualise all of them.
+        current_chart = self.config['charts'][0]
+        chart_type = current_chart['type']
         self.chart_generator = ChartGenerator(
-            self.config['plot'], 
+            current_chart, 
             self.output_dir, 
             chart_type
         )

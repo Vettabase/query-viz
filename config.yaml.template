@@ -30,22 +30,24 @@ queries:
     # optional. If not specified, a colour will be selected automatically
     color: '#1f77b4'
 
-plot:
-  title: 'MariaDB Performance Metrics'
-  xlabel: 'Time (seconds)'
-  ylabel: 'Count / Connections'
-  # optional. Chart type to generate. Default: line_chart
-  type: line_chart
-  # will be placed in the output directory
-  # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
-  # However, if you don't use the web interface, you can safely
-  # change the file name.
-  output_file: 'metrics.png'
-  terminal: 'png enhanced font "Arial,12" size 1400,900'
-  grid: true
-  key_position: 'outside right top'
-  line_width: 2
-  point_type: 'linespoints'
+charts:
+  # At least one chart must be specified.
+  # Currently, only the first chart in the list will be displayed.
+  - title: 'MariaDB Performance Metrics'
+    xlabel: 'Time (seconds)'
+    ylabel: 'Count / Connections'
+    # optional. Chart type to generate. Default: line_chart
+    type: line_chart
+    # will be placed in the output directory
+    # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
+    # However, if you don't use the web interface, you can safely
+    # change the file name.
+    output_file: 'metrics.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
 
 # Global interval between queries. By default, the interval is in seconds.
 # For a format explanation, see below.
