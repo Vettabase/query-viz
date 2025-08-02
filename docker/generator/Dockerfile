@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Application files
 COPY qv.py .
-COPY template.plt .
+COPY chart_templates/ ./chart_templates/
 COPY query_viz/ ./query_viz/
 
 ENV PYTHONUNBUFFERED=1
