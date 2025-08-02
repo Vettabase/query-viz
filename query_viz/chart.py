@@ -11,11 +11,18 @@ from .exceptions import QueryVizError
 class ChartGenerator:
     """Handles GNU Plot chart generation"""
     
+    # Chart type aliases
+    CHART_TYPE_ALIASES = {
+        'line_graph': 'line_chart'
+    }
+    
     def __init__(self, plot_config, output_dir, chart_type='line_chart'):
         self.plot_config = plot_config
         self.output_dir = output_dir
-        self.chart_type = chart_type
-        self.template_file = f'chart_templates/{chart_type}.plt'
+        
+        # If an alias was used, resolve it
+        self.chart_type = self.CHART_TYPE_ALIASES.get(chart_type, chart_type)
+        self.template_file = f'chart_templates/{self.chart_type}.plt'
         
         # Validate chart type and template file
         if not os.path.exists(self.template_file):
