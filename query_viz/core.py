@@ -5,16 +5,15 @@ Main QueryViz application class
 import sys
 import time
 import yaml
-import subprocess
 import threading
 import signal
 import re
 import os
-from datetime import datetime
 from collections import defaultdict, deque
 
 from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
+from .chart import ChartGenerator
 from .exceptions import QueryVizError
 
 
@@ -39,6 +38,7 @@ class QueryViz:
         self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
+        self.chart_generator = None
     
     def _parse_interval(self, interval_str):
         """Parse interval string to seconds"""
@@ -142,6 +142,10 @@ class QueryViz:
         for field in required_plot_fields:
             if field not in plot:
                 raise QueryVizError(f"Plot configuration: '{field}' is required")
+        
+        # Set default chart type if not specified
+        if 'type' not in plot:
+            plot['type'] = 'line_chart'
         
         # Validate global interval
         if 'interval' not in self.config:
@@ -280,6 +284,14 @@ class QueryViz:
                 'handle': None,
                 'point_count': 0
             }
+        
+        # Initialize chart generator
+        chart_type = self.config['plot'].get('type', 'line_chart')
+        self.chart_generator = ChartGenerator(
+            self.config['plot'], 
+            self.output_dir, 
+            chart_type
+        )
     
     def open_data_files(self):
         """Open data files for incremental writing"""
@@ -388,70 +400,10 @@ class QueryViz:
         file_info['handle'] = open(file_info['filename'], 'a')
         file_info['point_count'] = len(query_data)
     
-    def generate_gnuplot_script(self):
-        """Generate GNU Plot script from template"""
-        try:
-            with open('template.plt', 'r') as f:
-                template = f.read()
-        except FileNotFoundError:
-            raise QueryVizError("template.plt not found")
-        
-        plot_config = self.config['plot']
-        
-        # Generate style lines
-        style_lines = []
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
-        
-        for i, query in enumerate(self.queries):
-            color = query.color if query.color else colors[i % len(colors)]
-            style_lines.append(f"set style line {i+1} linecolor rgb '{color}' linewidth {plot_config['line_width']} pointtype 7")
-        
-        # Generate plot lines using existing data files
-        plot_lines = []
-        
-        for i, query in enumerate(self.queries):
-            file_info = self.data_files[query.name]
-            data_file = file_info['filename']
-            
-            title = query.description if query.description else query.name
-            plot_lines.append(f"'{data_file}' using 1:2 with {plot_config['point_type']} linestyle {i+1} title '{title}'")
-        
-        # Replace template variables
-        script_content = template.replace('{{TIMESTAMP}}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        script_content = script_content.replace('{{TERMINAL}}', plot_config['terminal'])
-        script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, plot_config['output_file']))
-        script_content = script_content.replace('{{TITLE}}', plot_config['title'])
-        script_content = script_content.replace('{{XLABEL}}', plot_config['xlabel'])
-        script_content = script_content.replace('{{YLABEL}}', plot_config['ylabel'])
-        script_content = script_content.replace('{{KEY_POSITION}}', plot_config['key_position'])
-        script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
-        script_content = script_content.replace('{{PLOT_LINES}}', 'plot ' + ', \\\n     '.join(plot_lines))
-        
-        # Write script file
-        script_file = 'current_plot.plt'
-        with open(script_file, 'w') as f:
-            f.write(script_content)
-        
-        return script_file
-    
     def generate_plot(self):
-        """Generate plot using GNU Plot"""
-        script_file = self.generate_gnuplot_script()
-        
-        try:
-            result = subprocess.run(['gnuplot', script_file], capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"GNU Plot error: {result.stderr}")
-            else:
-                print(f"Plot generated: {os.path.join(self.output_dir, self.config['plot']['output_file'])}")
-        except FileNotFoundError:
-            print("Warning: gnuplot not found, script generated but plot not created")
-        
-        # Clean up only the script file (keep data files)
-        try:
-            os.remove(script_file)
-        except OSError:
-            pass
+        """Generate plot using chart generator"""
+        if self.chart_generator:
+            self.chart_generator.generate_chart(self.queries, self.data_files)
     
     def run(self):
         """Run the main application"""

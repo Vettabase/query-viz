@@ -34,6 +34,8 @@ plot:
   title: 'MariaDB Performance Metrics'
   xlabel: 'Time (seconds)'
   ylabel: 'Count / Connections'
+  # optional. Chart type to generate. Default: line_chart
+  type: line_chart
   # will be placed in the output directory
   # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
   # However, if you don't use the web interface, you can safely
