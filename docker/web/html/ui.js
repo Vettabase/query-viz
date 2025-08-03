@@ -2,7 +2,9 @@
 const ERROR_MESSAGES = {
     CHART_UNAVAILABLE: 'Chart not available. The data generator may still be starting up or experiencing issues.',
     INVALID_INTERVAL: 'Please enter a valid refresh interval in seconds.',
-    LOAD_FAILED: 'Failed to load chart. Please try refreshing the page.'
+    LOAD_FAILED: 'Failed to load chart. Try refreshing the page.',
+    INDEX_NOT_FOUND: 'Chart index not found. The data generator may not be running or no charts have been generated yet.',
+    NO_CHARTS_AVAILABLE: 'No charts available in the index file.'
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const customIntervalInput = document.getElementById('custom-interval');
     
     let refreshInterval = null;
+    let currentChartPath = null;
     
     function showError(message) {
         errorMessage.textContent = message;
@@ -26,10 +29,49 @@ document.addEventListener('DOMContentLoaded', function() {
         chartImage.style.display = 'block';
     }
     
+    function loadChartIndex() {
+        return fetch('/plots/_CHART_INDEX')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Index file not found');
+                }
+                return response.text();
+            })
+            .then(text => {
+                const charts = text.trim().split('\n').filter(line => line.trim());
+                if (charts.length === 0) {
+                    throw new Error('No charts in index');
+                }
+                // FIXME: We're only showing one chart
+                return charts[0];
+            });
+    }
+    
     function refreshChart() {
-        const timestamp = new Date().getTime();
-        chartImage.src = `/plots/mariadb_metrics.png?t=${timestamp}`;
-        updateTime.textContent = new Date().toLocaleTimeString();
+        if (currentChartPath) {
+            // Use cached chart path
+            const timestamp = new Date().getTime();
+            chartImage.src = `/plots/${currentChartPath}?t=${timestamp}`;
+            updateTime.textContent = new Date().toLocaleTimeString();
+        } else {
+            // Load chart index only once
+            loadChartIndex()
+                .then(chartFilename => {
+                    currentChartPath = chartFilename;
+                    const timestamp = new Date().getTime();
+                    chartImage.src = `/plots/${chartFilename}?t=${timestamp}`;
+                    updateTime.textContent = new Date().toLocaleTimeString();
+                })
+                .catch(error => {
+                    if (error.message === 'Index file not found') {
+                        showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
+                    } else if (error.message === 'No charts in index') {
+                        showError(ERROR_MESSAGES.NO_CHARTS_AVAILABLE);
+                    } else {
+                        showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
+                    }
+                });
+        }
     }
     
     function setupAutoRefresh(intervalMs) {

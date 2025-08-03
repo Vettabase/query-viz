@@ -25,6 +25,14 @@ class QueryViz:
         self.config = None
         self.connections = {}
         self.queries = []
+        # fast loopup of a single query object
+        self.queries_by_name = {}
+        # query list per chart
+        self.chart_queries = {}
+        # data files per chart
+        self.chart_data_files = {}
+        # chart generators per chart
+        self.chart_generators = {}
         # store max 1000 data points
         self.data = defaultdict(lambda: deque(maxlen=1000))
         # store max 1000 timestamps
@@ -38,7 +46,21 @@ class QueryViz:
         self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
-        self.chart_generator = None
+    
+    def normalise_filename(self, basename, extension):
+        """Normalise a filename by removing special characters and standardising format"""
+        # Remove special characters (keep only alphanumeric, spaces, underscores, and hyphens)
+        normalised = re.sub(r'[^a-zA-Z0-9\s_-]', '', basename)
+        # Convert spaces and underscores to dashes
+        normalised = re.sub(r'[\s_]+', '-', normalised)
+        # Collapse consecutive dashes into one dash
+        normalised = re.sub(r'-+', '-', normalised)
+        # Remove leading/trailing dashes
+        normalised = normalised.strip('-')
+        # Make lowercase
+        normalised = normalised.lower()
+        # Add extension
+        return f"{normalised}.{extension}"
     
     def _parse_interval(self, interval_str):
         """Parse interval string to seconds"""
@@ -98,7 +120,7 @@ class QueryViz:
             raise QueryVizError(f"Invalid YAML in configuration file: {e}")
         
         self._validate_config()
-        
+    
     def _validate_config(self):
         """Validate configuration structure and required fields"""
         if not isinstance(self.config, dict):
@@ -126,26 +148,70 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
+        query_names = set()
         for i, query in enumerate(queries):
             required_fields = ['name', 'query']
             for field in required_fields:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
+            
+            # Check for duplicate query names
+            if query['name'] in query_names:
+                raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
+            query_names.add(query['name'])
         
-        # Validate plot configuration
-        if 'plot' not in self.config:
-            raise QueryVizError("'plot' section is required")
+        unused_queries = list(query_names)
         
-        plot = self.config['plot']
-        required_plot_fields = ['title', 'xlabel', 'ylabel', 'output_file', 'terminal', 
-                               'grid', 'key_position', 'line_width', 'point_type']
-        for field in required_plot_fields:
-            if field not in plot:
-                raise QueryVizError(f"Plot configuration: '{field}' is required")
+        # Validate charts configuration
+        if 'charts' not in self.config:
+            raise QueryVizError("'charts' section is required")
         
-        # Set default chart type if not specified
-        if 'type' not in plot:
-            plot['type'] = 'line_chart'
+        charts = self.config['charts']
+        if not isinstance(charts, list) or len(charts) == 0:
+            raise QueryVizError("The 'charts' list cannot be empty")
+        
+        for i, chart in enumerate(charts):
+            required_chart_fields = ['xlabel', 'ylabel', 'terminal', 
+                                   'grid', 'key_position', 'line_width', 'point_type']
+            for field in required_chart_fields:
+                if field not in chart:
+                    raise QueryVizError(f"Chart {i}: '{field}' is required")
+            
+            # Validate per-chart queries
+            if 'queries' not in chart:
+                raise QueryVizError(f"Chart {i}: 'queries' field is required")
+            
+            chart_queries = chart['queries']
+            if not isinstance(chart_queries, list):
+                raise QueryVizError(f"Chart {i}: 'queries' must be a list")
+            
+            # Warning if the query list is empty
+            if not chart_queries:
+                print(f"Warning: Chart {i} has an empty query list")
+
+            # Validate that all referenced queries exist and mark them as used
+            for query_name in chart_queries:
+                if query_name not in query_names:
+                    raise QueryVizError(f"Chart {i}: query '{query_name}' not found")
+                if query_name in unused_queries:
+                    unused_queries.remove(query_name)
+            
+            # Set default values where necessary
+            if 'type' not in chart:
+                chart['type'] = 'line_chart'
+            if 'title' not in chart:
+                chart['title'] = f"Chart #{i}"
+            
+            # Set default output_file if not specified or empty
+            if 'output_file' not in chart or not chart['output_file']:
+                chart['output_file'] = self.normalise_filename(chart['title'], 'png')
+        
+        # Warning on unused queries
+        if unused_queries:
+            print("Warning: Unused queries found:")
+            for query_name in unused_queries:
+                print(f"  - {query_name}")
+        unused_queries = None
         
         # Validate global interval
         if 'interval' not in self.config:
@@ -154,7 +220,7 @@ class QueryViz:
         # Validate failed connections interval
         if 'failed_connections_interval' not in self.config:
             raise QueryVizError("'failed_connections_interval' is required")
-
+        
         # Validate initial grace period
         if 'initial_grace_period' not in self.config:
             raise QueryVizError("'initial_grace_period' is required")
@@ -176,7 +242,7 @@ class QueryViz:
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
-    
+
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
@@ -285,13 +351,31 @@ class QueryViz:
                 'point_count': 0
             }
         
-        # Initialize chart generator
-        chart_type = self.config['plot'].get('type', 'line_chart')
-        self.chart_generator = ChartGenerator(
-            self.config['plot'], 
-            self.output_dir, 
-            chart_type
-        )
+        # For fast access, build a query objects lookup
+        # and a pre-computed chart-to-queries map
+        self.queries_by_name = {q.name: q for q in self.queries}
+        self.chart_queries = {}
+        self.chart_data_files = {}
+        self.chart_generators = {}
+        
+        for i, chart in enumerate(self.config['charts']):
+            # Pre-compute query objects for this chart
+            self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
+            
+            # Pre-compute data files for this chart
+            chart_query_names = set(chart['queries'])
+            self.chart_data_files[i] = {
+                name: info for name, info in self.data_files.items() 
+                if name in chart_query_names
+            }
+            
+            # Instantiate ChartGenerator for each chart
+            chart_type = chart['type']
+            self.chart_generators[i] = ChartGenerator(
+                chart, 
+                self.output_dir, 
+                chart_type
+            )
     
     def open_data_files(self):
         """Open data files for incremental writing"""
@@ -400,10 +484,33 @@ class QueryViz:
         file_info['handle'] = open(file_info['filename'], 'a')
         file_info['point_count'] = len(query_data)
     
-    def generate_plot(self):
-        """Generate plot using chart generator"""
-        if self.chart_generator:
-            self.chart_generator.generate_chart(self.queries, self.data_files)
+    def create_chart_index(self, chart_filenames):
+        """Write the chart index file with all generated chart filenames"""
+        index_file = os.path.join(self.output_dir, '_CHART_INDEX')
+        
+        try:
+            with open(index_file, 'w') as f:
+                for filename in chart_filenames:
+                    f.write(f"{filename}\n")
+            print(f"Chart index written: {index_file}")
+        except Exception as e:
+            print(f"Error writing chart index: {e}")
+
+    def generate_plots(self):
+        """Generate all plots using chart generators"""
+        chart_filenames = []
+        
+        for chart_index, chart_generator in self.chart_generators.items():
+            chart_queries = self.chart_queries[chart_index]
+            chart_data_files = self.chart_data_files[chart_index]
+            
+            if chart_generator.generate_chart(chart_queries, chart_data_files):
+                # Get the output filename from the chart config
+                chart_config = self.config['charts'][chart_index]
+                chart_filenames.append(chart_config['output_file'])
+        
+        # Write _CHART_INDEX
+        self.create_chart_index(chart_filenames)
     
     def run(self):
         """Run the main application"""
@@ -451,7 +558,7 @@ class QueryViz:
                 current_time = time.time()
                 
                 if current_time - last_plot_time >= plot_interval and self.timestamps:
-                    self.generate_plot()
+                    self.generate_plots()
                     last_plot_time = current_time
                 
                 time.sleep(1)

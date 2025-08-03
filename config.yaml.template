@@ -16,9 +16,9 @@ queries:
   # the "column" attribute. It must be a numeric column.
   # This column will be considered the metric retrieved by this query,
   # and it will be drawn on a chart.
-  - name: 'My metric'
+  - name: 'com-selects'
     # optional. If not specified, defaults to the first connection
-    connection: connection_name
+    connection: mariadb-1
     query: "SHOW GLOBAL STATUS LIKE 'Com_select';"
     # if the query returns multiple columns, use the following
     # numeric column as a metric
@@ -29,23 +29,36 @@ queries:
     description: 'Number of SELECT queries'
     # optional. If not specified, a colour will be selected automatically
     color: '#1f77b4'
+  - name: 'db-count'
+    connection: mariadb-1
+    query: "SELECT COUNT(*) AS count FROM information_schema.SCHEMATA;"
+    column: count
+    interval: 15s
+    description: 'Number of schemas'
+    color: '#ff7f0e'
 
-plot:
-  title: 'MariaDB Performance Metrics'
-  xlabel: 'Time (seconds)'
-  ylabel: 'Count / Connections'
-  # optional. Chart type to generate. Default: line_chart
-  type: line_chart
-  # will be placed in the output directory
-  # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
-  # However, if you don't use the web interface, you can safely
-  # change the file name.
-  output_file: 'metrics.png'
-  terminal: 'png enhanced font "Arial,12" size 1400,900'
-  grid: true
-  key_position: 'outside right top'
-  line_width: 2
-  point_type: 'linespoints'
+charts:
+  # At least one chart must be specified.
+  # Currently, only the first chart in the list will be displayed.
+  - title: 'MariaDB Performance Metrics'
+    # optional. Chart type to generate. Default: line_chart
+    type: line_chart
+    xlabel: 'Time (seconds)'
+    ylabel: 'Count / Connections'
+    # List of query names to include in this chart
+    queries:
+      - 'com-selects'
+      - 'db-count'
+    # will be placed in the output directory
+    # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
+    # However, if you don't use the web interface, you can safely
+    # change the file name.
+    output_file: 'metrics.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
 
 # Global interval between queries. By default, the interval is in seconds.
 # For a format explanation, see below.
