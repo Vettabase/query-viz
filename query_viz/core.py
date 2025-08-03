@@ -172,7 +172,7 @@ class QueryViz:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
             
-            # Validate queries field
+            # Validate per-chart queries
             if 'queries' not in chart:
                 raise QueryVizError(f"Chart {i}: 'queries' field is required")
             
@@ -180,6 +180,10 @@ class QueryViz:
             if not isinstance(chart_queries, list):
                 raise QueryVizError(f"Chart {i}: 'queries' must be a list")
             
+            # Warning if the query list is empty
+            if not chart_queries:
+                print(f"Warning: Chart {i} has an empty query list")
+
             # Validate that all referenced queries exist
             for query_name in chart_queries:
                 if query_name not in query_names:
