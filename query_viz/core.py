@@ -117,7 +117,7 @@ class QueryViz:
             raise QueryVizError(f"Invalid YAML in configuration file: {e}")
         
         self._validate_config()
-        
+    
     def _validate_config(self):
         """Validate configuration structure and required fields"""
         if not isinstance(self.config, dict):
@@ -157,6 +157,8 @@ class QueryViz:
                 raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
             query_names.add(query['name'])
         
+        unused_queries = list(query_names)
+        
         # Validate charts configuration
         if 'charts' not in self.config:
             raise QueryVizError("'charts' section is required")
@@ -184,10 +186,12 @@ class QueryViz:
             if not chart_queries:
                 print(f"Warning: Chart {i} has an empty query list")
 
-            # Validate that all referenced queries exist
+            # Validate that all referenced queries exist and mark them as used
             for query_name in chart_queries:
                 if query_name not in query_names:
                     raise QueryVizError(f"Chart {i}: query '{query_name}' not found")
+                if query_name in unused_queries:
+                    unused_queries.remove(query_name)
             
             # Set default values where necessary
             if 'type' not in chart:
@@ -199,6 +203,13 @@ class QueryViz:
             if 'output_file' not in chart or not chart['output_file']:
                 chart['output_file'] = self.normalise_filename(chart['title'], 'png')
         
+        # Warning on unused queries
+        if unused_queries:
+            print("Warning: Unused queries found:")
+            for query_name in unused_queries:
+                print(f"  - {query_name}")
+        unused_queries = None
+        
         # Validate global interval
         if 'interval' not in self.config:
             raise QueryVizError("Global 'interval' is required")
@@ -206,7 +217,7 @@ class QueryViz:
         # Validate failed connections interval
         if 'failed_connections_interval' not in self.config:
             raise QueryVizError("'failed_connections_interval' is required")
-
+        
         # Validate initial grace period
         if 'initial_grace_period' not in self.config:
             raise QueryVizError("'initial_grace_period' is required")
@@ -228,7 +239,7 @@ class QueryViz:
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
-    
+
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
