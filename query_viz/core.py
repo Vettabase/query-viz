@@ -29,6 +29,8 @@ class QueryViz:
         self.queries_by_name = {}
         # query list per chart
         self.chart_queries = {}
+        # data files per chart
+        self.chart_data_files = {}
         # store max 1000 data points
         self.data = defaultdict(lambda: deque(maxlen=1000))
         # store max 1000 timestamps
@@ -348,12 +350,22 @@ class QueryViz:
                 'point_count': 0
             }
         
-        # For fast access, build a query objects loopup
-        # and a pre-computer chart-to-queries map
+        # For fast access, build a query objects lookup
+        # and a pre-computed chart-to-queries map
         self.queries_by_name = {q.name: q for q in self.queries}
         self.chart_queries = {}
+        self.chart_data_files = {}
+        
         for i, chart in enumerate(self.config['charts']):
+            # Pre-compute query objects for this chart
             self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
+            
+            # Pre-compute data files for this chart
+            chart_query_names = set(chart['queries'])
+            self.chart_data_files[i] = {
+                name: info for name, info in self.data_files.items() 
+                if name in chart_query_names
+            }
         
         # FIXME: Currently we only visualise the first chart. We'll need to visualise all of them.
         current_chart = self.config['charts'][0]
@@ -476,12 +488,8 @@ class QueryViz:
         if not self.chart_generator:
             raise QueryVizError("Chart generator not set")
         
-        # Get pre-computed queries for the first chart (index 0)
         chart_queries = self.chart_queries[0]
-        # Get query names for filtering data files
-        chart_query_names = [q.name for q in chart_queries]
-        # Filter data files to only include those for the chart queries
-        chart_data_files = {name: info for name, info in self.data_files.items() if name in chart_query_names}
+        chart_data_files = self.chart_data_files[0]
         
         self.chart_generator.generate_chart(chart_queries, chart_data_files)
     
