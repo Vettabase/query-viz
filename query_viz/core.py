@@ -25,6 +25,10 @@ class QueryViz:
         self.config = None
         self.connections = {}
         self.queries = []
+        # fast loopup of a single query object
+        self.queries_by_name = {}
+        # query list per chart
+        self.chart_queries = {}
         # store max 1000 data points
         self.data = defaultdict(lambda: deque(maxlen=1000))
         # store max 1000 timestamps
@@ -141,11 +145,17 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
+        query_names = set()
         for i, query in enumerate(queries):
             required_fields = ['name', 'query']
             for field in required_fields:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
+            
+            # Check for duplicate query names
+            if query['name'] in query_names:
+                raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
+            query_names.add(query['name'])
         
         # Validate charts configuration
         if 'charts' not in self.config:
@@ -161,6 +171,19 @@ class QueryViz:
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
+            
+            # Validate queries field
+            if 'queries' not in chart:
+                raise QueryVizError(f"Chart {i}: 'queries' field is required")
+            
+            chart_queries = chart['queries']
+            if not isinstance(chart_queries, list):
+                raise QueryVizError(f"Chart {i}: 'queries' must be a list")
+            
+            # Validate that all referenced queries exist
+            for query_name in chart_queries:
+                if query_name not in query_names:
+                    raise QueryVizError(f"Chart {i}: query '{query_name}' not found")
             
             # Set default values where necessary
             if 'type' not in chart:
@@ -310,6 +333,13 @@ class QueryViz:
                 'point_count': 0
             }
         
+        # For fast access, build a query objects loopup
+        # and a pre-computer chart-to-queries map
+        self.queries_by_name = {q.name: q for q in self.queries}
+        self.chart_queries = {}
+        for i, chart in enumerate(self.config['charts']):
+            self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
+        
         # FIXME: Currently we only visualise the first chart. We'll need to visualise all of them.
         current_chart = self.config['charts'][0]
         chart_type = current_chart['type']
@@ -428,8 +458,17 @@ class QueryViz:
     
     def generate_plot(self):
         """Generate plot using chart generator"""
-        if self.chart_generator:
-            self.chart_generator.generate_chart(self.queries, self.data_files)
+        if not self.chart_generator:
+            raise QueryVizError("Chart generator not set")
+        
+        # Get pre-computed queries for the first chart (index 0)
+        chart_queries = self.chart_queries[0]
+        # Get query names for filtering data files
+        chart_query_names = [q.name for q in chart_queries]
+        # Filter data files to only include those for the chart queries
+        chart_data_files = {name: info for name, info in self.data_files.items() if name in chart_query_names}
+        
+        self.chart_generator.generate_chart(chart_queries, chart_data_files)
     
     def run(self):
         """Run the main application"""
