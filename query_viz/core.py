@@ -40,6 +40,21 @@ class QueryViz:
         self.output_dir = '/app/output'
         self.chart_generator = None
     
+    def normalise_filename(self, basename, extension):
+        """Normalise a filename by removing special characters and standardising format"""
+        # Remove special characters (keep only alphanumeric, spaces, underscores, and hyphens)
+        normalised = re.sub(r'[^a-zA-Z0-9\s_-]', '', basename)
+        # Convert spaces and underscores to dashes
+        normalised = re.sub(r'[\s_]+', '-', normalised)
+        # Collapse consecutive dashes into one dash
+        normalised = re.sub(r'-+', '-', normalised)
+        # Remove leading/trailing dashes
+        normalised = normalised.strip('-')
+        # Make lowercase
+        normalised = normalised.lower()
+        # Add extension
+        return f"{normalised}.{extension}"
+    
     def _parse_interval(self, interval_str):
         """Parse interval string to seconds"""
         if isinstance(interval_str, (int, float)):
@@ -141,7 +156,7 @@ class QueryViz:
             raise QueryVizError("The 'charts' list cannot be empty")
         
         for i, chart in enumerate(charts):
-            required_chart_fields = ['xlabel', 'ylabel', 'output_file', 'terminal', 
+            required_chart_fields = ['xlabel', 'ylabel', 'terminal', 
                                    'grid', 'key_position', 'line_width', 'point_type']
             for field in required_chart_fields:
                 if field not in chart:
@@ -152,6 +167,10 @@ class QueryViz:
                 chart['type'] = 'line_chart'
             if 'title' not in chart:
                 chart['title'] = f"Chart #{i}"
+            
+            # Set default output_file if not specified or empty
+            if 'output_file' not in chart or not chart['output_file']:
+                chart['output_file'] = self.normalise_filename(chart['title'], 'png')
         
         # Validate global interval
         if 'interval' not in self.config:
