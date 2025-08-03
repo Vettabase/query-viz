@@ -31,6 +31,8 @@ class QueryViz:
         self.chart_queries = {}
         # data files per chart
         self.chart_data_files = {}
+        # chart generators per chart
+        self.chart_generators = {}
         # store max 1000 data points
         self.data = defaultdict(lambda: deque(maxlen=1000))
         # store max 1000 timestamps
@@ -44,7 +46,6 @@ class QueryViz:
         self.data_lock = threading.Lock()
         # TODO: output_dir should be created if it doesn't exist
         self.output_dir = '/app/output'
-        self.chart_generator = None
     
     def normalise_filename(self, basename, extension):
         """Normalise a filename by removing special characters and standardising format"""
@@ -355,6 +356,7 @@ class QueryViz:
         self.queries_by_name = {q.name: q for q in self.queries}
         self.chart_queries = {}
         self.chart_data_files = {}
+        self.chart_generators = {}
         
         for i, chart in enumerate(self.config['charts']):
             # Pre-compute query objects for this chart
@@ -366,15 +368,14 @@ class QueryViz:
                 name: info for name, info in self.data_files.items() 
                 if name in chart_query_names
             }
-        
-        # FIXME: Currently we only visualise the first chart. We'll need to visualise all of them.
-        current_chart = self.config['charts'][0]
-        chart_type = current_chart['type']
-        self.chart_generator = ChartGenerator(
-            current_chart, 
-            self.output_dir, 
-            chart_type
-        )
+            
+            # Instantiate ChartGenerator for each chart
+            chart_type = chart['type']
+            self.chart_generators[i] = ChartGenerator(
+                chart, 
+                self.output_dir, 
+                chart_type
+            )
     
     def open_data_files(self):
         """Open data files for incremental writing"""
@@ -483,15 +484,33 @@ class QueryViz:
         file_info['handle'] = open(file_info['filename'], 'a')
         file_info['point_count'] = len(query_data)
     
-    def generate_plot(self):
-        """Generate plot using chart generator"""
-        if not self.chart_generator:
-            raise QueryVizError("Chart generator not set")
+    def create_chart_index(self, chart_filenames):
+        """Write the chart index file with all generated chart filenames"""
+        index_file = os.path.join(self.output_dir, '_CHART_INDEX')
         
-        chart_queries = self.chart_queries[0]
-        chart_data_files = self.chart_data_files[0]
+        try:
+            with open(index_file, 'w') as f:
+                for filename in chart_filenames:
+                    f.write(f"{filename}\n")
+            print(f"Chart index written: {index_file}")
+        except Exception as e:
+            print(f"Error writing chart index: {e}")
+
+    def generate_plots(self):
+        """Generate all plots using chart generators"""
+        chart_filenames = []
         
-        self.chart_generator.generate_chart(chart_queries, chart_data_files)
+        for chart_index, chart_generator in self.chart_generators.items():
+            chart_queries = self.chart_queries[chart_index]
+            chart_data_files = self.chart_data_files[chart_index]
+            
+            if chart_generator.generate_chart(chart_queries, chart_data_files):
+                # Get the output filename from the chart config
+                chart_config = self.config['charts'][chart_index]
+                chart_filenames.append(chart_config['output_file'])
+        
+        # Write _CHART_INDEX
+        self.create_chart_index(chart_filenames)
     
     def run(self):
         """Run the main application"""
@@ -539,7 +558,7 @@ class QueryViz:
                 current_time = time.time()
                 
                 if current_time - last_plot_time >= plot_interval and self.timestamps:
-                    self.generate_plot()
+                    self.generate_plots()
                     last_plot_time = current_time
                 
                 time.sleep(1)
