@@ -16,9 +16,9 @@ queries:
   # the "column" attribute. It must be a numeric column.
   # This column will be considered the metric retrieved by this query,
   # and it will be drawn on a chart.
-  - name: 'My metric'
+  - name: 'com-selects'
     # optional. If not specified, defaults to the first connection
-    connection: connection_name
+    connection: mariadb-1
     query: "SHOW GLOBAL STATUS LIKE 'Com_select';"
     # if the query returns multiple columns, use the following
     # numeric column as a metric
@@ -29,6 +29,13 @@ queries:
     description: 'Number of SELECT queries'
     # optional. If not specified, a colour will be selected automatically
     color: '#1f77b4'
+  - name: 'db-count'
+    connection: mariadb-1
+    query: "SELECT COUNT(*) AS count FROM information_schema.SCHEMATA;"
+    column: count
+    interval: 15s
+    description: 'Number of schemas'
+    color: '#ff7f0e'
 
 charts:
   # At least one chart must be specified.
