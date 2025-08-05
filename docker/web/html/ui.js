@@ -4,7 +4,8 @@ const ELEMENT_IDS = {
     REFRESH_BTN: 'refresh-btn',
     ERROR_MESSAGE: 'error-message',
     AUTO_REFRESH_SELECT: 'auto-refresh-select',
-    CUSTOM_INTERVAL_INPUT: 'custom-interval'
+    CUSTOM_INTERVAL_INPUT: 'custom-interval',
+    AUTOREFRESH_STATUS_INDICATOR: 'autorefresh-status-indicator'
 };
 
 // Files created by the backend
@@ -25,6 +26,13 @@ const EVENTS = {
     ENTER_KEY: 'Enter'
 };
 
+// Allowed autorefresh status values
+const AUTOREFRESH_STATUS = {
+    ENABLED: 'enabled',
+    DISABLED: 'disabled',
+    ERROR: 'error'
+};
+
 // Error messages
 const ERROR_MESSAGES = {
     CHART_UNAVAILABLE: 'Chart not available. The data generator may still be starting up or experiencing issues.',
@@ -41,12 +49,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById(ELEMENT_IDS.ERROR_MESSAGE);
     const autoRefreshSelect = document.getElementById(ELEMENT_IDS.AUTO_REFRESH_SELECT);
     const customIntervalInput = document.getElementById(ELEMENT_IDS.CUSTOM_INTERVAL_INPUT);
+    const statusIndicator = document.getElementById(ELEMENT_IDS.AUTOREFRESH_STATUS_INDICATOR);
     
     let chartRefreshInterval = null;
     let indexReloadInterval = null;
     let currentChartPath = null;
     // Track if index has ever loaded successfully
     let hasIndexLoadedOnce = false;
+    
+    function updateAutorefreshStatusIndicator(status) {
+        statusIndicator.className = `autorefresh-status-indicator ${status}`;
+        
+        // Update tooltip text
+        const statusText = {
+            [AUTOREFRESH_STATUS.ENABLED]: 'Autorefresh is enabled',
+            [AUTOREFRESH_STATUS.DISABLED]: 'Autorefresh is disabled',
+            [AUTOREFRESH_STATUS.ERROR]: 'Autorefresh disabled due to error'
+        };
+        statusIndicator.title = statusText[status] || 'Autorefresh status';
+    }
     
     function showError(message) {
         errorMessage.textContent = message;
@@ -113,6 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up new interval if not disabled
         if (intervalMs > 0) {
             chartRefreshInterval = setInterval(refreshChart, intervalMs);
+            updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.ENABLED);
+        } else {
+            updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.DISABLED);
         }
     }
     
@@ -122,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Only disable dropdown and show error if the index was never loaded
                 if (!hasIndexLoadedOnce) {
                     disableChartAutorefreshControls();
+                    updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.ERROR);
                     showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
                 }
             });
@@ -166,7 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshBtn.addEventListener('click', refreshChart);
     
     // Initial setup
-
+    
+    updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.DISABLED);
     disableChartAutorefreshControls();
     // Always set up periodic reload regardless of initial success
     setupIndexReload();
@@ -177,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             // First load failed - dropdown remains disabled, error shown
+            updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.ERROR);
             if (error.message === 'Index file not found') {
                 showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
             } else if (error.message === 'No charts in index') {

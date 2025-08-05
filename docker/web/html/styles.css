@@ -72,6 +72,24 @@ header h1 {
     gap: 8px;
 }
 
+.autorefresh-status-indicator {
+    font-size: 16px;
+    margin-right: 5px;
+    transition: color 0.3s ease;
+}
+
+.autorefresh-status-indicator.enabled {
+    color: #27ae60;
+}
+
+.autorefresh-status-indicator.disabled {
+    color: #95a5a6;
+}
+
+.autorefresh-status-indicator.error {
+    color: #e74c3c;
+}
+
 select {
     padding: 6px 10px;
     border: 1px solid #ddd;
