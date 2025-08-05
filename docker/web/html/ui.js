@@ -43,17 +43,18 @@ const ERROR_MESSAGES = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    const chartImage = document.getElementById('chart-image');
     const updateTime = document.getElementById(ELEMENT_IDS.UPDATE_TIME);
     const refreshBtn = document.getElementById(ELEMENT_IDS.REFRESH_BTN);
     const errorMessage = document.getElementById(ELEMENT_IDS.ERROR_MESSAGE);
     const autoRefreshSelect = document.getElementById(ELEMENT_IDS.AUTO_REFRESH_SELECT);
     const customIntervalInput = document.getElementById(ELEMENT_IDS.CUSTOM_INTERVAL_INPUT);
     const statusIndicator = document.getElementById(ELEMENT_IDS.AUTOREFRESH_STATUS_INDICATOR);
+    const chartContainer = document.querySelector('.chart-container');
     
     let chartRefreshInterval = null;
     let indexReloadInterval = null;
-    let currentChartPath = null;
+    // chart images paths
+    let currentChartPaths = [];
     // Track if index has ever loaded successfully
     let hasIndexLoadedOnce = false;
     
@@ -72,12 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function showError(message) {
         errorMessage.textContent = message;
         errorMessage.style.display = 'block';
-        chartImage.style.display = 'none';
+        // FIXME: We should somehow mark the charts that are failing
     }
     
     function hideError() {
         errorMessage.style.display = 'none';
-        chartImage.style.display = 'block';
     }
     
     function enableChartAutorefreshControls() {
@@ -88,6 +88,40 @@ document.addEventListener('DOMContentLoaded', function() {
     function disableChartAutorefreshControls() {
         autoRefreshSelect.disabled = true;
         refreshBtn.disabled = true;
+    }
+    
+    function createChartElements(chartPaths) {
+        // FIXME: We shouldn't recreate all charts when any of them changed. We should:
+        //        - Delete the charts that were removed
+        //        - Add new charts
+        //        - Recreate charts that changed
+        //        To know when a chart configuration changed, we should store
+        //        each chart configuration's checksum
+
+        // Clear existing charts
+        const existingCharts = chartContainer.querySelectorAll('.chart-image');
+        existingCharts.forEach(chart => chart.remove());
+        
+        // Create new chart elements
+        chartPaths.forEach((chartPath, index) => {
+            const chartImage = document.createElement('img');
+            chartImage.className = 'chart-image';
+            chartImage.alt = `Chart ${index + 1}`;
+            chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
+            
+            // Handle image load error
+            chartImage.addEventListener('error', function() {
+                showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
+            });
+            
+            // Handle image load success
+            chartImage.addEventListener('load', function() {
+                hideError();
+            });
+            
+            // Insert before error message
+            chartContainer.insertBefore(chartImage, errorMessage);
+        });
     }
     
     function loadChartIndex() {
@@ -103,23 +137,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (charts.length === 0) {
                     throw new Error('No charts in index');
                 }
-                // FIXME: We're only showing one chart
-                currentChartPath = charts[0];
                 
-                // First successful load
-                if (!hasIndexLoadedOnce) {
-                    hasIndexLoadedOnce = true;
-                    enableChartAutorefreshControls();
-                    setupAutoRefresh(parseInt(autoRefreshSelect.value));
+                const chartsChanged = JSON.stringify(currentChartPaths) !== JSON.stringify(charts);
+                currentChartPaths = charts;
+                
+                // First successful load OR chart list changed
+                if (!hasIndexLoadedOnce || chartsChanged) {
+                    createChartElements(currentChartPaths);
+                    
+                    if (!hasIndexLoadedOnce) {
+                        hasIndexLoadedOnce = true;
+                        enableChartAutorefreshControls();
+                        setupAutoRefresh(parseInt(autoRefreshSelect.value));
+                    }
                 }
                 
-                return charts[0];
+                return charts;
             });
     }
     
     function refreshChart() {
         const timestamp = new Date().getTime();
-        chartImage.src = `${PATHS.PLOTS_BASE}${currentChartPath}?t=${timestamp}`;
+        const chartImages = chartContainer.querySelectorAll('.chart-image');
+        
+        chartImages.forEach((chartImage, index) => {
+            if (index < currentChartPaths.length) {
+                chartImage.src = `${PATHS.PLOTS_BASE}${currentChartPaths[index]}?t=${timestamp}`;
+            }
+        });
+        
         updateTime.textContent = new Date().toLocaleTimeString();
     }
     
@@ -152,16 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }, DEFAULTS.INDEX_RELOAD_INTERVAL);
     }
-    
-    // Handle image load error
-    chartImage.addEventListener('error', function() {
-        showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
-    });
-    
-    // Handle image load success
-    chartImage.addEventListener('load', function() {
-        hideError();
-    });
     
     // Handle auto-refresh dropdown change
     autoRefreshSelect.addEventListener('change', function() {
