@@ -1,4 +1,30 @@
-// Error message constants
+// DOM element IDs
+const ELEMENT_IDS = {
+    UPDATE_TIME: 'update-time',
+    REFRESH_BTN: 'refresh-btn',
+    ERROR_MESSAGE: 'error-message',
+    AUTO_REFRESH_SELECT: 'auto-refresh-select',
+    CUSTOM_INTERVAL_INPUT: 'custom-interval'
+};
+
+// Files created by the backend
+const PATHS = {
+    CHART_INDEX: '/plots/_CHART_INDEX',
+    PLOTS_BASE: '/plots/'
+};
+
+// Default values
+const DEFAULTS = {
+    // milliseconds
+    AUTO_REFRESH_INTERVAL: 30000
+};
+
+// Event types
+const EVENTS = {
+    ENTER_KEY: 'Enter'
+};
+
+// Error messages
 const ERROR_MESSAGES = {
     CHART_UNAVAILABLE: 'Chart not available. The data generator may still be starting up or experiencing issues.',
     INVALID_INTERVAL: 'Please enter a valid refresh interval in seconds.',
@@ -9,11 +35,11 @@ const ERROR_MESSAGES = {
 
 document.addEventListener('DOMContentLoaded', function() {
     const chartImage = document.getElementById('chart-image');
-    const updateTime = document.getElementById('update-time');
-    const refreshBtn = document.getElementById('refresh-btn');
-    const errorMessage = document.getElementById('error-message');
-    const autoRefreshSelect = document.getElementById('auto-refresh-select');
-    const customIntervalInput = document.getElementById('custom-interval');
+    const updateTime = document.getElementById(ELEMENT_IDS.UPDATE_TIME);
+    const refreshBtn = document.getElementById(ELEMENT_IDS.REFRESH_BTN);
+    const errorMessage = document.getElementById(ELEMENT_IDS.ERROR_MESSAGE);
+    const autoRefreshSelect = document.getElementById(ELEMENT_IDS.AUTO_REFRESH_SELECT);
+    const customIntervalInput = document.getElementById(ELEMENT_IDS.CUSTOM_INTERVAL_INPUT);
     
     let refreshInterval = null;
     let currentChartPath = null;
@@ -30,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function loadChartIndex() {
-        return fetch('/plots/_CHART_INDEX')
+        return fetch(PATHS.CHART_INDEX)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Index file not found');
@@ -51,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentChartPath) {
             // Use cached chart path
             const timestamp = new Date().getTime();
-            chartImage.src = `/plots/${currentChartPath}?t=${timestamp}`;
+            chartImage.src = `${PATHS.PLOTS_BASE}${currentChartPath}?t=${timestamp}`;
             updateTime.textContent = new Date().toLocaleTimeString();
         } else {
             // Load chart index only once
@@ -59,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(chartFilename => {
                     currentChartPath = chartFilename;
                     const timestamp = new Date().getTime();
-                    chartImage.src = `/plots/${chartFilename}?t=${timestamp}`;
+                    chartImage.src = `${PATHS.PLOTS_BASE}${chartFilename}?t=${timestamp}`;
                     updateTime.textContent = new Date().toLocaleTimeString();
                 })
                 .catch(error => {
@@ -111,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle custom interval input
     customIntervalInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === EVENTS.ENTER_KEY) {
             const seconds = parseInt(this.value);
             if (seconds && seconds > 0) {
                 setupAutoRefresh(seconds * 1000);
