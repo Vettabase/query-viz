@@ -45,7 +45,7 @@ charts:
     type: line_chart
     xlabel: 'Time (seconds)'
     ylabel: 'Count / Connections'
-    # List of query names to include in this chart
+    # Metrics to draw in this chart
     queries:
       - 'com-selects'
       - 'db-count'
@@ -85,15 +85,9 @@ initial_grace_period: 1m
 # For a format explanation, see below.
 grace_period_retry_interval: 5s
 
-# Timeouts that don't include a time unit in their name can be specified
-# in the following format:
+# Timeouts can be specified in the following format:
 #   <num>[unit]
-# Examples:
-#   1m      - 1 minute
-#   0.5m    - 30 seconds
-#   10s     - 10 seconds
-#   "10 s"  - 10 seconds
-#   10      - 10 seconds
+#
 # num can be an integer or a float.
 # unit can be one of the following:
 #   s = seconds
@@ -101,4 +95,12 @@ grace_period_retry_interval: 5s
 #   h = hours
 #   d = days
 #   w = weeks
+# The default time unit is seconds.
 # Space-like characters are ignored.
+#
+# Examples:
+#   1m      - 1 minute
+#   0.5m    - 30 seconds
+#   10s     - 10 seconds
+#   "10 s"  - 10 seconds
+#   10      - 10 seconds
