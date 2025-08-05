@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let chartRefreshInterval = null;
     let indexReloadInterval = null;
     let currentChartPath = null;
+    // Track if index has ever loaded successfully
+    let hasIndexLoadedOnce = false;
     
     function showError(message) {
         errorMessage.textContent = message;
@@ -55,6 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideError() {
         errorMessage.style.display = 'none';
         chartImage.style.display = 'block';
+    }
+    
+    function enableChartAutorefreshDropdown() {
+        autoRefreshSelect.disabled = false;
+    }
+    
+    function disableChartAutorefreshDropdown() {
+        autoRefreshSelect.disabled = true;
     }
     
     function loadChartIndex() {
@@ -72,6 +82,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // FIXME: We're only showing one chart
                 currentChartPath = charts[0];
+                
+                // First successful load
+                if (!hasIndexLoadedOnce) {
+                    hasIndexLoadedOnce = true;
+                    enableChartAutorefreshDropdown();
+                    setupAutoRefresh(parseInt(autoRefreshSelect.value));
+                }
+                
                 return charts[0];
             });
     }
@@ -99,7 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupIndexReload() {
         indexReloadInterval = setInterval(() => {
             loadChartIndex().catch(error => {
-                showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
+                // Only disable dropdown and show error if the index was never loaded
+                if (!hasIndexLoadedOnce) {
+                    disableChartAutorefreshDropdown();
+                    showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
+                }
             });
         }, DEFAULTS.INDEX_RELOAD_INTERVAL);
     }
@@ -142,13 +164,17 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshBtn.addEventListener('click', refreshChart);
     
     // Initial setup
+
+    disableChartAutorefreshDropdown();
+    // Always set up periodic reload regardless of initial success
+    setupIndexReload();
+    
     loadChartIndex()
         .then(() => {
             refreshChart();
-            setupAutoRefresh(parseInt(autoRefreshSelect.value));
-            setupIndexReload();
         })
         .catch(error => {
+            // First load failed - dropdown remains disabled, error shown
             if (error.message === 'Index file not found') {
                 showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
             } else if (error.message === 'No charts in index') {
