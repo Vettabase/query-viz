@@ -16,7 +16,8 @@ const PATHS = {
 // Default values
 const DEFAULTS = {
     // milliseconds
-    AUTO_REFRESH_INTERVAL: 30000
+    AUTO_REFRESH_INTERVAL: 30000,
+    INDEX_RELOAD_INTERVAL: 60000
 };
 
 // Event types
@@ -41,7 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const autoRefreshSelect = document.getElementById(ELEMENT_IDS.AUTO_REFRESH_SELECT);
     const customIntervalInput = document.getElementById(ELEMENT_IDS.CUSTOM_INTERVAL_INPUT);
     
-    let refreshInterval = null;
+    let chartRefreshInterval = null;
+    let indexReloadInterval = null;
     let currentChartPath = null;
     
     function showError(message) {
@@ -69,48 +71,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error('No charts in index');
                 }
                 // FIXME: We're only showing one chart
+                currentChartPath = charts[0];
                 return charts[0];
             });
     }
     
     function refreshChart() {
-        if (currentChartPath) {
-            // Use cached chart path
-            const timestamp = new Date().getTime();
-            chartImage.src = `${PATHS.PLOTS_BASE}${currentChartPath}?t=${timestamp}`;
-            updateTime.textContent = new Date().toLocaleTimeString();
-        } else {
-            // Load chart index only once
-            loadChartIndex()
-                .then(chartFilename => {
-                    currentChartPath = chartFilename;
-                    const timestamp = new Date().getTime();
-                    chartImage.src = `${PATHS.PLOTS_BASE}${chartFilename}?t=${timestamp}`;
-                    updateTime.textContent = new Date().toLocaleTimeString();
-                })
-                .catch(error => {
-                    if (error.message === 'Index file not found') {
-                        showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
-                    } else if (error.message === 'No charts in index') {
-                        showError(ERROR_MESSAGES.NO_CHARTS_AVAILABLE);
-                    } else {
-                        showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
-                    }
-                });
-        }
+        const timestamp = new Date().getTime();
+        chartImage.src = `${PATHS.PLOTS_BASE}${currentChartPath}?t=${timestamp}`;
+        updateTime.textContent = new Date().toLocaleTimeString();
     }
     
     function setupAutoRefresh(intervalMs) {
-        // Clear existing interval
-        if (refreshInterval) {
-            clearInterval(refreshInterval);
-            refreshInterval = null;
+        // Clear existing interval before creating a new one
+        // or we would end up having 2 intervals
+        if (chartRefreshInterval) {
+            clearInterval(chartRefreshInterval);
+            chartRefreshInterval = null;
         }
         
         // Set up new interval if not disabled
         if (intervalMs > 0) {
-            refreshInterval = setInterval(refreshChart, intervalMs);
+            chartRefreshInterval = setInterval(refreshChart, intervalMs);
         }
+    }
+    
+    function setupIndexReload() {
+        indexReloadInterval = setInterval(() => {
+            loadChartIndex().catch(error => {
+                showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
+            });
+        }, DEFAULTS.INDEX_RELOAD_INTERVAL);
     }
     
     // Handle image load error
@@ -151,6 +142,19 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshBtn.addEventListener('click', refreshChart);
     
     // Initial setup
-    refreshChart();
-    setupAutoRefresh(parseInt(autoRefreshSelect.value));
+    loadChartIndex()
+        .then(() => {
+            refreshChart();
+            setupAutoRefresh(parseInt(autoRefreshSelect.value));
+            setupIndexReload();
+        })
+        .catch(error => {
+            if (error.message === 'Index file not found') {
+                showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
+            } else if (error.message === 'No charts in index') {
+                showError(ERROR_MESSAGES.NO_CHARTS_AVAILABLE);
+            } else {
+                showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
+            }
+        });
 });
