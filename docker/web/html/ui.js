@@ -181,6 +181,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const seconds = parseInt(this.value);
             if (seconds && seconds > 0) {
                 setupAutoRefresh(seconds * 1000);
+                this.blur(); // Remove focus
+            } else {
+                showError(ERROR_MESSAGES.INVALID_INTERVAL);
+            }
+        }
+    });
+    
+    // Handle blur event (when user clicks away)
+    customIntervalInput.addEventListener('blur', function() {
+        if (this.value.trim() !== '') {
+            const seconds = parseInt(this.value);
+            if (seconds && seconds > 0) {
+                setupAutoRefresh(seconds * 1000);
             } else {
                 showError(ERROR_MESSAGES.INVALID_INTERVAL);
             }
