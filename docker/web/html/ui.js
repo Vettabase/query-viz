@@ -59,12 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
         chartImage.style.display = 'block';
     }
     
-    function enableChartAutorefreshDropdown() {
+    function enableChartAutorefreshControls() {
         autoRefreshSelect.disabled = false;
+        refreshBtn.disabled = false;
     }
     
-    function disableChartAutorefreshDropdown() {
+    function disableChartAutorefreshControls() {
         autoRefreshSelect.disabled = true;
+        refreshBtn.disabled = true;
     }
     
     function loadChartIndex() {
@@ -86,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // First successful load
                 if (!hasIndexLoadedOnce) {
                     hasIndexLoadedOnce = true;
-                    enableChartAutorefreshDropdown();
+                    enableChartAutorefreshControls();
                     setupAutoRefresh(parseInt(autoRefreshSelect.value));
                 }
                 
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadChartIndex().catch(error => {
                 // Only disable dropdown and show error if the index was never loaded
                 if (!hasIndexLoadedOnce) {
-                    disableChartAutorefreshDropdown();
+                    disableChartAutorefreshControls();
                     showError(ERROR_MESSAGES.INDEX_NOT_FOUND);
                 }
             });
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial setup
 
-    disableChartAutorefreshDropdown();
+    disableChartAutorefreshControls();
     // Always set up periodic reload regardless of initial success
     setupIndexReload();
     
