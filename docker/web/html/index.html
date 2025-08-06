@@ -23,6 +23,7 @@
             </div>
             <div class="right-controls">
                 <div class="auto-refresh-control">
+                    <span id="autorefresh-status-indicator" class="autorefresh-status-indicator disabled" title="Autorefresh status">●</span>
                     <label for="auto-refresh-select">Auto-refresh every</label>
                     <select id="auto-refresh-select" aria-label="Set automatic refresh interval">
                         <option value="10000">10 seconds</option>
@@ -43,7 +44,7 @@
         </div>
         
         <div class="chart-container">
-            <img id="chart-image" class="chart-image" src="/plots/mariadb_metrics.png" alt="MariaDB Metrics Chart">
+            <div id="loading-message-box" class="loading-message-box">Loading charts...</div>
             <div id="error-message" class="error-message" style="display: none;"></div>
         </div>
         

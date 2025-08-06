@@ -1,5 +1,4 @@
 #!/usr/bin/gnuplot
-# MariaDB Query Statistics Plot Template
 # Generated on {{TIMESTAMP}}
 
 set terminal {{TERMINAL}}

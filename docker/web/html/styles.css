@@ -23,6 +23,14 @@ header h1 {
     font-size: 24px;
 }
 
+.loading-message-box {
+    color: #7f8c8d;
+    font-size: 16px;
+    padding: 40px;
+    text-align: center;
+    font-style: italic;
+}
+
 .chart-container {
     background-color: white;
     border-radius: 4px;
@@ -70,6 +78,24 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.autorefresh-status-indicator {
+    font-size: 16px;
+    margin-right: 5px;
+    transition: color 0.3s ease;
+}
+
+.autorefresh-status-indicator.enabled {
+    color: #27ae60;
+}
+
+.autorefresh-status-indicator.disabled {
+    color: #95a5a6;
+}
+
+.autorefresh-status-indicator.error {
+    color: #e74c3c;
 }
 
 select {
