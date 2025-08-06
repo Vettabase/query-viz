@@ -5,7 +5,8 @@ const ELEMENT_IDS = {
     ERROR_MESSAGE: 'error-message',
     AUTO_REFRESH_SELECT: 'auto-refresh-select',
     CUSTOM_INTERVAL_INPUT: 'custom-interval',
-    AUTOREFRESH_STATUS_INDICATOR: 'autorefresh-status-indicator'
+    AUTOREFRESH_STATUS_INDICATOR: 'autorefresh-status-indicator',
+    LOADING_MESSAGE_BOX: 'loading-message-box'
 };
 
 // Files created by the backend
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const autoRefreshSelect = document.getElementById(ELEMENT_IDS.AUTO_REFRESH_SELECT);
     const customIntervalInput = document.getElementById(ELEMENT_IDS.CUSTOM_INTERVAL_INPUT);
     const statusIndicator = document.getElementById(ELEMENT_IDS.AUTOREFRESH_STATUS_INDICATOR);
+    const loadingMessageBox = document.getElementById(ELEMENT_IDS.LOADING_MESSAGE_BOX);
     const chartContainer = document.querySelector('.chart-container');
     
     let chartRefreshInterval = null;
@@ -73,11 +75,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function showError(message) {
         errorMessage.textContent = message;
         errorMessage.style.display = 'block';
+        loadingMessageBox.style.display = 'none';
         // FIXME: We should somehow mark the charts that are failing
     }
     
     function hideError() {
         errorMessage.style.display = 'none';
+    }
+    
+    function hideLoadingMessage() {
+        loadingMessageBox.style.display = 'none';
+    }
+    
+    function showLoadingMessage() {
+        loadingMessageBox.style.display = 'block';
     }
     
     function enableChartAutorefreshControls() {
@@ -97,6 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
         //        - Recreate charts that changed
         //        To know when a chart configuration changed, we should store
         //        each chart configuration's checksum
+
+        // Hide loading message just before loading charts
+        hideLoadingMessage();
 
         // Clear existing charts
         const existingCharts = chartContainer.querySelectorAll('.chart-image');
@@ -243,6 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateAutorefreshStatusIndicator(AUTOREFRESH_STATUS.DISABLED);
     disableChartAutorefreshControls();
+    showLoadingMessage();
+    
     // Always set up periodic reload regardless of initial success
     setupIndexReload();
     
