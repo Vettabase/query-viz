@@ -50,9 +50,6 @@ charts:
       - 'com-selects'
       - 'db-count'
     # will be placed in the output directory
-    # NOTE: CHANGING THIS WILL BREAK THE WEB INTERFACE!
-    # However, if you don't use the web interface, you can safely
-    # change the file name.
     output_file: 'metrics.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
