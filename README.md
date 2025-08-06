@@ -2,6 +2,20 @@
 A tool to generate real-time charts using GNU Plot.
 
 
+## Philosophy
+
+Openness: The app is open source.
+
+Interoperability: We aim to support as many database systems as possible.
+
+CaC: We follow the Configuration as Code paradigm. You configure the application using human-readable
+configuration files. You can use them to define the queries and the way they are visualised.
+The web interface is read-only.
+
+Modularity: The web interface is not necessary to generate the graphs. Each database system support
+is implemented in a separate file. Implementing a new one is easy.
+
+
 ## Configuration (with Docker Compose)
 
 Create the configuration file:
