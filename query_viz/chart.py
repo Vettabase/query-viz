@@ -62,7 +62,6 @@ class ChartGenerator:
             plot_lines.append(f"'{data_file}' using 1:2 with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
         
         # Replace template variables
-        script_content = template.replace('{{TIMESTAMP}}', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
         script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, self.plot_config['output_file']))
         script_content = script_content.replace('{{TITLE}}', self.plot_config['title'])

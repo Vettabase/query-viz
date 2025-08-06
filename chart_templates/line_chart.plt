@@ -1,5 +1,4 @@
 #!/usr/bin/gnuplot
-# Generated on {{TIMESTAMP}}
 
 set terminal {{TERMINAL}}
 set output '{{OUTPUT_FILE}}'
