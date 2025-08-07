@@ -1,5 +1,5 @@
 # query-viz
-A tool to generate real-time charts using GNU Plot.
+A tool to generate real-time charts using Gnuplot.
 
 
 ## Philosophy
@@ -48,7 +48,7 @@ http://localhost:8080
 
 ## Usage Notes
 
-If you only want to generate GNU Plot charts and don't need a ready-made
+If you only want to generate Gnuplot charts and don't need a ready-made
 interface, you don't need the `qv-web` container.
 
 If you modify the configuration file, you should restart Query-Viz.
@@ -76,7 +76,7 @@ query-viz/
 ├── qv.py                      # Main entry point
 ├── config.yaml.template       # Configuration file template
 ├── config.yaml                # Configuration file (you should create it!)
-├── template.plt               # GNU Plot template
+├── template.plt               # Gnuplot template
 ├── requirements.txt           # Python dependencies (production)
 ├── requirements-test.txt      # Python dependencies (tests)
 ├── pytest.ini                 # pytest configuration
