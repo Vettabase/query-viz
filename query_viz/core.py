@@ -196,11 +196,19 @@ class QueryViz:
                 if query_name in unused_queries:
                     unused_queries.remove(query_name)
             
+            # Validate xcontents if specified
+            if 'xcontents' in chart:
+                xcontents = chart['xcontents']
+                if xcontents not in ['row_numbers', 'elapsed_seconds']:
+                    raise QueryVizError(f"Chart {i}: 'xcontents' must be 'row_numbers' or 'elapsed_seconds'")
+
             # Set default values where necessary
             if 'type' not in chart:
                 chart['type'] = 'line_chart'
             if 'title' not in chart:
                 chart['title'] = f"Chart #{i}"
+            if 'xcontents' not in chart:
+                chart['xcontents'] = 'elapsed_seconds'
             
             # Set default output_file if not specified or empty
             if 'output_file' not in chart or not chart['output_file']:
