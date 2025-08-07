@@ -1,5 +1,5 @@
 """
-Chart generation using GNU Plot
+Chart generation using Gnuplot
 """
 
 import os
@@ -9,7 +9,7 @@ from .exceptions import QueryVizError
 
 
 class ChartGenerator:
-    """Handles GNU Plot chart generation"""
+    """Handles Gnuplot chart generation"""
     
     # Chart type aliases
     CHART_TYPE_ALIASES = {
@@ -29,12 +29,12 @@ class ChartGenerator:
             raise QueryVizError(f"Template file for chart type '{chart_type}' not found: {self.template_file}")
     
     def generate_chart(self, queries, data_files):
-        """Generate chart using GNU Plot"""
+        """Generate chart using Gnuplot"""
         script_file = self._generate_gnuplot_script(queries, data_files)
         return self._execute_gnuplot(script_file)
     
     def _generate_gnuplot_script(self, queries, data_files):
-        """Generate GNU Plot script from template"""
+        """Generate Gnuplot script from template"""
         try:
             with open(self.template_file, 'r') as f:
                 template = f.read()
@@ -80,11 +80,11 @@ class ChartGenerator:
         return script_file
     
     def _execute_gnuplot(self, script_file):
-        """Execute GNU Plot script"""
+        """Execute Gnuplot script"""
         try:
             result = subprocess.run(['gnuplot', script_file], capture_output=True, text=True)
             if result.returncode != 0:
-                print(f"GNU Plot error: {result.stderr}")
+                print(f"Gnuplot error: {result.stderr}")
                 return False
             else:
                 print(f"Plot generated: {os.path.join(self.output_dir, self.plot_config['output_file'])}")
