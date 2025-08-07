@@ -46,8 +46,8 @@ class ChartGenerator:
         Resolve column name or index to actual column number for Gnuplot.
         
         Args:
-            name_or_index: Either a string (artificial column name) or int (metric index, 1-based)
-            num_metrics: Number of metric columns (needed to calculate artificial column positions)
+            name_or_index: Either a string (generated column name) or int (metric index, 1-based)
+            num_metrics: Number of metric columns (needed to calculate first generated column position)
             
         Returns:
             int: Column number for Gnuplot (1-based)
@@ -59,14 +59,14 @@ class ChartGenerator:
             return name_or_index
         
         elif isinstance(name_or_index, str):
-            # name_or_index is an artificial column name
+            # name_or_index is a generated column name
             try:
-                # Find position in the artificial columns list
-                artificial_column_index = self._datafile_columns.index(name_or_index)
-                # Column position = number of metrics + artificial column position + 1
-                return num_metrics + artificial_column_index + 1
+                # Find position in the generated columns list
+                generated_column_index = self._datafile_columns.index(name_or_index)
+                # Column position = number of metrics + generated column position + 1
+                return num_metrics + generated_column_index + 1
             except ValueError:
-                raise QueryVizError(f"Unknown artificial column name: {name_or_index}")
+                raise QueryVizError(f"Unknown generated column name: {name_or_index}")
         
         else:
             raise QueryVizError(f"Column identifier must be string or int, got: {type(name_or_index)}")
