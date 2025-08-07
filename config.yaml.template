@@ -44,6 +44,7 @@ charts:
     # optional. Chart type to generate. Default: line_chart
     type: line_chart
     xlabel: 'Time (seconds)'
+    xcontents: elapsed_seconds
     ylabel: 'Count / Connections'
     # Metrics to draw in this chart
     queries:
@@ -59,6 +60,7 @@ charts:
   - title: 'MariaDB Schema Count'
     type: line_chart
     xlabel: 'Time (seconds)'
+    xcontents: elapsed_seconds
     ylabel: 'Schema Count'
     queries:
       - 'db-count'
