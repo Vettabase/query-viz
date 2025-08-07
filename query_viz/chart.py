@@ -54,13 +54,25 @@ class ChartGenerator:
         # Generate plot lines using existing data files
         plot_lines = []
         
+        
+        # Determine which column to use (from the data file)
+        # for X axis based on xcontents
+        xcontents = self.plot_config.get('xcontents')
+        if xcontents == 'row_numbers':
+            # Only specify Y column, X will use Gnuplot's default: row numbers
+            using_clause = '2'
+        else:
+            # elapsed_seconds (our default)
+            # X = column 1 (elapsed seconds) : Y = column 2 (metric)
+            using_clause = '1:2'
+
         for i, query in enumerate(queries):
             file_info = data_files[query.name]
             data_file = file_info['filename']
             
             title = query.description if query.description else query.name
-            plot_lines.append(f"'{data_file}' using 1:2 with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
-        
+            plot_lines.append(f"'{data_file}' using {using_clause} with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
+
         # Replace template variables
         script_content = template
         script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
