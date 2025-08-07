@@ -6,6 +6,5 @@ if [ ! -d "docker" ]; then
   exit 2
 fi
 
-docker-compose -f docker/docker-compose.yml down
-
-docker network rm qv 2> /dev/null
+COMPOSE_PROFILES=full docker-compose -f docker/docker-compose.yml down && \
+    docker network rm qv 2> /dev/null
