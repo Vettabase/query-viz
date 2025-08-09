@@ -13,6 +13,8 @@ class QueryConfig:
         self.column = config.get('column') # OBSOLETE
         self.interval = config.get('interval', global_interval)
         self.description = config.get('description')
+        # FIXME: to implement multi-metric queries, we'll need to move
+        #        this information into the columns list
         self.color = config.get('color')
 
         if self.column:
