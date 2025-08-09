@@ -18,11 +18,11 @@ class DataFile:
     # Govern instance creation
     _lock = Lock()
     
-    def __new__(cls, query_name, query_interval, output_dir, max_points=1000):
+    def __new__(cls, query_object, output_dir, max_points=1000):
         """
         Ensure only one DataFile instance per query_name.
         """
-        key = query_name
+        key = query_object.name
         
         with cls._lock:
             if key not in cls._instances:
@@ -31,23 +31,23 @@ class DataFile:
                 instance._initialized = False
             return cls._instances[key]
     
-    def __init__(self, query_name, query_interval, output_dir, max_points=1000):
+    def __init__(self, query_object, output_dir, max_points=1000):
         """
         Initialize DataFile for a query.
         
         Args:
-            query_name (str): Query that returns data to write into this data file.
-                              A normalised version of the query name will be the file name.
-            query_interval (float): Interval between query executions in seconds.
+            query_object (str): From here we'll take all the query attributes we need.
+                                A normalised version of the query name will be the file name.
             output_dir (str): Directory where data files are stored.
             max_points (int): Max number of data points before rotation. Data point = query row.
         """
         # Prevent re-initialization of existing instances
         if self._initialized:
             return
-            
-        self.query_name = query_name
-        self.query_interval = query_interval
+        
+        self.query_name = query_object.name
+        self.query_interval = query_object.interval
+        self.columns = getattr(query_object, 'columns', ['time', 'value'])
         self.output_dir = output_dir
         self.max_points = max_points
         
