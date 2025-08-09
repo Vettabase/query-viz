@@ -13,7 +13,7 @@ from threading import Lock
 class DataFile:
     """Manage data file operations for a single query"""
     
-    # Istance dictionary. The key is query_name
+    # Instance dictionary. The key is query_name
     _instances = {}
     # Govern instance creation
     _lock = Lock()
@@ -47,12 +47,12 @@ class DataFile:
         
         self.query_name = query_object.name
         self.query_interval = query_object.interval
-        self.columns = getattr(query_object, 'columns', ['time', 'value'])
+        self.columns = query_object.columns
         self.output_dir = output_dir
         self.max_points = max_points
         
         # Normalize query name for filename
-        self.filename = self._generate_filename(query_name)
+        self.filename = self._generate_filename(query_object.name)
         self.filepath = os.path.join(output_dir, self.filename)
         
         # File handle and tracking
