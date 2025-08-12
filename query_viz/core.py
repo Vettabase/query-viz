@@ -444,15 +444,7 @@ class QueryViz:
         for chart_index, chart_generator in self.chart_generators.items():
             chart_queries = self.chart_queries[chart_index]
             
-            # Build data files dict for chart generation
-            chart_data_files = {}
-            for query in chart_queries:
-                data_file = DataFileSet.get(query.name)
-                chart_data_files[query.name] = {
-                    'filename': data_file.get_filepath()
-                }
-            
-            if chart_generator.generate_chart(chart_queries, chart_data_files):
+            if chart_generator.generate_chart(chart_queries):
                 # Get the output filename from the chart config
                 chart_config = self.config['charts'][chart_index]
                 chart_filenames.append(chart_config['output_file'])

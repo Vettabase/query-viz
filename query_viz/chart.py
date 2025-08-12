@@ -6,6 +6,7 @@ import os
 import subprocess
 from datetime import datetime
 from .exceptions import QueryVizError
+from .data_file_set import DataFileSet
 
 
 class ChartGenerator:
@@ -28,12 +29,12 @@ class ChartGenerator:
         if not os.path.exists(self.template_file):
             raise QueryVizError(f"Template file for chart type '{chart_type}' not found: {self.template_file}")
     
-    def generate_chart(self, queries, data_files):
+    def generate_chart(self, queries):
         """Generate chart using Gnuplot"""
-        script_file = self._generate_gnuplot_script(queries, data_files)
+        script_file = self._generate_gnuplot_script(queries)
         return self._execute_gnuplot(script_file)
     
-    def _generate_gnuplot_script(self, queries, data_files):
+    def _generate_gnuplot_script(self, queries):
         """Generate Gnuplot script from template"""
         try:
             with open(self.template_file, 'r') as f:
@@ -51,15 +52,15 @@ class ChartGenerator:
             color = query.color if query.color else colors[i % len(colors)]
             style_lines.append(f"set style line {i+1} linecolor rgb '{color}' linewidth {self.plot_config['line_width']} pointtype 7")
         
-        # Generate plot lines using existing data files
+        # Generate plot lines using DataFileSet
         plot_lines = []
         
         for i, query in enumerate(queries):
-            file_info = data_files[query.name]
-            data_file = file_info['filename']
+            data_file = DataFileSet.get(query.name)
+            data_file_path = data_file.get_filepath()
             
             title = query.description if query.description else query.name
-            plot_lines.append(f"'{data_file}' using 1:2 with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
+            plot_lines.append(f"'{data_file_path}' using 1:2 with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
         
         # Replace template variables
         script_content = template
