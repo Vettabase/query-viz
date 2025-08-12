@@ -14,6 +14,7 @@ from collections import defaultdict, deque
 from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
 from .chart import ChartGenerator
+from .data_file import DataFile
 from .exceptions import QueryVizError
 
 
@@ -29,8 +30,6 @@ class QueryViz:
         self.queries_by_name = {}
         # query list per chart
         self.chart_queries = {}
-        # data files per chart
-        self.chart_data_files = {}
         # chart generators per chart
         self.chart_generators = {}
         # store max 1000 data points
@@ -341,33 +340,19 @@ class QueryViz:
             
             self.queries.append(query)
             
-            # Initialize data file for this query
-            # Normalize query name for filename
-            normalized_name = re.sub(r'[^a-zA-Z0-9\s_-]', '', query.name).lower().replace(' ', '-').replace('_', '-')
-            data_file = os.path.join(self.output_dir, f"{normalized_name}.dat")
-            self.data_files[query.name] = {
-                'filename': data_file,
-                'handle': None,
-                'point_count': 0
-            }
+            # Initialize DataFile for this query
+            data_file = DataFile(query, self.output_dir)
+            self.data_files[query.name] = data_file
         
         # For fast access, build a query objects lookup
         # and a pre-computed chart-to-queries map
         self.queries_by_name = {q.name: q for q in self.queries}
         self.chart_queries = {}
-        self.chart_data_files = {}
         self.chart_generators = {}
         
         for i, chart in enumerate(self.config['charts']):
             # Pre-compute query objects for this chart
             self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
-            
-            # Pre-compute data files for this chart
-            chart_query_names = set(chart['queries'])
-            self.chart_data_files[i] = {
-                name: info for name, info in self.data_files.items() 
-                if name in chart_query_names
-            }
             
             # Instantiate ChartGenerator for each chart
             chart_type = chart['type']
@@ -379,23 +364,18 @@ class QueryViz:
     
     def open_data_files(self):
         """Open data files for incremental writing"""
-        for query_name, file_info in self.data_files.items():
-            # Remove existing file and start fresh
-            if os.path.exists(file_info['filename']):
-                os.remove(file_info['filename'])
-            file_info['handle'] = open(file_info['filename'], 'w')
-            file_info['point_count'] = 0
+        for data_file in self.data_files.values():
+            data_file.open()
     
     def close_data_files(self):
         """Close all data files"""
-        for file_info in self.data_files.values():
-            if file_info['handle']:
-                file_info['handle'].close()
-                file_info['handle'] = None
+        for data_file in self.data_files.values():
+            data_file.close()
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
         connection = self.connections[query_config.connection_name]
+        data_file = self.data_files[query_config.name]
         
         while self.running:
             try:
@@ -440,17 +420,8 @@ class QueryViz:
                     if len(self.timestamps) == 0 or current_time > self.timestamps[-1]:
                         self.timestamps.append(current_time)
                     
-                    # Write data point to file incrementally
-                    file_info = self.data_files[query_config.name]
-                    if file_info['handle']:
-                        relative_time = file_info['point_count'] * query_config.interval
-                        file_info['handle'].write(f"{relative_time} {numeric_value}\n")
-                        file_info['handle'].flush()  # Ensure data is written immediately
-                        file_info['point_count'] += 1
-                        
-                        # Handle rolling window: if we exceed max points, rotate the file
-                        if file_info['point_count'] > 1000:
-                            self.rotate_data_file(query_config.name)
+                    # Write data point to file
+                    data_file.write_data_point(numeric_value)
                 
                 print(f"Query '{query_config.name}': {numeric_value}")
                 
@@ -462,27 +433,6 @@ class QueryViz:
             except Exception as e:
                 print(f"Error executing query '{query_config.name}': {e}")
                 time.sleep(query_config.interval)
-    
-    def rotate_data_file(self, query_name):
-        """Rotate data file when it gets too large (rolling window)"""
-        file_info = self.data_files[query_name]
-        
-        # Close current file
-        if file_info['handle']:
-            file_info['handle'].close()
-        
-        # Rewrite file with only the recent data (last 1000 points)
-        query_data = self.data[query_name]
-        query = next(q for q in self.queries if q.name == query_name)
-        
-        with open(file_info['filename'], 'w') as f:
-            for i, value in enumerate(query_data):
-                relative_time = i * query.interval
-                f.write(f"{relative_time} {value}\n")
-        
-        # Reopen file for appending
-        file_info['handle'] = open(file_info['filename'], 'a')
-        file_info['point_count'] = len(query_data)
     
     def create_chart_index(self, chart_filenames):
         """Write the chart index file with all generated chart filenames"""
@@ -502,7 +452,14 @@ class QueryViz:
         
         for chart_index, chart_generator in self.chart_generators.items():
             chart_queries = self.chart_queries[chart_index]
-            chart_data_files = self.chart_data_files[chart_index]
+            
+            # Build data files dict for chart generation
+            chart_data_files = {}
+            for query in chart_queries:
+                data_file = self.data_files[query.name]
+                chart_data_files[query.name] = {
+                    'filename': data_file.get_filepath()
+                }
             
             if chart_generator.generate_chart(chart_queries, chart_data_files):
                 # Get the output filename from the chart config
