@@ -15,6 +15,7 @@ from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
 from .chart import ChartGenerator
 from .data_file import DataFile
+from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
 
 
@@ -103,7 +104,7 @@ class QueryViz:
             print(f"\nReceived signal {signum}")
         print(f"\nShutting down...")
         self.running = False
-        self.close_data_files()
+        DataFileSet.close_all()
         for conn in self.connections.values():
             conn.close()
         self.exit(0)
@@ -362,20 +363,10 @@ class QueryViz:
                 chart_type
             )
     
-    def open_data_files(self):
-        """Open data files for incremental writing"""
-        for data_file in self.data_files.values():
-            data_file.open()
-    
-    def close_data_files(self):
-        """Close all data files"""
-        for data_file in self.data_files.values():
-            data_file.close()
-    
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
         connection = self.connections[query_config.connection_name]
-        data_file = self.data_files[query_config.name]
+        data_file = DataFileSet.get(query_config.name)
         
         while self.running:
             try:
@@ -456,7 +447,7 @@ class QueryViz:
             # Build data files dict for chart generation
             chart_data_files = {}
             for query in chart_queries:
-                data_file = self.data_files[query.name]
+                data_file = DataFileSet.get(query.name)
                 chart_data_files[query.name] = {
                     'filename': data_file.get_filepath()
                 }
@@ -487,8 +478,12 @@ class QueryViz:
             
             self.setup_queries()
             
+            # Create DataFileSet entries for all queries
+            for query in self.queries:
+                DataFileSet.set(query, self.output_dir)
+            
             # Open data files for writing
-            self.open_data_files()
+            DataFileSet.open_all()
             
             # Start query threads
             self.running = True
@@ -527,7 +522,7 @@ class QueryViz:
             self.exit(1)
         finally:
             self.running = False
-            self.close_data_files()
+            DataFileSet.close_all()
             for conn in self.connections.values():
                 conn.close()
         
