@@ -48,19 +48,31 @@ class ChartGenerator:
         # TODO: Implement color aliases
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
         
-        for i, query in enumerate(queries):
-            color = query.color if query.color else colors[i % len(colors)]
-            style_lines.append(f"set style line {i+1} linecolor rgb '{color}' linewidth {self.plot_config['line_width']} pointtype 7")
-        
         # Generate plot lines using DataFileSet
         plot_lines = []
         
-        for i, query in enumerate(queries):
+        line_index = 1
+        for query in queries:
             data_file = DataFileSet.get(query.name)
             data_file_path = data_file.get_filepath()
             
-            title = query.description if query.description else query.name
-            plot_lines.append(f"'{data_file_path}' using 1:2 with {self.plot_config['point_type']} linestyle {i+1} title '{title}'")
+            # Get all metrics for this query
+            metrics = query.get_metrics()
+            
+            for i, metric in enumerate(metrics):
+                # Metrics start at 2)
+                column_index = i + 2
+                
+                # Use query color if specified, otherwise cycle through default colors
+                color = query.color if query.color else colors[(line_index - 1) % len(colors)]
+                style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['line_width']} pointtype 7")
+                
+                # Metrics key
+                title = f"{metric}"
+                
+                plot_lines.append(f"'{data_file_path}' using 1:{column_index} with {self.plot_config['point_type']} linestyle {line_index} title '{title}'")
+                
+                line_index += 1
         
         # Replace template variables
         script_content = template
