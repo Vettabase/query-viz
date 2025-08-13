@@ -49,8 +49,10 @@ class QueryConfig:
         # Legacy attribute for backward compatibility
         self.column = config.get('column')
         
-        # Prepend 'time' to the columns list
-        self.columns.insert(0, 'time')
+        # If a 'time' exists, move it to the beginning of the list
+        if 'time' in self.columns:
+            self.columns.remove('time')
+            self.columns.insert(0, 'time')
         
         self._initialized = True
     
