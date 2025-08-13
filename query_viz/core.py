@@ -155,6 +155,25 @@ class QueryViz:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
             
+            # Validate column specification - column and columns are mutually exclusive
+            has_column = 'column' in query and query['column'] is not None
+            has_columns = 'columns' in query and query['columns'] is not None
+            if has_column == has_columns:
+                raise QueryVizError(f"Query {i}: 'column' and 'columns' are mutually exclusive, but one of them must be specified")
+            
+            # Recommended format: "columns"
+            if has_columns:
+                if not isinstance(query['columns'], list) or len(query['columns']) == 0:
+                    raise QueryVizError(f"Query {i}: 'columns' must be a non-empty list")
+                for col in query['columns']:
+                    if not isinstance(col, str) or not col.strip():
+                        raise QueryVizError(f"Query {i}: all column names must be non-empty strings")
+            
+            # Legacy format: "column"
+            if has_column:
+                if not isinstance(query['column'], str) or not query['column'].strip():
+                    raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
+            
             # Check for duplicate query names
             if query['name'] in query_names:
                 raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
@@ -444,7 +463,7 @@ class QueryViz:
         for chart_index, chart_generator in self.chart_generators.items():
             chart_queries = self.chart_queries[chart_index]
             
-            if chart_generator.generate_chart(chart_queries):
+            if chart_generator.generate_all_charts(chart_queries):
                 # Get the output filename from the chart config
                 chart_config = self.config['charts'][chart_index]
                 chart_filenames.append(chart_config['output_file'])

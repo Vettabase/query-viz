@@ -29,8 +29,8 @@ class ChartGenerator:
         if not os.path.exists(self.template_file):
             raise QueryVizError(f"Template file for chart type '{chart_type}' not found: {self.template_file}")
     
-    def generate_chart(self, queries):
-        """Generate chart using Gnuplot"""
+    def generate_all_charts(self, queries):
+        """Generate all charts using Gnuplot"""
         script_file = self._generate_gnuplot_script(queries)
         return self._execute_gnuplot(script_file)
     

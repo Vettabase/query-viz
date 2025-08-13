@@ -31,17 +31,26 @@ class QueryConfig:
         self.name = config['name']
         self.query = config['query']
         self.connection_name = config.get('connection', default_connection)
-        self.column = config.get('column') # OBSOLETE
         self.interval = config.get('interval', global_interval)
         self.description = config.get('description')
-        # FIXME: to implement multi-metric queries, we'll need to move
-        #        this information into the columns list
         self.color = config.get('color')
-
-        if self.column:
-            self.columns = ['time', self.column]
+        
+        # Handle both column formats
+        if 'columns' in config and config['columns'] is not None:
+            # New format: multiple columns
+            self.columns = config['columns'].copy()  # List of column names
+        elif 'column' in config and config['column'] is not None:
+            # Old format: single column (backward compatibility)
+            self.columns = [config['column']]  # Convert to list
         else:
-            self.columns = ['time', 'value']
+            # This should be caught by validation, but just in case
+            raise ValueError("Either 'column' or 'columns' must be specified")
+        
+        # Legacy attribute for backward compatibility
+        self.column = config.get('column')
+        
+        # Prepend 'time' to the columns list
+        self.columns.insert(0, 'time')
         
         self._initialized = True
     
