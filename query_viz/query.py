@@ -62,7 +62,7 @@ class QueryConfig:
     
     def get_metrics_count(self):
         """Get number of metric columns"""
-        return len(self.get_metric_columns())
+        return len(self.get_metrics())
     
     @classmethod
     def clear_all_instances(cls):
