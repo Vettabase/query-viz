@@ -36,12 +36,12 @@ queries:
     interval: 15s
     description: 'Number of schemas'
     color: '#ff7f0e'
-  - name: 'wave'
-    connection: mariadb-1
-    query: "SELECT 5 - ABS((UNIX_TIMESTAMP() MOD 10 + 1) - 5.5) AS w;"
-    column: w
-    interval: 1s
-    description: 'Noise'
+# - name: 'wave'
+#   connection: mariadb-1
+#   query: "SELECT 5 - ABS((UNIX_TIMESTAMP() MOD 10 + 1) - 5.5) AS w;"
+#   column: w
+#   interval: 1s
+#   description: 'Noise'
 
 charts:
   # At least one chart must be specified.
