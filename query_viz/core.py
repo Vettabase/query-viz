@@ -178,7 +178,7 @@ class QueryViz:
             if has_column:
                 if not isinstance(query['column'], str) or not query['column'].strip():
                     raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
-                if col == 'time':
+                if query['column'] == 'time':
                     raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
             
             # Check for duplicate query names
