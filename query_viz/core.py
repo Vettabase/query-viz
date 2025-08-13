@@ -165,14 +165,21 @@ class QueryViz:
             if has_columns:
                 if not isinstance(query['columns'], list) or len(query['columns']) == 0:
                     raise QueryVizError(f"Query {i}: 'columns' must be a non-empty list")
+                has_metrics = False
                 for col in query['columns']:
                     if not isinstance(col, str) or not col.strip():
                         raise QueryVizError(f"Query {i}: all column names must be non-empty strings")
+                    if col != 'time':
+                        has_metrics = True
+                if not has_metrics:
+                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
             
             # Legacy format: "column"
             if has_column:
                 if not isinstance(query['column'], str) or not query['column'].strip():
                     raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
+                if col == 'time':
+                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
             
             # Check for duplicate query names
             if query['name'] in query_names:
