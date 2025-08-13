@@ -39,7 +39,7 @@ queries:
   - name: 'wave'
     connection: mariadb-1
     query: "SELECT 5 - ABS((UNIX_TIMESTAMP() MOD 10 + 1) - 5.5) AS w;"
-    column: count
+    column: w
     interval: 1s
     description: 'Noise'
 
