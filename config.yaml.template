@@ -68,7 +68,7 @@ charts:
     ylabel: 'Schema Count'
     queries:
       - 'db-count'
-      - 'wave'
+#     - 'wave'
     output_file: 'schemas.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
