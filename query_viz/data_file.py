@@ -50,6 +50,7 @@ class DataFile:
         self.columns = query_object.columns
         self.output_dir = output_dir
         self.max_points = max_points
+        self.has_time_column = (self.columns[0] == 'time')
         
         # Normalize query name for filename
         self.filename = self._generate_filename(query_object.name)
@@ -80,6 +81,30 @@ class DataFile:
         # Add extension
         return f"{normalized}.dat"
     
+    def _format_data_line(self, values, point_index=None):
+        """
+        Format a data line for writing to file.
+        
+        Args:
+            values (list): List of values for all columns
+            point_index (int): Index for artificial time calculation (used in rotation)
+        
+        Returns:
+            str: Formatted line ready for file writing
+        """
+        if self.has_time_column:
+            # Use the actual time column value and all other columns
+            line_values = [str(val) for val in values]
+        else:
+            # Add artificial relative time as first column, then all values
+            if point_index is not None:
+                relative_time = point_index * self.query_interval
+            else:
+                relative_time = self._point_count * self.query_interval
+            line_values = [str(relative_time)] + [str(val) for val in values]
+        
+        return ' '.join(line_values) + '\n'
+    
     def open(self):
         """Open data file for writing, removing existing file if it exists"""
         if self._is_open:
@@ -101,12 +126,12 @@ class DataFile:
             self._file_handle = None
         self._is_open = False
     
-    def write_data_point(self, value):
+    def write_data_point(self, values):
         """
         Write a data point to the file.
         
         Args:
-            value (float): The numeric value to write
+            values (list): List of values for all columns
             
         Returns:
             bool: True if rotation occurred, False otherwise
@@ -114,15 +139,12 @@ class DataFile:
         if not self._is_open or not self._file_handle:
             raise RuntimeError(f"DataFile for '{self.query_name}' is not open")
         
-        # Calculate relative time
-        relative_time = self._point_count * self.query_interval
-        
         # Write to file
-        self._file_handle.write(f"{relative_time} {value}\n")
+        self._file_handle.write(self._format_data_line(values))
         self._file_handle.flush()  # Ensure data is written immediately
         
         # Store in memory for potential rotation
-        self._data.append(value)
+        self._data.append(values)
         self._point_count += 1
         
         # Check if rotation is needed
@@ -140,9 +162,8 @@ class DataFile:
         
         # Rewrite file with only the recent data
         with open(self.filepath, 'w') as f:
-            for i, value in enumerate(self._data):
-                relative_time = i * self.query_interval
-                f.write(f"{relative_time} {value}\n")
+            for i, values in enumerate(self._data):
+                f.write(self._format_data_line(values, point_index=i))
         
         # Reopen file for appending
         self._file_handle = open(self.filepath, 'a')

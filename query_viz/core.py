@@ -402,38 +402,41 @@ class QueryViz:
                     time.sleep(query_config.interval)
                     continue
                 
-                # Extract metric value
-                if query_config.column:
-                    if query_config.column not in columns:
-                        raise QueryVizError(f"Column '{query_config.column}' not found in query results for '{query_config.name}'. Available columns: {columns}")
+                # Extract values for all configured columns
+                column_values = []
+                for col_name in query_config.columns:
+                    if col_name not in columns:
+                        raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
                     
-                    col_index = columns.index(query_config.column)
+                    col_index = columns.index(col_name)
                     value = results[0][col_index]
-                else:
-                    if len(columns) > 1:
-                        raise QueryVizError(f"Query '{query_config.name}' returns multiple columns but no 'column' attribute specified")
-                    value = results[0][0]
-                
-                # Convert to numeric
-                try:
-                    numeric_value = float(value)
-                except (ValueError, TypeError):
-                    raise QueryVizError(f"Value '{value}' from query '{query_config.name}' is not numeric")
+                    column_values.append(value)
                 
                 # Store data point and write to file incrementally
                 current_time = time.time()
                 
                 with self.data_lock:
-                    self.data[query_config.name].append(numeric_value)
+                    # "time" is not a metric
+                    if query_config.columns[0] == 'time':
+                        metric_value = column_values[1]
+                    else:
+                        metric_value = column_values[0]
+                    
+                    # Convert to numeric and store
+                    try:
+                        numeric_value = float(metric_value)
+                        self.data[query_config.name].append(numeric_value)
+                    except (ValueError, TypeError):
+                        raise QueryVizError(f"Metric value '{metric_value}' from query '{query_config.name}' is not numeric")
                     
                     # Update timestamps (shared across all queries)
                     if len(self.timestamps) == 0 or current_time > self.timestamps[-1]:
                         self.timestamps.append(current_time)
                     
                     # Write data point to file
-                    data_file.write_data_point(numeric_value)
+                    data_file.write_data_point(column_values)
                 
-                print(f"Query '{query_config.name}': {numeric_value}")
+                print(f"Query '{query_config.name}': {column_values}")
                 
                 # Sleep for remaining interval time
                 elapsed = time.time() - start_time
