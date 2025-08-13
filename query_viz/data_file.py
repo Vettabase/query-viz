@@ -46,6 +46,7 @@ class DataFile:
             return
         
         self.query_name = query_object.name
+        self.query_description = query_object.description or ""
         self.query_interval = query_object.interval
         self.columns = query_object.columns
         self.output_dir = output_dir
@@ -81,6 +82,27 @@ class DataFile:
         # Add extension
         return f"{normalized}.dat"
     
+    def _write_headers(self):
+        """Write header comments to the data file"""
+        if not self._file_handle:
+            raise RuntimeError(f"DataFile for '{self.query_name}' is not open")
+        
+        # Build column list string
+        if self.has_time_column:
+            columns_str = ', '.join(self.columns)
+        else:
+            columns_str = 'time, ' + ', '.join(self.columns)
+        
+        header = f"""# Data file created by Query-Viz
+# https://github.com/Vettabase/query-viz
+#
+# Query name: {self.query_name}
+# Query description: {self.query_description}
+# Columns: {columns_str}
+#
+"""
+        self._file_handle.write(header)
+    
     def _format_data_line(self, values, point_index=None):
         """
         Format a data line for writing to file.
@@ -115,6 +137,7 @@ class DataFile:
             os.remove(self.filepath)
         
         self._file_handle = open(self.filepath, 'w')
+        self._write_headers()
         self._point_count = 0
         self._data.clear()
         self._is_open = True
@@ -161,11 +184,16 @@ class DataFile:
             self._file_handle.close()
         
         # Rewrite file with only the recent data
-        with open(self.filepath, 'w') as f:
-            for i, values in enumerate(self._data):
-                f.write(self._format_data_line(values, point_index=i))
+        self._file_handle = open(self.filepath, 'w')
         
-        # Reopen file for appending
+        # Write headers when file contents are replaced
+        self._write_headers()
+        
+        for i, values in enumerate(self._data):
+            self._file_handle.write(self._format_data_line(values, point_index=i))
+        
+        # Close and reopen file for appending
+        self._file_handle.close()
         self._file_handle = open(self.filepath, 'a')
         self._point_count = len(self._data)
     
