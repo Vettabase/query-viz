@@ -55,6 +55,14 @@ class QueryConfig:
             self.columns.insert(0, 'time')
         
         self._initialized = True
+
+    def get_metrics(self):
+        """Get list of metric columns"""
+        return [col for col in self.columns if col != 'time']
+    
+    def get_metrics_count(self):
+        """Get number of metric columns"""
+        return len(self.get_metric_columns())
     
     @classmethod
     def clear_all_instances(cls):
