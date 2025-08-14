@@ -30,7 +30,7 @@ class TemporalColumnTimestamp(TemporalColumn):
     
     def generate_artificial_time(self, point_count: int, interval: float) -> str:
         """
-        Generate artificial timestamp based on current time and elapsed intervals
+        Return the current timestamp, formatted to be human readable
         
         Args:
             point_count: Number of data points collected so far
