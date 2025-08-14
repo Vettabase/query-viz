@@ -30,7 +30,7 @@ class TemporalColumnTimestamp(TemporalColumn):
     
     def generate_artificial_time(self, point_count: int, interval: float) -> str:
         """
-        Return the current timestamp, formatted to be human readable
+        Return the current timestamp, in a human readable format
         
         Args:
             point_count: Number of data points collected so far
@@ -39,7 +39,4 @@ class TemporalColumnTimestamp(TemporalColumn):
         Returns:
             str: Formatted timestamp string
         """
-        relative_time = point_count * interval
-        current_timestamp = time.time()
-        point_timestamp = current_timestamp - (point_count * interval)
-        return self.format_value(point_timestamp)
+        return self.format_value(time.time())
