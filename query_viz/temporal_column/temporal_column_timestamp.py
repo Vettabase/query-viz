@@ -39,4 +39,5 @@ class TemporalColumnTimestamp(TemporalColumn):
         Returns:
             str: Formatted timestamp string
         """
-        return self.format_value(time.time())
+        #return self.format_value(time.time())
+        return str(time.time())
