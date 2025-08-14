@@ -63,7 +63,8 @@ class DataFile:
         self._is_open = False
         
         # In-memory data for rotation (no locks needed - single thread per instance)
-        self._data = deque(maxlen=max_points)
+        # File lines are stored as a list of strings
+        self._data_lines = deque(maxlen=max_points)
         
         self._initialized = True
     
@@ -103,13 +104,12 @@ class DataFile:
 """
         self._file_handle.write(header)
     
-    def _format_data_line(self, values, point_index=None):
+    def _format_data_line(self, values):
         """
         Format a data line for writing to file.
         
         Args:
             values (list): List of values for all columns
-            point_index (int): Index for artificial time calculation (used in rotation)
         
         Returns:
             str: Formatted line ready for file writing
@@ -119,10 +119,7 @@ class DataFile:
             line_values = [str(val) for val in values]
         else:
             # Add artificial relative time as first column, then all values
-            if point_index is not None:
-                relative_time = point_index * self.query_interval
-            else:
-                relative_time = self._point_count * self.query_interval
+            relative_time = self._point_count * self.query_interval
             line_values = [str(relative_time)] + [str(val) for val in values]
         
         return ' '.join(line_values) + '\n'
@@ -139,7 +136,7 @@ class DataFile:
         self._file_handle = open(self.filepath, 'w')
         self._write_headers()
         self._point_count = 0
-        self._data.clear()
+        self._data_lines.clear()
         self._is_open = True
     
     def close(self):
@@ -162,12 +159,15 @@ class DataFile:
         if not self._is_open or not self._file_handle:
             raise RuntimeError(f"DataFile for '{self.query_name}' is not open")
         
+        # Format the line
+        formatted_line = self._format_data_line(values)
+        
         # Write to file
-        self._file_handle.write(self._format_data_line(values))
+        self._file_handle.write(formatted_line)
         self._file_handle.flush()  # Ensure data is written immediately
         
-        # Store in memory for potential rotation
-        self._data.append(values)
+        # Store in memory for rotation
+        self._data_lines.append(formatted_line)
         self._point_count += 1
         
         # Check if rotation is needed
@@ -189,13 +189,14 @@ class DataFile:
         # Write headers when file contents are replaced
         self._write_headers()
         
-        for i, values in enumerate(self._data):
-            self._file_handle.write(self._format_data_line(values, point_index=i))
+        # Flush to file
+        for line in self._data_lines:
+            self._file_handle.write(line)
         
         # Close and reopen file for appending
         self._file_handle.close()
         self._file_handle = open(self.filepath, 'a')
-        self._point_count = len(self._data)
+        self._point_count = len(self._data_lines)
     
     def get_filepath(self):
         """Get the full path to the data file"""
@@ -215,7 +216,7 @@ class DataFile:
     
     def get_data_copy(self):
         """Get a copy of the current in-memory data"""
-        return list(self._data)
+        return list(self._data_lines)
     
     @classmethod
     def clear_instances(cls):
