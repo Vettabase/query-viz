@@ -41,5 +41,5 @@ class TemporalColumnTimestamp(TemporalColumn):
         """
         relative_time = point_count * interval
         current_timestamp = time.time()
-        start_timestamp = current_timestamp - relative_time
-        return self.format_value(start_timestamp)
+        point_timestamp = current_timestamp - (point_count * interval)
+        return self.format_value(point_timestamp)
