@@ -26,7 +26,7 @@ class TemporalColumnTimestamp(TemporalColumn):
         #    return dt.strftime('%Y-%m-%d %H-%M-%S')
         #except (ValueError, TypeError):
         #    # If conversion fails, return original value
-            return str(time_value)
+        return str(time_value)
     
     def generate_artificial_time(self, point_count: int, interval: float) -> str:
         """
