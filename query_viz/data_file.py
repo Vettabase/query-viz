@@ -8,6 +8,7 @@ import os
 import re
 from collections import deque
 from threading import Lock
+from .temporal_column import TemporalColumnRegistry
 
 
 class DataFile:
@@ -52,6 +53,9 @@ class DataFile:
         self.output_dir = output_dir
         self.max_points = max_points
         self.has_time_column = (self.columns[0] == 'time')
+        
+        # Create temporal column formatter based on query's time_type
+        self.temporal_column = TemporalColumnRegistry.create(query_object.time_type)
         
         # Normalize query name for filename
         self.filename = self._generate_filename(query_object.name)
@@ -115,12 +119,17 @@ class DataFile:
             str: Formatted line ready for file writing
         """
         if self.has_time_column:
-            # Use the actual time column value and all other columns
-            line_values = [str(val) for val in values]
+            # A Temporal Column is in the query results
+            # We format it according to its type
+            time_value = values[0]
+            formatted_time = self.temporal_column.format_value(time_value)
+            other_values = [str(val) for val in values[1:]]
+            line_values = [formatted_time] + other_values
         else:
-            # Add artificial relative time as first column, then all values
-            relative_time = self._point_count * self.query_interval
-            line_values = [str(relative_time)] + [str(val) for val in values]
+            # The query has no Temporal Column
+            # Let's generate a Temporal Value artificially
+            artificial_time = self.temporal_column.generate_artificial_time(self._point_count, self.query_interval)
+            line_values = [artificial_time] + [str(val) for val in values]
         
         return ' '.join(line_values) + '\n'
     
