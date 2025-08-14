@@ -1,5 +1,5 @@
 """
-Abstract base class for temporal column handling
+Abstract Base Class for Temporal Columns. Each subclass implements a format.
 """
 
 from abc import ABC, abstractmethod
@@ -40,3 +40,15 @@ class TemporalColumn(ABC):
             str: Formatted artificial time value
         """
         pass
+
+    def get_default_description(self) -> str:
+        """
+        Get default description for the temporal axis
+        
+        Returns:
+            str: Default description for temporal axis label
+            
+        Raises:
+            NotImplementedError: Always, as this must be implemented by subclasses
+        """
+        raise NotImplementedError("get_default_description() must be implemented by subclasses")

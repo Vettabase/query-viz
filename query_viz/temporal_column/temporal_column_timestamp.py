@@ -41,3 +41,12 @@ class TemporalColumnTimestamp(TemporalColumn):
         """
         #return self.format_value(time.time())
         return self.format_value(time.time())
+
+    def get_default_description(self) -> str:
+        """
+        Get default description for the temporal axis
+        
+        Returns:
+            str: Default description for temporal axis label
+        """
+        return "Absolute Time"

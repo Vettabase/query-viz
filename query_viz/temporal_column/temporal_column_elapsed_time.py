@@ -34,3 +34,12 @@ class TemporalColumnElapsedTime(TemporalColumn):
             str: Elapsed time as string
         """
         return str(point_count * interval)
+
+    def get_default_description(self) -> str:
+        """
+        Get default description for the temporal axis
+        
+        Returns:
+            str: Default description for temporal axis label
+        """
+        return "Elapsed Time"
