@@ -34,7 +34,7 @@ class TemporalColumnRegistry:
         Raises:
             KeyError: If temporal_type is not supported
         """
-        if not self.validate(temporal_type):
+        if not cls.validate(temporal_type):
             raise KeyError(f"Unsupported temporal_type: {temporal_type}")
         return cls._types[temporal_type]()
     
