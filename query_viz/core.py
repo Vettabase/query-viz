@@ -155,6 +155,12 @@ class QueryViz:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
             
+            # Validate time_type if specified
+            if 'time_type' in query:
+                from .temporal_column import TemporalColumnRegistry
+                if not TemporalColumnRegistry.validate(query['time_type']):
+                    raise QueryVizError(f"Query {i}: invalid time_type '{query['time_type']}'")
+
             # Validate column specification - column and columns are mutually exclusive
             has_column = 'column' in query and query['column'] is not None
             has_columns = 'columns' in query and query['columns'] is not None
