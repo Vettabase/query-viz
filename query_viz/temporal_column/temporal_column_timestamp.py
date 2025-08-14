@@ -19,13 +19,13 @@ class TemporalColumnTimestamp(TemporalColumn):
             time_value: The time value to format (expected to be a timestamp)
             
         Returns:
-            str: Formatted timestamp string
+            str: Timestamp string
         """
-        try:
-            dt = datetime.fromtimestamp(float(time_value))
-            return dt.strftime('%Y-%m-%d %H-%M-%S')
-        except (ValueError, TypeError):
-            # If conversion fails, return original value
+        #try:
+        #    dt = datetime.fromtimestamp(float(time_value))
+        #    return dt.strftime('%Y-%m-%d %H-%M-%S')
+        #except (ValueError, TypeError):
+        #    # If conversion fails, return original value
             return str(time_value)
     
     def generate_artificial_time(self, point_count: int, interval: float) -> str:
@@ -40,4 +40,4 @@ class TemporalColumnTimestamp(TemporalColumn):
             str: Formatted timestamp string
         """
         #return self.format_value(time.time())
-        return str(time.time())
+        return self.format_value(time.time())
