@@ -34,6 +34,7 @@ class QueryConfig:
         self.interval = config.get('interval', global_interval)
         self.description = config.get('description')
         self.color = config.get('color')
+        self.time_type = config.get('time_type', 'elapsed_seconds')
         
         # Handle both column formats
         if 'columns' in config and config['columns'] is not None:
