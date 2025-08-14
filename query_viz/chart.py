@@ -42,6 +42,9 @@ class ChartGenerator:
         except FileNotFoundError:
             raise QueryVizError(f"{self.template_file} not found")
         
+        # Check if any query uses timestamp format
+        has_timestamp = any(query.time_type == 'timestamp' for query in queries)
+        
         # Generate style lines
         style_lines = []
         # TODO: Make the palette editable
@@ -84,6 +87,20 @@ class ChartGenerator:
         script_content = script_content.replace('{{KEY_POSITION}}', self.plot_config['key_position'])
         script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
         script_content = script_content.replace('{{PLOT_LINES}}', 'plot ' + ', \\\n     '.join(plot_lines))
+        
+        # Add timestamp formatting if needed
+        if has_timestamp:
+            # Insert timestamp formatting commands before the plot command
+            plot_command_pos = script_content.find('plot ')
+            timestamp_commands = '''
+# Format X axis for timestamps
+set xdata time
+set timefmt "%s"
+set format x "%Y-%m-%d %H:%M:%S"
+set xtics rotate by -45
+
+'''
+            script_content = script_content[:plot_command_pos] + timestamp_commands + script_content[plot_command_pos:]
         
         # Write script file
         script_file = 'current_plot.plt'
