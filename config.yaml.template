@@ -29,6 +29,8 @@ queries:
     description: 'Number of SELECT queries'
     # optional. If not specified, a colour will be selected automatically
     color: '#1f77b4'
+    # optional. If not specified, the global on_rotation_keep_datapoints applies
+    on_rotation_keep_datapoints: 500
   - name: 'db-count'
     connection: mariadb-1
     query: "SELECT COUNT(*) AS count FROM information_schema.SCHEMATA;"
@@ -80,6 +82,9 @@ charts:
 # For a format explanation, see below.
 # This interval doesn't apply to failed connections.
 interval: 10s
+
+# Default number of data points to keep in the Data Files on rotation
+on_rotation_keep_datapoints: 600
 
 # A single database connection timeout, in seconds.
 db_connection_timeout_seconds: 2

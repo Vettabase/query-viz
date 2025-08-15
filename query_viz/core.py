@@ -148,6 +148,14 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
+        # Validate global on_rotation_keep_datapoints
+        if 'on_rotation_keep_datapoints' not in self.config:
+            raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
+        
+        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
+        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < 60:
+            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be a positive integer")
+        
         query_names = set()
         for i, query in enumerate(queries):
             required_fields = ['name', 'query']
@@ -186,6 +194,12 @@ class QueryViz:
                     raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
                 if query['column'] == 'time':
                     raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
+            
+            # Validate on_rotation_keep_datapoints
+            if 'on_rotation_keep_datapoints' in query:
+                query_keep_datapoints = query['on_rotation_keep_datapoints']
+                if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < 60:
+                    raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer")
             
             # Check for duplicate query names
             if query['name'] in query_names:
@@ -360,8 +374,11 @@ class QueryViz:
     def setup_queries(self):
         """Setup query configurations"""
         global_interval = self.config['interval']
+        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
         
         for i, query_config in enumerate(self.config['queries']):
+            if 'on_rotation_keep_datapoints' not in query_config:
+                query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
