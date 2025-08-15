@@ -45,6 +45,14 @@ class ChartGenerator:
         # Check if any query uses timestamp format
         has_timestamp = any(query.time_type == 'timestamp' for query in queries)
         
+        # Determine xlabel. If not specified, use default from TemporalColumn
+        xlabel = self.plot_config.get('xlabel')
+        if not xlabel and queries:
+            # Use the first query's temporal column to get default description
+            from .temporal_column import TemporalColumnRegistry
+            temporal_column = TemporalColumnRegistry.create(queries[0].time_type)
+            xlabel = temporal_column.get_default_description()
+        
         # Generate style lines
         style_lines = []
         # TODO: Make the palette editable
@@ -82,7 +90,7 @@ class ChartGenerator:
         script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
         script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, self.plot_config['output_file']))
         script_content = script_content.replace('{{TITLE}}', self.plot_config['title'])
-        script_content = script_content.replace('{{XLABEL}}', self.plot_config['xlabel'])
+        script_content = script_content.replace('{{XLABEL}}', xlabel)
         script_content = script_content.replace('{{YLABEL}}', self.plot_config['ylabel'])
         script_content = script_content.replace('{{KEY_POSITION}}', self.plot_config['key_position'])
         script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
