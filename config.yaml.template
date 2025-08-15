@@ -29,6 +29,8 @@ queries:
     description: 'Number of SELECT queries'
     # optional. If not specified, a colour will be selected automatically
     color: '#1f77b4'
+    # this query uses a Temporal Column of type 'timestamp'
+    time_type=timestamp
     # optional. If not specified, the global on_rotation_keep_datapoints applies
     on_rotation_keep_datapoints: 500
     # optional. If not specified, the global on_file_rotation_keep_history applies
