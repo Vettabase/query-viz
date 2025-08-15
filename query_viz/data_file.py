@@ -6,6 +6,7 @@ A data file must contain data from one query.
 
 import os
 import re
+import time
 from collections import deque
 from threading import Lock
 from .temporal_column import TemporalColumnRegistry
@@ -52,9 +53,11 @@ class DataFile:
         self.output_dir = output_dir
         self.max_points = query_object.on_rotation_keep_datapoints
         self.has_time_column = (self.columns[0] == 'time')
+        self.time_type = query_object.time_type
+        self.on_file_rotation_keep_history = getattr(query_object, 'on_file_rotation_keep_history', None)
         
         # Create temporal column formatter based on query's time_type
-        self.temporal_column = TemporalColumnRegistry.create(query_object.time_type)
+        self.temporal_column = TemporalColumnRegistry.create(self.time_type)
         
         # Normalize query name for filename
         self.filename = self._generate_filename(query_object.name)
@@ -132,6 +135,29 @@ class DataFile:
         
         return ' '.join(line_values) + '\n'
     
+    def _parse_timestamp_from_line(self, line):
+        """
+        Parse timestamp from a data line.
+        
+        Args:
+            line (str): Data line from cache
+            
+        Returns:
+            float: Parsed timestamp, or None if parsing fails
+        """
+        # Split line and get first column (timestamp)
+        parts = line.strip().split()
+        if not parts:
+            return None
+            
+        try:
+            # Convert timestamp string to float for comparison
+            return float(int(parts[0]))
+        except (ValueError, IndexError):
+            # TODO: Handle timestamp parsing failures properly
+            # For now, return None to indicate parsing failure
+            return None
+    
     def open(self):
         """Open data file for writing, removing existing file if it exists"""
         if self._is_open:
@@ -187,23 +213,42 @@ class DataFile:
     
     def _rotate_file(self):
         """Rotate data file when it gets too large (rolling window)"""
-        # Close current file
+        
+        # Time-based filtering for timestamp queries
+        if (self.time_type == 'timestamp' and 
+            self.on_file_rotation_keep_history is not None):
+            
+            current_time = time.time()
+            cutoff_time = current_time - self.on_file_rotation_keep_history
+            
+            # Purge old lines before the first line to preserve
+            while self._data_lines:
+                timestamp = self._parse_timestamp_from_line(self._data_lines[0])
+                if timestamp is not None and timestamp >= cutoff_time:
+                    break  # Found first line to keep, stop purging
+                self._data_lines.popleft()
+        else:
+            # Non-timestamp queries or no time history configured
+            # Remove excess lines from the left, keeping only max_points most recent
+            while len(self._data_lines) > self.max_points:
+                self._data_lines.popleft()
+        
+        # Close Data File, then rewrite the headers and the remaining data
+
         if self._file_handle:
             self._file_handle.close()
-        
-        # Rewrite file with only the recent data
+
         self._file_handle = open(self.filepath, 'w')
-        
-        # Write headers when file contents are replaced
         self._write_headers()
-        
-        # Flush to file
+
         for line in self._data_lines:
             self._file_handle.write(line)
         
         # Close and reopen file for appending
         self._file_handle.close()
         self._file_handle = open(self.filepath, 'a')
+        
+        # Update point count
         self._point_count = len(self._data_lines)
     
     def get_filepath(self):
