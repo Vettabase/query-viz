@@ -36,6 +36,7 @@ class QueryConfig:
         self.color = config.get('color')
         self.time_type = config.get('time_type', 'elapsed_seconds')
         self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
+        self.on_file_rotation_keep_history = config.get('on_file_rotation_keep_history')
         
         # Handle both column formats
         if 'columns' in config and config['columns'] is not None:
