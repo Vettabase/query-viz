@@ -31,6 +31,9 @@ queries:
     color: '#1f77b4'
     # optional. If not specified, the global on_rotation_keep_datapoints applies
     on_rotation_keep_datapoints: 500
+    # optional. If not specified, the global on_file_rotation_keep_history applies
+    # Only applies to queries with time_type=timestamp
+    on_file_rotation_keep_history: 30m
   - name: 'db-count'
     connection: mariadb-1
     query: "SELECT COUNT(*) AS count FROM information_schema.SCHEMATA;"
@@ -85,6 +88,11 @@ interval: 10s
 
 # Default number of data points to keep in the Data Files on rotation
 on_rotation_keep_datapoints: 600
+
+# Default time interval to keep history during file rotation
+# Only applies to queries with time_type=timestamp
+# For a format explanation, see below.
+on_file_rotation_keep_history: 1h
 
 # A single database connection timeout, in seconds.
 db_connection_timeout_seconds: 2

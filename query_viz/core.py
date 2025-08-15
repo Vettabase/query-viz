@@ -160,6 +160,10 @@ class QueryViz:
         if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
             raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
         
+        # Validate global on_file_rotation_keep_history
+        if 'on_file_rotation_keep_history' not in self.config:
+            raise QueryVizError("Global 'on_file_rotation_keep_history' is required")
+        
         query_names = set()
         for i, query in enumerate(queries):
             required_fields = ['name', 'query']
@@ -204,6 +208,13 @@ class QueryViz:
                 query_keep_datapoints = query['on_rotation_keep_datapoints']
                 if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
                     raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
+            
+            # Validate on_file_rotation_keep_history
+            if 'on_file_rotation_keep_history' in query:
+                # Check that it's only specified for timestamp queries
+                time_type = query.get('time_type', 'elapsed_seconds')
+                if time_type != 'timestamp':
+                    raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
             
             # Check for duplicate query names
             if query['name'] in query_names:
@@ -292,7 +303,8 @@ class QueryViz:
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
-
+        self.config['on_file_rotation_keep_history'] = self._parse_interval(self.config['on_file_rotation_keep_history'])
+    
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
