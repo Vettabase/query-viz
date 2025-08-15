@@ -391,6 +391,7 @@ class QueryViz:
         """Setup query configurations"""
         global_interval = self.config['interval']
         global_keep_datapoints = self.config['on_rotation_keep_datapoints']
+        global_keep_history = self.config['on_file_rotation_keep_history']
         
         for i, query_config in enumerate(self.config['queries']):
             if 'on_rotation_keep_datapoints' not in query_config:
