@@ -27,7 +27,7 @@ class QueryConfig:
         # Prevent re-initialization of existing instances
         if self._initialized:
             return
-            
+        
         self.name = config['name']
         self.query = config['query']
         self.connection_name = config.get('connection', default_connection)
@@ -35,6 +35,7 @@ class QueryConfig:
         self.description = config.get('description')
         self.color = config.get('color')
         self.time_type = config.get('time_type', 'elapsed_seconds')
+        self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
         
         # Handle both column formats
         if 'columns' in config and config['columns'] is not None:
