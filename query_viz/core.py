@@ -19,6 +19,10 @@ from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
 
 
+# Minimum allowed value for on_rotation_keep_datapoints
+MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
+
+
 class QueryViz:
     """Main query-viz application"""
     
@@ -153,8 +157,8 @@ class QueryViz:
             raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
         
         global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < 60:
-            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be a positive integer")
+        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
         
         query_names = set()
         for i, query in enumerate(queries):
@@ -198,8 +202,8 @@ class QueryViz:
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
                 query_keep_datapoints = query['on_rotation_keep_datapoints']
-                if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < 60:
-                    raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer")
+                if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+                    raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
             
             # Check for duplicate query names
             if query['name'] in query_names:
