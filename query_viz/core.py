@@ -395,6 +395,8 @@ class QueryViz:
         for i, query_config in enumerate(self.config['queries']):
             if 'on_rotation_keep_datapoints' not in query_config:
                 query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
+            if 'on_file_rotation_keep_history' not in query_config:
+                query_config['on_file_rotation_keep_history'] = global_keep_history
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
