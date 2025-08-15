@@ -40,7 +40,7 @@ class TemporalColumnTimestamp(TemporalColumn):
             str: Formatted timestamp string
         """
         #return self.format_value(time.time())
-        return self.format_value(time.time())
+        return self.format_value(int(time.time()))
 
     def get_default_description(self) -> str:
         """
