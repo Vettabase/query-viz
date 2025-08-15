@@ -19,7 +19,7 @@ class DataFile:
     # Govern instance creation
     _lock = Lock()
     
-    def __new__(cls, query_object, output_dir, max_points=1000):
+    def __new__(cls, query_object, output_dir):
         """
         Ensure only one DataFile instance per query_name.
         """
@@ -32,15 +32,14 @@ class DataFile:
                 instance._initialized = False
             return cls._instances[key]
     
-    def __init__(self, query_object, output_dir, max_points=1000):
+    def __init__(self, query_object, output_dir):
         """
         Initialize DataFile for a query.
         
         Args:
-            query_object (str): From here we'll take all the query attributes we need.
-                                A normalised version of the query name will be the file name.
+            query_object: From here we'll take all the query attributes we need.
+                         A normalised version of the query name will be the file name.
             output_dir (str): Directory where data files are stored.
-            max_points (int): Max number of data points before rotation. Data point = query row.
         """
         # Prevent re-initialization of existing instances
         if self._initialized:
@@ -51,7 +50,7 @@ class DataFile:
         self.query_interval = query_object.interval
         self.columns = query_object.columns
         self.output_dir = output_dir
-        self.max_points = max_points
+        self.max_points = query_object.on_rotation_keep_datapoints
         self.has_time_column = (self.columns[0] == 'time')
         
         # Create temporal column formatter based on query's time_type
@@ -68,7 +67,7 @@ class DataFile:
         
         # In-memory data for rotation (no locks needed - single thread per instance)
         # File lines are stored as a list of strings
-        self._data_lines = deque(maxlen=max_points)
+        self._data_lines = deque(maxlen=self.max_points)
         
         self._initialized = True
     
