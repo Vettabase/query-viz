@@ -22,6 +22,9 @@ from .exceptions import QueryVizError
 # Minimum allowed value for on_rotation_keep_datapoints
 MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
+# Minimum allowed value for query intervals (in seconds)
+MIN_QUERY_INTERVAL = 1
+
 
 class QueryViz:
     """Main query-viz application"""
@@ -203,6 +206,15 @@ class QueryViz:
                 if query['column'] == 'time':
                     raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
             
+            # Validate query-level interval if specified
+            if 'interval' in query:
+                try:
+                    query_interval = self._parse_interval(query['interval'])
+                    if query_interval < MIN_QUERY_INTERVAL:
+                        raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds")
+                except QueryVizError as e:
+                    raise QueryVizError(f"Query {i}: {e}")
+            
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
                 query_keep_datapoints = query['on_rotation_keep_datapoints']
@@ -314,8 +326,15 @@ class QueryViz:
         if not isinstance(timeout, int) or timeout <= 0:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
+        # Parse and validate global interval
+        try:
+            self.config['interval'] = self._parse_interval(self.config['interval'])
+            if self.config['interval'] < MIN_QUERY_INTERVAL:
+                raise QueryVizError(f"Global 'interval' must be at least {MIN_QUERY_INTERVAL} seconds")
+        except QueryVizError as e:
+            raise QueryVizError(f"Global interval: {e}")
+        
         # Intervals specified in the "10m" format can now be parsed
-        self.config['interval'] = self._parse_interval(self.config['interval'])
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
