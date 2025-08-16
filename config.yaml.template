@@ -70,12 +70,11 @@ charts:
     key_position: 'outside right top'
     line_width: 2
     point_type: 'linespoints'
-  - title: 'MariaDB Schema Count'
+  - title: 'Electric Waves'
     type: line_chart
     xlabel: 'Time (seconds)'
-    ylabel: 'Schema Count'
+    ylabel: 'SQL Expression'
     queries:
-      - 'db-count'
       - 'wave'
     output_file: 'schemas.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
