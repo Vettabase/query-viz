@@ -212,7 +212,7 @@ class QueryViz:
             # Validate on_file_rotation_keep_history
             if 'on_file_rotation_keep_history' in query:
                 # Check that it's only specified for timestamp queries
-                time_type = query.get('time_type', 'elapsed_seconds')
+                time_type = query.get('time_type', 'timestamp')
                 if time_type != 'timestamp':
                     raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
             
