@@ -14,7 +14,13 @@ from collections import defaultdict, deque
 from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
 from .chart import ChartGenerator
+from .data_file import DataFile
+from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
+
+
+# Minimum allowed value for on_rotation_keep_datapoints
+MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
 
 class QueryViz:
@@ -29,8 +35,6 @@ class QueryViz:
         self.queries_by_name = {}
         # query list per chart
         self.chart_queries = {}
-        # data files per chart
-        self.chart_data_files = {}
         # chart generators per chart
         self.chart_generators = {}
         # store max 1000 data points
@@ -104,7 +108,7 @@ class QueryViz:
             print(f"\nReceived signal {signum}")
         print(f"\nShutting down...")
         self.running = False
-        self.close_data_files()
+        DataFileSet.close_all()
         for conn in self.connections.values():
             conn.close()
         self.exit(0)
@@ -148,12 +152,69 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
+        # Validate global on_rotation_keep_datapoints
+        if 'on_rotation_keep_datapoints' not in self.config:
+            raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
+        
+        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
+        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
+        
+        # Validate global on_file_rotation_keep_history
+        if 'on_file_rotation_keep_history' not in self.config:
+            raise QueryVizError("Global 'on_file_rotation_keep_history' is required")
+        
         query_names = set()
         for i, query in enumerate(queries):
             required_fields = ['name', 'query']
             for field in required_fields:
                 if field not in query:
                     raise QueryVizError(f"Query {i}: '{field}' is required")
+            
+            # Validate time_type if specified
+            if 'time_type' in query:
+                from .temporal_column import TemporalColumnRegistry
+                if not TemporalColumnRegistry.validate(query['time_type']):
+                    raise QueryVizError(f"Query {i}: invalid time_type '{query['time_type']}'")
+
+            # Validate column specification - column and columns are mutually exclusive
+            has_column = 'column' in query and query['column'] is not None
+            has_columns = 'columns' in query and query['columns'] is not None
+            if has_column == has_columns:
+                raise QueryVizError(f"Query {i}: 'column' and 'columns' are mutually exclusive, but one of them must be specified")
+            
+            # Recommended format: "columns"
+            if has_columns:
+                if not isinstance(query['columns'], list) or len(query['columns']) == 0:
+                    raise QueryVizError(f"Query {i}: 'columns' must be a non-empty list")
+                has_metrics = False
+                for col in query['columns']:
+                    if not isinstance(col, str) or not col.strip():
+                        raise QueryVizError(f"Query {i}: all column names must be non-empty strings")
+                    if col != 'time':
+                        has_metrics = True
+                if not has_metrics:
+                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
+            
+            # Legacy format: "column"
+            if has_column:
+                if not isinstance(query['column'], str) or not query['column'].strip():
+                    raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
+                if query['column'] == 'time':
+                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
+            
+            # Validate on_rotation_keep_datapoints
+            if 'on_rotation_keep_datapoints' in query:
+                query_keep_datapoints = query['on_rotation_keep_datapoints']
+                if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+                    raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
+            
+            # Validate on_file_rotation_keep_history
+            if 'on_file_rotation_keep_history' in query:
+                # Check that it's only specified for timestamp queries
+                time_type = query.get('time_type', 'timestamp')
+                if time_type != 'timestamp':
+                    raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
             
             # Check for duplicate query names
             if query['name'] in query_names:
@@ -171,7 +232,7 @@ class QueryViz:
             raise QueryVizError("The 'charts' list cannot be empty")
         
         for i, chart in enumerate(charts):
-            required_chart_fields = ['xlabel', 'ylabel', 'terminal', 
+            required_chart_fields = ['ylabel', 'terminal', 
                                    'grid', 'key_position', 'line_width', 'point_type']
             for field in required_chart_fields:
                 if field not in chart:
@@ -195,6 +256,22 @@ class QueryViz:
                     raise QueryVizError(f"Chart {i}: query '{query_name}' not found")
                 if query_name in unused_queries:
                     unused_queries.remove(query_name)
+            
+            # FIXME: At this point, time_type can be None (if not specified).
+            #        We don't want more hacks, so let's disable this validation for now.
+            #        We need to refactor the code to handle time_type defaults cleanly.
+            # Validate that all queries in a chart have the same time_type
+            #if chart_queries:
+            #    last_time_type = None
+            #    for query_name in chart_queries:
+            #        # Get current query's config
+            #        query_config = next(q for q in queries if q['name'] == query_name)
+            #        time_type = query_config.get('time_type', 'timestamp')
+            #        
+            #        if last_time_type is None:
+            #            last_time_type = time_type
+            #        elif last_time_type != time_type:
+            #            raise QueryVizError(f"Chart {i}: all queries must have the same time_type. Found '{last_time_type}' and '{time_type}'")
             
             # Set default values where necessary
             if 'type' not in chart:
@@ -242,7 +319,8 @@ class QueryViz:
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
-
+        self.config['on_file_rotation_keep_history'] = self._parse_interval(self.config['on_file_rotation_keep_history'])
+    
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
@@ -328,8 +406,14 @@ class QueryViz:
     def setup_queries(self):
         """Setup query configurations"""
         global_interval = self.config['interval']
+        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
+        global_keep_history = self.config['on_file_rotation_keep_history']
         
         for i, query_config in enumerate(self.config['queries']):
+            if 'on_rotation_keep_datapoints' not in query_config:
+                query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
+            if 'on_file_rotation_keep_history' not in query_config:
+                query_config['on_file_rotation_keep_history'] = global_keep_history
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
@@ -341,33 +425,19 @@ class QueryViz:
             
             self.queries.append(query)
             
-            # Initialize data file for this query
-            # Normalize query name for filename
-            normalized_name = re.sub(r'[^a-zA-Z0-9\s_-]', '', query.name).lower().replace(' ', '-').replace('_', '-')
-            data_file = os.path.join(self.output_dir, f"{normalized_name}.dat")
-            self.data_files[query.name] = {
-                'filename': data_file,
-                'handle': None,
-                'point_count': 0
-            }
+            # Initialize DataFile for this query
+            data_file = DataFile(query, self.output_dir)
+            self.data_files[query.name] = data_file
         
         # For fast access, build a query objects lookup
         # and a pre-computed chart-to-queries map
         self.queries_by_name = {q.name: q for q in self.queries}
         self.chart_queries = {}
-        self.chart_data_files = {}
         self.chart_generators = {}
         
         for i, chart in enumerate(self.config['charts']):
             # Pre-compute query objects for this chart
             self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
-            
-            # Pre-compute data files for this chart
-            chart_query_names = set(chart['queries'])
-            self.chart_data_files[i] = {
-                name: info for name, info in self.data_files.items() 
-                if name in chart_query_names
-            }
             
             # Instantiate ChartGenerator for each chart
             chart_type = chart['type']
@@ -377,25 +447,10 @@ class QueryViz:
                 chart_type
             )
     
-    def open_data_files(self):
-        """Open data files for incremental writing"""
-        for query_name, file_info in self.data_files.items():
-            # Remove existing file and start fresh
-            if os.path.exists(file_info['filename']):
-                os.remove(file_info['filename'])
-            file_info['handle'] = open(file_info['filename'], 'w')
-            file_info['point_count'] = 0
-    
-    def close_data_files(self):
-        """Close all data files"""
-        for file_info in self.data_files.values():
-            if file_info['handle']:
-                file_info['handle'].close()
-                file_info['handle'] = None
-    
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
         connection = self.connections[query_config.connection_name]
+        data_file = DataFileSet.get(query_config.name)
         
         while self.running:
             try:
@@ -412,47 +467,41 @@ class QueryViz:
                     time.sleep(query_config.interval)
                     continue
                 
-                # Extract metric value
-                if query_config.column:
-                    if query_config.column not in columns:
-                        raise QueryVizError(f"Column '{query_config.column}' not found in query results for '{query_config.name}'. Available columns: {columns}")
+                # Extract values for all configured columns
+                column_values = []
+                for col_name in query_config.columns:
+                    if col_name not in columns:
+                        raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
                     
-                    col_index = columns.index(query_config.column)
+                    col_index = columns.index(col_name)
                     value = results[0][col_index]
-                else:
-                    if len(columns) > 1:
-                        raise QueryVizError(f"Query '{query_config.name}' returns multiple columns but no 'column' attribute specified")
-                    value = results[0][0]
-                
-                # Convert to numeric
-                try:
-                    numeric_value = float(value)
-                except (ValueError, TypeError):
-                    raise QueryVizError(f"Value '{value}' from query '{query_config.name}' is not numeric")
+                    column_values.append(value)
                 
                 # Store data point and write to file incrementally
                 current_time = time.time()
                 
                 with self.data_lock:
-                    self.data[query_config.name].append(numeric_value)
+                    # "time" is not a metric
+                    if query_config.columns[0] == 'time':
+                        metric_value = column_values[1]
+                    else:
+                        metric_value = column_values[0]
+                    
+                    # Convert to numeric and store
+                    try:
+                        numeric_value = float(metric_value)
+                        self.data[query_config.name].append(numeric_value)
+                    except (ValueError, TypeError):
+                        raise QueryVizError(f"Metric value '{metric_value}' from query '{query_config.name}' is not numeric")
                     
                     # Update timestamps (shared across all queries)
                     if len(self.timestamps) == 0 or current_time > self.timestamps[-1]:
                         self.timestamps.append(current_time)
                     
-                    # Write data point to file incrementally
-                    file_info = self.data_files[query_config.name]
-                    if file_info['handle']:
-                        relative_time = file_info['point_count'] * query_config.interval
-                        file_info['handle'].write(f"{relative_time} {numeric_value}\n")
-                        file_info['handle'].flush()  # Ensure data is written immediately
-                        file_info['point_count'] += 1
-                        
-                        # Handle rolling window: if we exceed max points, rotate the file
-                        if file_info['point_count'] > 1000:
-                            self.rotate_data_file(query_config.name)
+                    # Write data point to file
+                    data_file.write_data_point(column_values)
                 
-                print(f"Query '{query_config.name}': {numeric_value}")
+                print(f"Query '{query_config.name}': {column_values}")
                 
                 # Sleep for remaining interval time
                 elapsed = time.time() - start_time
@@ -462,27 +511,6 @@ class QueryViz:
             except Exception as e:
                 print(f"Error executing query '{query_config.name}': {e}")
                 time.sleep(query_config.interval)
-    
-    def rotate_data_file(self, query_name):
-        """Rotate data file when it gets too large (rolling window)"""
-        file_info = self.data_files[query_name]
-        
-        # Close current file
-        if file_info['handle']:
-            file_info['handle'].close()
-        
-        # Rewrite file with only the recent data (last 1000 points)
-        query_data = self.data[query_name]
-        query = next(q for q in self.queries if q.name == query_name)
-        
-        with open(file_info['filename'], 'w') as f:
-            for i, value in enumerate(query_data):
-                relative_time = i * query.interval
-                f.write(f"{relative_time} {value}\n")
-        
-        # Reopen file for appending
-        file_info['handle'] = open(file_info['filename'], 'a')
-        file_info['point_count'] = len(query_data)
     
     def create_chart_index(self, chart_filenames):
         """Write the chart index file with all generated chart filenames"""
@@ -502,9 +530,8 @@ class QueryViz:
         
         for chart_index, chart_generator in self.chart_generators.items():
             chart_queries = self.chart_queries[chart_index]
-            chart_data_files = self.chart_data_files[chart_index]
             
-            if chart_generator.generate_chart(chart_queries, chart_data_files):
+            if chart_generator.generate_all_charts(chart_queries):
                 # Get the output filename from the chart config
                 chart_config = self.config['charts'][chart_index]
                 chart_filenames.append(chart_config['output_file'])
@@ -530,8 +557,12 @@ class QueryViz:
             
             self.setup_queries()
             
+            # Create DataFileSet entries for all queries
+            for query in self.queries:
+                DataFileSet.set(query, self.output_dir)
+            
             # Open data files for writing
-            self.open_data_files()
+            DataFileSet.open_all()
             
             # Start query threads
             self.running = True
@@ -570,7 +601,7 @@ class QueryViz:
             self.exit(1)
         finally:
             self.running = False
-            self.close_data_files()
+            DataFileSet.close_all()
             for conn in self.connections.values():
                 conn.close()
         
