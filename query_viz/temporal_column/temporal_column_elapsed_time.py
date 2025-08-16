@@ -33,7 +33,7 @@ class TemporalColumnElapsedTime(TemporalColumn):
         Returns:
             str: Elapsed time as string
         """
-        return str(point_count * interval)
+        return str(int(point_count * interval))
 
     def get_default_description(self) -> str:
         """
