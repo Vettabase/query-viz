@@ -257,6 +257,22 @@ class QueryViz:
                 if query_name in unused_queries:
                     unused_queries.remove(query_name)
             
+            # FIXME: At this point, time_type can be None (if not specified).
+            #        We don't want more hacks, so let's disable this validation for now.
+            #        We need to refactor the code to handle time_type defaults cleanly.
+            # Validate that all queries in a chart have the same time_type
+            #if chart_queries:
+            #    last_time_type = None
+            #    for query_name in chart_queries:
+            #        # Get current query's config
+            #        query_config = next(q for q in queries if q['name'] == query_name)
+            #        time_type = query_config.get('time_type', 'timestamp')
+            #        
+            #        if last_time_type is None:
+            #            last_time_type = time_type
+            #        elif last_time_type != time_type:
+            #            raise QueryVizError(f"Chart {i}: all queries must have the same time_type. Found '{last_time_type}' and '{time_type}'")
+            
             # Set default values where necessary
             if 'type' not in chart:
                 chart['type'] = 'line_chart'
