@@ -47,7 +47,7 @@ queries:
     connection: mariadb-1
     query: "SELECT 5 - ABS((UNIX_TIMESTAMP() MOD 10 + 1) - 5.5) AS w;"
     column: w
-    time_type: elapsed_time
+    time_type: elapsed_seconds
     interval: 1s
     description: 'Noise'
 
