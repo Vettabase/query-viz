@@ -34,7 +34,7 @@ class QueryConfig:
         self.interval = config.get('interval', global_interval)
         self.description = config.get('description')
         self.color = config.get('color')
-        self.time_type = config.get('time_type', 'elapsed_seconds')
+        self.time_type = config.get('time_type', 'timestamp')
         self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
         self.on_file_rotation_keep_history = config.get('on_file_rotation_keep_history')
         
