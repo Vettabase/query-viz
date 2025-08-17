@@ -214,8 +214,7 @@ class QueryViz:
             if 'interval' in query:
                 # Handle special 'once' value, which means:
                 # There is no interval, the query will run once
-                interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
-                query_interval = interval_parser.setget(query['interval'], MIN_QUERY_INTERVAL)
+                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query['interval'], MIN_QUERY_INTERVAL)
             
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
@@ -230,8 +229,7 @@ class QueryViz:
                 if time_type != 'timestamp':
                     raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
                 try:
-                    interval_parser = Interval()
-                    query['on_file_rotation_keep_history'] = interval_parser.setget(query['on_file_rotation_keep_history'])
+                    query['on_file_rotation_keep_history'] = Interval().setget(query['on_file_rotation_keep_history'])
                 except QueryVizError as e:
                     raise QueryVizError(f"Query {i}: invalid 'on_file_rotation_keep_history' format: {e}")
 
@@ -334,8 +332,10 @@ class QueryViz:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
         # Parse and validate global interval
-        interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
-        self.config['interval'] = interval_parser.setget(self.config['interval'], MIN_QUERY_INTERVAL)
+        self.config['interval'] = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(
+                self.config['interval'],
+                MIN_QUERY_INTERVAL
+        )
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
@@ -344,10 +344,9 @@ class QueryViz:
             'grace_period_retry_interval',
             'on_file_rotation_keep_history'
         ]
-        interval_parser = Interval()
         for setting in interval_settings:
-            self.config[setting] = interval_parser.setget(self.config[setting])
-        interval_settings = interval_parser = None
+            self.config[setting] = Interval().setget(self.config[setting])
+        interval_settings = None
     
     def setup_connections(self):
         """Setup database connections"""
