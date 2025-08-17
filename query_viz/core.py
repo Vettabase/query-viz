@@ -445,7 +445,7 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            query.interval = interval_parser.setget(query.interval)
+            Interval().setget(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
