@@ -30,7 +30,7 @@ class Interval:
         self._value = None
         self._is_special = None
     
-    def validate(self, interval_str):
+    def validate(self, interval_str, min_seconds=None, max_seconds=None):
         """
         Validate and parse an interval string
         
@@ -60,9 +60,14 @@ class Interval:
         try:
             self._value = self._parse_numeric_interval(interval_str)
             self._is_special = False
-            return True
         except QueryVizError:
             raise
+
+        # Verify that value is in range
+        if min_seconds is not None and self._value < min_seconds:
+            raise QueryVizError(f"Interval is too low. Min: {min_seconds}")
+        if max_seconds is not None and self._value > max_seconds:
+            raise QueryVizError(f"Interval is too high. Max: {max_seconds}")
     
     def _parse_numeric_interval(self, interval_str):
         """
@@ -150,7 +155,7 @@ class Interval:
         """
         return self._is_special
         
-    def setget(self, interval):
+    def setget(self, interval, min_seconds=None, max_seconds=None):
         """
         Validate an interval, set it internally, and return it as seconds.
 
@@ -163,5 +168,5 @@ class Interval:
         Raises:
             RuntimeError: If validate() hasn't been called successfully
         """
-        self.validate(interval)
+        self.validate(interval, min_seconds, max_seconds)
         return self.get_seconds()
