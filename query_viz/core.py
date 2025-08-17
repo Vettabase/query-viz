@@ -347,12 +347,16 @@ class QueryViz:
                 raise QueryVizError(f"Global interval: {e}")
         
         # Intervals specified in the "10m" format can now be parsed
+        interval_settings = [
+            'failed_connections_interval',
+            'initial_grace_period', 
+            'grace_period_retry_interval',
+            'on_file_rotation_keep_history'
+        ]
         interval_parser = Interval()
-        self.config['failed_connections_interval'] = interval_parser.setget(self.config['failed_connections_interval'])
-        self.config['initial_grace_period'] = interval_parser.setget(self.config['initial_grace_period'])
-        self.config['grace_period_retry_interval'] = interval_parser.setget(self.config['grace_period_retry_interval'])
-        self.config['on_file_rotation_keep_history'] = interval_parser.setget(self.config['on_file_rotation_keep_history'])
-        interval_parser = None
+        for setting in interval_settings:
+            self.config[setting] = interval_parser.setget(self.config[setting])
+        interval_settings = interval_parser = None
     
     def setup_connections(self):
         """Setup database connections"""
