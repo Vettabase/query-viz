@@ -94,7 +94,7 @@ charts:
     xlabel: 'Timestamps'
     ylabel: 'Num'
     queries:
-      - '3Point'
+      - '3points'
     output_file: '3points.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
