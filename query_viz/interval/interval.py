@@ -18,7 +18,7 @@ class Interval:
         'w': 604800
     }
     
-    def __init__(self, special_values=[]):
+    def __init__(self, special_values=None):
         """
         Initialize interval parser with optional special values
         
@@ -26,6 +26,8 @@ class Interval:
             special_values (list): List of special string values that are valid
                                  (e.g., ['once']). Must be lowercase.
         """
+        if special_values is None:
+            special_values = []
         self.special_values = special_values
         self._value = None
         self._is_special = None
