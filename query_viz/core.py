@@ -447,7 +447,8 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            query.interval = self._parse_interval(query.interval)
+            if query.interval != 'once':
+                query.interval = self._parse_interval(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
