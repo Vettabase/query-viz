@@ -335,7 +335,7 @@ class QueryViz:
         
         # Parse and validate global interval
         interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
-        self.config['interval'] = Interval.setget(self.config['interval'], MIN_QUERY_INTERVAL)
+        self.config['interval'] = interval_parser.setget(self.config['interval'], MIN_QUERY_INTERVAL)
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
@@ -445,7 +445,7 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            query.interval = Interval.setget(query.interval)
+            query.interval = interval_parser.setget(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
