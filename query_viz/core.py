@@ -477,6 +477,64 @@ class QueryViz:
                 chart_type
             )
     
+    def execute_once_queries_thread(self):
+        """Execute all 'once' queries that haven't been run yet"""
+        once_queries = [q for q in self.queries if q.interval == 'once']
+        
+        for query_config in once_queries:
+            try:
+                # Skip query if connection has failed
+                connection = self.connections[query_config.connection_name]
+                if connection.status == FAIL:
+                    print(f"Skipping 'once' query '{query_config.name}': connection failed")
+                    continue
+                
+                # Check if data file already exists
+                data_file = DataFileSet.get(query_config.name)
+                if data_file.exists():
+                    print(f"Skipping 'once' query '{query_config.name}': already executed")
+                    continue
+                
+                # Execute the query
+                print(f"Executing 'once' query '{query_config.name}'...")
+                columns, results = connection.execute_query(query_config.query)
+                if not results:
+                    print(f"Warning: 'Once' query '{query_config.name}' returned no results")
+                    continue
+                
+                # Extract values for all configured columns
+                column_values = []
+                for col_name in query_config.columns:
+                    if col_name not in columns:
+                        raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
+                    
+                    col_index = columns.index(col_name)
+                    value = results[0][col_index]
+                    column_values.append(value)
+                
+                try:
+                    data_file.open()
+                    try:
+                        data_file.write_data_point(column_values)
+                        print(f"'Once' query '{query_config.name}': {column_values}")
+                    except Exception as e:
+                        print(f"Error writing data for 'once' query '{query_config.name}': {e}")
+                        # FIXME: Handle write failures properly
+                    finally:
+                        try:
+                            data_file.close()
+                        except:
+                            pass  # Ignore close failures
+                except Exception as e:
+                    print(f"Error opening data file for 'once' query '{query_config.name}': {e}")
+                    # FIXME: Handle file open failures properly
+                    
+            except Exception as e:
+                print(f"Error executing 'once' query '{query_config.name}': {e}")
+                # FIXME: Handle query execution failures properly
+        
+        print("Finished executing 'once' queries")
+    
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
         connection = self.connections[query_config.connection_name]
@@ -594,8 +652,18 @@ class QueryViz:
             # Open data files for writing
             DataFileSet.open_recurring_queries()
             
-            # Start query threads
             self.running = True
+            
+            # Start once queries thread (if any exist)
+            once_queries = [q for q in self.queries if q.interval == 'once']
+            if once_queries:
+                once_thread = threading.Thread(target=self.execute_once_queries_thread)
+                once_thread.daemon = False  # Non-daemon thread
+                once_thread.start()
+                self.threads.append(once_thread)
+                print(f"Started 'once' queries thread for {len(once_queries)} queries")
+            
+            # Start query threads
             started_threads = 0
             for query in self.queries:
                 if query.interval != 'once':
