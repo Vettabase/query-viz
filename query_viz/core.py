@@ -348,10 +348,10 @@ class QueryViz:
         
         # Intervals specified in the "10m" format can now be parsed
         interval_parser = Interval()
-        self.config['failed_connections_interval'] = Interval.setget(self.config['failed_connections_interval'])
-        self.config['initial_grace_period'] = Interval.setget(self.config['initial_grace_period'])
-        self.config['grace_period_retry_interval'] = Interval.setget(self.config['grace_period_retry_interval'])
-        self.config['on_file_rotation_keep_history'] = Interval.setget(self.config['on_file_rotation_keep_history'])
+        self.config['failed_connections_interval'] = interval_parser.setget(self.config['failed_connections_interval'])
+        self.config['initial_grace_period'] = interval_parser.setget(self.config['initial_grace_period'])
+        self.config['grace_period_retry_interval'] = interval_parser.setget(self.config['grace_period_retry_interval'])
+        self.config['on_file_rotation_keep_history'] = interval_parser.setget(self.config['on_file_rotation_keep_history'])
         interval_parser = None
     
     def setup_connections(self):
