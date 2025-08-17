@@ -149,3 +149,19 @@ class Interval:
             RuntimeError: If validate() hasn't been called successfully
         """
         return self._is_special
+        
+    def setget(self, interval):
+        """
+        Validate an interval, set it internally, and return it as seconds.
+
+        Args:
+            interval_str: String to validate (e.g., '1m', '30s', 'once')
+        
+        Returns:
+            float or str: Interval in seconds, or special value string if applicable
+            
+        Raises:
+            RuntimeError: If validate() hasn't been called successfully
+        """
+        self.validate(interval)
+        return self.get_seconds()
