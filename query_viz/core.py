@@ -214,16 +214,10 @@ class QueryViz:
             if 'interval' in query:
                 # Handle special 'once' value, which means:
                 # There is no interval, the query will run once
-                if str(query['interval']).strip().lower() == 'once':
-                    # Accept 'once' without parsing
-                    query['interval'] = 'once'
-                else:
-                    try:
-                        query_interval = self._parse_interval(query['interval'])
-                        if query_interval < MIN_QUERY_INTERVAL:
-                            raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
-                    except QueryVizError as e:
-                        raise QueryVizError(f"Query {i}: {e}")
+                interval_parser = Interval()
+                query_interval = interval_parser.setget(query['interval'])
+                if query_interval < MIN_QUERY_INTERVAL:
+                    raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
             
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
@@ -347,12 +341,10 @@ class QueryViz:
             # Accept 'once' without parsing
             self.config['interval'] = 'once'
         else:
-            try:
-                self.config['interval'] = self._parse_interval(self.config['interval'])
-                if self.config['interval'] < MIN_QUERY_INTERVAL:
-                    raise QueryVizError(f"Global 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
-            except QueryVizError as e:
-                raise QueryVizError(f"Global interval: {e}")
+            interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
+            self.config['interval'] = Interval.setget(self.config['interval'])
+            if self.config['interval'] < MIN_QUERY_INTERVAL:
+                raise QueryVizError(f"Global 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
@@ -462,8 +454,7 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            if query.interval != 'once':
-                query.interval = self._parse_interval(query.interval)
+            query.interval = Interval.setget(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
