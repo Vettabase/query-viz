@@ -237,7 +237,12 @@ class QueryViz:
                 time_type = query.get('time_type', 'timestamp')
                 if time_type != 'timestamp':
                     raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
-            
+                try:
+                    interval_parser = Interval()
+                    query['on_file_rotation_keep_history'] = interval_parser.setget(query['on_file_rotation_keep_history'])
+                except QueryVizError as e:
+                    raise QueryVizError(f"Query {i}: invalid 'on_file_rotation_keep_history' format: {e}")
+
             # Check for duplicate query names
             if query['name'] in query_names:
                 raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
