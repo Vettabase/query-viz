@@ -215,9 +215,7 @@ class QueryViz:
                 # Handle special 'once' value, which means:
                 # There is no interval, the query will run once
                 interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
-                query_interval = interval_parser.setget(query['interval'])
-                if query_interval < MIN_QUERY_INTERVAL:
-                    raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
+                query_interval = interval_parser.setget(query['interval'], MIN_QUERY_INTERVAL)
             
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
@@ -336,15 +334,8 @@ class QueryViz:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
         # Parse and validate global interval
-        global_interval_value = self.config['interval']
-        if str(global_interval_value).strip().lower() == 'once':
-            # Accept 'once' without parsing
-            self.config['interval'] = 'once'
-        else:
-            interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
-            self.config['interval'] = Interval.setget(self.config['interval'])
-            if self.config['interval'] < MIN_QUERY_INTERVAL:
-                raise QueryVizError(f"Global 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
+        interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
+        self.config['interval'] = Interval.setget(self.config['interval'], MIN_QUERY_INTERVAL)
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
