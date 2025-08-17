@@ -214,7 +214,7 @@ class QueryViz:
             if 'interval' in query:
                 # Handle special 'once' value, which means:
                 # There is no interval, the query will run once
-                interval_parser = Interval()
+                interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
                 query_interval = interval_parser.setget(query['interval'])
                 if query_interval < MIN_QUERY_INTERVAL:
                     raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds or 'once'")
