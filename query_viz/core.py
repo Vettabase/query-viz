@@ -26,6 +26,9 @@ MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 # Minimum allowed value for query intervals (in seconds)
 MIN_QUERY_INTERVAL = 1
 
+# Supported special value for 'interval' setting
+QUERY_INTERVAL_SPECIAL_VALUES = ['once']
+
 
 class QueryViz:
     """Main query-viz application"""
