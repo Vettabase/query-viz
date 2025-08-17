@@ -37,10 +37,18 @@ class DataFileSet:
             data_file.open()
     
     @classmethod
+    def open_recurring_queries(cls):
+        """Open data files for queries with intervals (not 'once')"""
+        for data_file in cls._data_files.values():
+            if data_file.query_interval != 'once':
+                data_file.open()
+    
+    @classmethod
     def close_all(cls):
         """Close all data files"""
         for data_file in cls._data_files.values():
-            data_file.close()
+            if data_file.is_open():
+                data_file.close()
     
     @classmethod
     def clear_all(cls):

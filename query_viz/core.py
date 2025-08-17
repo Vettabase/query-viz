@@ -592,23 +592,25 @@ class QueryViz:
                 DataFileSet.set(query, self.output_dir)
             
             # Open data files for writing
-            DataFileSet.open_all()
+            DataFileSet.open_recurring_queries()
             
             # Start query threads
             self.running = True
+            started_threads = 0
             for query in self.queries:
-                thread = threading.Thread(target=self.execute_query_thread, args=(query,))
-                thread.daemon = True
-                thread.start()
-                self.threads.append(thread)
+                if query.interval != 'once':
+                    thread = threading.Thread(target=self.execute_query_thread, args=(query,))
+                    thread.daemon = True
+                    thread.start()
+                    self.threads.append(thread)
+                    started_threads = started_threads + 1
+            print(f"Started {started_threads} query threads")
             
             # Start failed connection retry thread
             retry_thread = threading.Thread(target=self.retry_failed_connections)
             retry_thread.daemon = True
             retry_thread.start()
             self.threads.append(retry_thread)
-            
-            print(f"Started {len(self.queries)} query threads")
             print("Started connection retry thread")
             
             # Main loop - generate plots periodically
