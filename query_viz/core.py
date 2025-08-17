@@ -662,6 +662,8 @@ class QueryViz:
                 once_thread.start()
                 self.threads.append(once_thread)
                 print(f"Started 'once' queries thread for {len(once_queries)} queries")
+            else:
+                print("Not starting the 'once' thread")
             
             # Start query threads
             started_threads = 0
