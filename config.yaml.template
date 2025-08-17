@@ -52,7 +52,7 @@ queries:
     description: 'Noise'
   - name: '3points'
     connection: mariadb-1
-    query: "(SELECT 1755398291 AS t, 100 AS y) UNION (SELECT 1755398000 AS t, 200 AS y) UNION (SELECT 1755399000 AS t, 100 AS y);"
+    query: "(SELECT 1755398291 AS time, 100 AS y) UNION (SELECT 1755398000 AS time, 200 AS y) UNION (SELECT 1755399000 AS time, 100 AS y);"
     column: y
     time_type: timestamp
     interval: ONCE
