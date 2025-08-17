@@ -89,6 +89,18 @@ charts:
     key_position: 'outside right top'
     line_width: 2
     point_type: 'linespoints'
+  - title: '3Points'
+    type: line_chart
+    xlabel: 'Timestamps'
+    ylabel: 'Num'
+    queries:
+      - '3Point'
+    output_file: '3points.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
 
 # Global interval between queries. By default, the interval is in seconds.
 # For a format explanation, see below.
