@@ -17,6 +17,7 @@ from .chart import ChartGenerator
 from .data_file import DataFile
 from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
+from .interval import Interval
 
 
 # Minimum allowed value for on_rotation_keep_datapoints
@@ -346,10 +347,12 @@ class QueryViz:
                 raise QueryVizError(f"Global interval: {e}")
         
         # Intervals specified in the "10m" format can now be parsed
+        interval_parser = Interval()
         self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
         self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
         self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
         self.config['on_file_rotation_keep_history'] = self._parse_interval(self.config['on_file_rotation_keep_history'])
+        interval_parser = None
     
     def setup_connections(self):
         """Setup database connections"""
