@@ -478,6 +478,45 @@ class QueryViz:
                 chart_type
             )
     
+    def process_query_results(self, query_config, columns, results, data_file):
+        """
+        Process query results and write data points to file.
+        
+        Args:
+            query_config: QueryConfig object
+            columns: List of column names from query results
+            results: List of result rows from query execution
+            data_file: DataFile object for writing
+            
+        Returns:
+            int: Number of rows processed
+            
+        Raises:
+            QueryVizError: If column mapping fails or data writing fails
+        """
+        if not results:
+            print(f"Warning: Query '{query_config.name}' returned no results")
+            return 0
+        
+        rows_processed = 0
+        
+        for row in results:
+            # Extract values for all configured columns
+            column_values = []
+            for col_name in query_config.columns:
+                if col_name not in columns:
+                    raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
+                
+                col_index = columns.index(col_name)
+                value = row[col_index]
+                column_values.append(value)
+            
+            # Write data point to file
+            data_file.write_data_point(column_values)
+            rows_processed += 1
+        
+        return rows_processed
+    
     def execute_once_queries_thread(self):
         """Execute all 'once' queries that haven't been run yet"""
         once_queries = [q for q in self.queries if q.interval == 'once']
@@ -499,40 +538,23 @@ class QueryViz:
                 # Execute the query
                 print(f"Executing 'once' query '{query_config.name}'...")
                 columns, results = connection.execute_query(query_config.query)
-                if not results:
-                    print(f"Warning: 'Once' query '{query_config.name}' returned no results")
-                    continue
-                
-                # Extract values for all configured columns
-                column_values = []
-                for col_name in query_config.columns:
-                    if col_name not in columns:
-                        raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
-                    
-                    col_index = columns.index(col_name)
-                    value = results[0][col_index]
-                    column_values.append(value)
                 
                 try:
                     data_file.open()
                     try:
-                        data_file.write_data_point(column_values)
-                        print(f"'Once' query '{query_config.name}': {column_values}")
+                        self.process_query_results(query_config, columns, results, data_file)
                     except Exception as e:
-                        print(f"Error writing data for 'once' query '{query_config.name}': {e}")
-                        # FIXME: Handle write failures properly
+                        print(f"Error processing results for 'once' query '{query_config.name}': {e}")
                     finally:
                         try:
                             data_file.close()
                         except:
-                            pass  # Ignore close failures
+                            pass
                 except Exception as e:
                     print(f"Error opening data file for 'once' query '{query_config.name}': {e}")
-                    # FIXME: Handle file open failures properly
                     
             except Exception as e:
                 print(f"Error executing 'once' query '{query_config.name}': {e}")
-                # FIXME: Handle query execution failures properly
         
         print("Finished executing 'once' queries")
     
