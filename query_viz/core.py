@@ -76,9 +76,8 @@ class QueryViz:
     def exit(self, code=0):
         """Exit with code 0 if running in Docker, otherwise use specified code"""
         if os.environ.get('IN_DOCKER') == '1':
-            sys.exit(0)
-        else:
-            sys.exit(code)
+            code = 0
+        sys.exit(code)
         
     def clean_shutdown(self, signum = None, frame = None):
         """Handle SIGINT and SIGTERM for clean shutdown"""
