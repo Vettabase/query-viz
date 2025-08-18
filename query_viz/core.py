@@ -626,13 +626,11 @@ class QueryViz:
             self.load_config()
             self.setup_connections()
             
-            # Test connections before proceeding
             if not self.test_connections():
                 self.exit(1)
             
             self.setup_queries()
             
-            # Create DataFileSet entries for all queries
             for query in self.queries:
                 DataFileSet.set(query, self.output_dir)
             
@@ -671,7 +669,7 @@ class QueryViz:
             print("Started connection retry thread")
             
             # Main loop - generate plots periodically
-            plot_interval = 30  # Generate plot every 30 seconds
+            plot_interval = 30
             last_plot_time = 0
             
             while self.running:
