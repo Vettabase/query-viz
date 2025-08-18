@@ -99,12 +99,18 @@ class DataFile:
             columns_str = ', '.join(self.columns)
         else:
             columns_str = 'time, ' + ', '.join(self.columns)
+
+        execution_type = 'recurring'
+        if self.query_interval == 'once':
+            execution_type = 'once'
         
         header = f"""# Data file created by Query-Viz
 # https://github.com/Vettabase/query-viz
 #
 # Query name: {self.query_name}
 # Query description: {self.query_description}
+# Query execution type: {execution_type}
+# Time type: {self.time_type}
 # Columns: {columns_str}
 #
 """
