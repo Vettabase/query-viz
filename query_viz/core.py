@@ -60,18 +60,17 @@ class QueryViz:
     
     def normalise_filename(self, basename, extension):
         """Normalise a filename by removing special characters and standardising format"""
-        # Remove special characters (keep only alphanumeric, spaces, underscores, and hyphens)
+        # Only keep alphanumeric, spaces, underscores, hyphens
         normalised = re.sub(r'[^a-zA-Z0-9\s_-]', '', basename)
         # Convert spaces and underscores to dashes
         normalised = re.sub(r'[\s_]+', '-', normalised)
         # Collapse consecutive dashes into one dash
         normalised = re.sub(r'-+', '-', normalised)
-        # Remove leading/trailing dashes
         normalised = normalised.strip('-')
-        # Make lowercase
         normalised = normalised.lower()
-        # Add extension
-        return f"{normalised}.{extension}"
+        if extension:
+            return f"{normalised}.{extension}"
+        return normalised
     
     def exit(self, code=0):
         """Exit with code 0 if running in Docker, otherwise use specified code"""
