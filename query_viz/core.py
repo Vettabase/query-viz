@@ -612,7 +612,6 @@ class QueryViz:
                 chart_config = self.config['charts'][chart_index]
                 chart_filenames.append(chart_config['output_file'])
         
-        # Write _CHART_INDEX
         self.create_chart_index(chart_filenames)
     
     def run(self):
