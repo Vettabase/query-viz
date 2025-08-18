@@ -37,10 +37,11 @@ class TemporalColumnElapsedTime(TemporalColumn):
         Returns:
             str: Elapsed time as string
         """
-        if self.start_time is None:
-            return '0'
-        return str(int(time.time() - self.start_time))
-
+        start_time = self.get_start_time()
+        if start_time is not None:
+            return str(int(time.time() - start_time))
+        return "0"
+    
     def get_default_description(self) -> str:
         """
         Get default description for the temporal axis
