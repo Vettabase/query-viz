@@ -529,8 +529,7 @@ class QueryViz:
         data_file = DataFileSet.get(query_config.name)
         
         if (
-                query_config.time_type == 'elapsed_seconds' and 
-                query_config.is_recurring and 
+                query_config.time_type == 'elapsed_seconds' and
                 query_config.start_time is None
             ):
             query_config.start_time = int(time.time())

@@ -45,11 +45,13 @@ class QueryConfig:
         self.on_file_rotation_keep_history = config.get('on_file_rotation_keep_history')
         # For recurring queries, this will be set on first run
         self.start_time = None
-
+        
         interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
         interval_parser.validate(self.interval)
         self.is_recurring = not interval_parser.is_special_value()
         interval_parser = None
+        if self.time_type == 'elapsed_seconds' and not self.is_recurring:
+            raise ValueError(f"Query '{self.name}': time_type 'elapsed_seconds' is only allowed for recurring queries")
         
         # Handle both column formats
         if 'columns' in config and config['columns'] is not None:
