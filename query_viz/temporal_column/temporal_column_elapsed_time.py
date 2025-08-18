@@ -4,6 +4,7 @@ In its current implementation, it is the number of seconds
 elapsed from the beginning of data collection.
 """
 
+import time
 from .temporal_column import TemporalColumn
 
 
@@ -36,7 +37,9 @@ class TemporalColumnElapsedTime(TemporalColumn):
         Returns:
             str: Elapsed time as string
         """
-        return str(int(point_count * interval))
+        if self.start_time is None:
+            return '0'
+        return str(int(time.time() - self.start_time))
 
     def get_default_description(self) -> str:
         """
