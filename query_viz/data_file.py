@@ -158,6 +158,10 @@ class DataFile:
             # For now, return None to indicate parsing failure
             return None
     
+    def exists(self):
+        """Check if the data file exists on disk"""
+        return os.path.exists(self.get_filepath())
+    
     def open(self):
         """Open data file for writing, removing existing file if it exists"""
         if self._is_open:

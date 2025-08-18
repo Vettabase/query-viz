@@ -50,6 +50,13 @@ queries:
     time_type: elapsed_seconds
     interval: 1s
     description: 'Noise'
+  - name: '3points'
+    connection: mariadb-1
+    query: "(SELECT 1755398291 AS time, 100 AS y) UNION (SELECT 1755398000 AS time, 200 AS y) UNION (SELECT 1755399000 AS time, 100 AS y);"
+    columns: ['time', 'y']
+    time_type: timestamp
+    interval: ONCE
+    description: 'Three points'
 
 charts:
   # At least one chart must be specified.
@@ -77,6 +84,18 @@ charts:
     queries:
       - 'wave'
     output_file: 'schemas.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
+  - title: '3Points'
+    type: line_chart
+    xlabel: 'Timestamps'
+    ylabel: 'Num'
+    queries:
+      - '3points'
+    output_file: '3points.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'

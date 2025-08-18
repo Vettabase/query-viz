@@ -17,6 +17,7 @@ from .chart import ChartGenerator
 from .data_file import DataFile
 from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
+from .interval import Interval
 
 
 # Minimum allowed value for on_rotation_keep_datapoints
@@ -24,6 +25,9 @@ MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
 # Minimum allowed value for query intervals (in seconds)
 MIN_QUERY_INTERVAL = 1
+
+# Supported special value for 'interval' setting
+QUERY_INTERVAL_SPECIAL_VALUES = ['once']
 
 
 class QueryViz:
@@ -208,12 +212,9 @@ class QueryViz:
             
             # Validate query-level interval if specified
             if 'interval' in query:
-                try:
-                    query_interval = self._parse_interval(query['interval'])
-                    if query_interval < MIN_QUERY_INTERVAL:
-                        raise QueryVizError(f"Query {i}: 'interval' must be at least {MIN_QUERY_INTERVAL} seconds")
-                except QueryVizError as e:
-                    raise QueryVizError(f"Query {i}: {e}")
+                # Handle special 'once' value, which means:
+                # There is no interval, the query will run once
+                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query['interval'], MIN_QUERY_INTERVAL)
             
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
@@ -227,7 +228,11 @@ class QueryViz:
                 time_type = query.get('time_type', 'timestamp')
                 if time_type != 'timestamp':
                     raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
-            
+                try:
+                    query['on_file_rotation_keep_history'] = Interval().setget(query['on_file_rotation_keep_history'])
+                except QueryVizError as e:
+                    raise QueryVizError(f"Query {i}: invalid 'on_file_rotation_keep_history' format: {e}")
+
             # Check for duplicate query names
             if query['name'] in query_names:
                 raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
@@ -327,18 +332,21 @@ class QueryViz:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
         # Parse and validate global interval
-        try:
-            self.config['interval'] = self._parse_interval(self.config['interval'])
-            if self.config['interval'] < MIN_QUERY_INTERVAL:
-                raise QueryVizError(f"Global 'interval' must be at least {MIN_QUERY_INTERVAL} seconds")
-        except QueryVizError as e:
-            raise QueryVizError(f"Global interval: {e}")
+        self.config['interval'] = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(
+                self.config['interval'],
+                MIN_QUERY_INTERVAL
+        )
         
         # Intervals specified in the "10m" format can now be parsed
-        self.config['failed_connections_interval'] = self._parse_interval(self.config['failed_connections_interval'])
-        self.config['initial_grace_period'] = self._parse_interval(self.config['initial_grace_period'])
-        self.config['grace_period_retry_interval'] = self._parse_interval(self.config['grace_period_retry_interval'])
-        self.config['on_file_rotation_keep_history'] = self._parse_interval(self.config['on_file_rotation_keep_history'])
+        interval_settings = [
+            'failed_connections_interval',
+            'initial_grace_period', 
+            'grace_period_retry_interval',
+            'on_file_rotation_keep_history'
+        ]
+        for setting in interval_settings:
+            self.config[setting] = Interval().setget(self.config[setting])
+        interval_settings = None
     
     def setup_connections(self):
         """Setup database connections"""
@@ -436,7 +444,7 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            query.interval = self._parse_interval(query.interval)
+            query.interval = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:
@@ -465,6 +473,86 @@ class QueryViz:
                 self.output_dir, 
                 chart_type
             )
+    
+    def process_query_results(self, query_config, columns, results, data_file):
+        """
+        Process query results and write data points to file.
+        
+        Args:
+            query_config: QueryConfig object
+            columns: List of column names from query results
+            results: List of result rows from query execution
+            data_file: DataFile object for writing
+            
+        Returns:
+            int: Number of rows processed
+            
+        Raises:
+            QueryVizError: If column mapping fails or data writing fails
+        """
+        if not results:
+            print(f"Warning: Query '{query_config.name}' returned no results")
+            return 0
+        
+        rows_processed = 0
+        
+        for row in results:
+            # Extract values for all configured columns
+            column_values = []
+            for col_name in query_config.columns:
+                if col_name not in columns:
+                    raise QueryVizError(f"Column '{col_name}' not found in query results for '{query_config.name}'. Available columns: {columns}")
+                
+                col_index = columns.index(col_name)
+                value = row[col_index]
+                column_values.append(value)
+            
+            # Write data point to file
+            data_file.write_data_point(column_values)
+            rows_processed += 1
+        
+        return rows_processed
+    
+    def execute_once_queries_thread(self):
+        """Execute all 'once' queries that haven't been run yet"""
+        once_queries = [q for q in self.queries if q.interval == 'once']
+        
+        for query_config in once_queries:
+            try:
+                # Skip query if connection has failed
+                connection = self.connections[query_config.connection_name]
+                if connection.status == FAIL:
+                    print(f"Skipping 'once' query '{query_config.name}': connection failed")
+                    continue
+                
+                # Check if data file already exists
+                data_file = DataFileSet.get(query_config.name)
+                if data_file.exists():
+                    print(f"Skipping 'once' query '{query_config.name}': already executed")
+                    continue
+                
+                # Execute the query
+                print(f"Executing 'once' query '{query_config.name}'...")
+                columns, results = connection.execute_query(query_config.query)
+                
+                try:
+                    data_file.open()
+                    try:
+                        self.process_query_results(query_config, columns, results, data_file)
+                    except Exception as e:
+                        print(f"Error processing results for 'once' query '{query_config.name}': {e}")
+                    finally:
+                        try:
+                            data_file.close()
+                        except:
+                            pass
+                except Exception as e:
+                    print(f"Error opening data file for 'once' query '{query_config.name}': {e}")
+                    
+            except Exception as e:
+                print(f"Error executing 'once' query '{query_config.name}': {e}")
+        
+        print("Finished executing 'once' queries")
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
@@ -581,23 +669,37 @@ class QueryViz:
                 DataFileSet.set(query, self.output_dir)
             
             # Open data files for writing
-            DataFileSet.open_all()
+            DataFileSet.open_recurring_queries()
+            
+            self.running = True
+            
+            # Start once queries thread (if any exist)
+            once_queries = [q for q in self.queries if q.interval == 'once']
+            if once_queries:
+                once_thread = threading.Thread(target=self.execute_once_queries_thread)
+                once_thread.daemon = False  # Non-daemon thread
+                once_thread.start()
+                self.threads.append(once_thread)
+                print(f"Started 'once' queries thread for {len(once_queries)} queries")
+            else:
+                print("Not starting the 'once' thread")
             
             # Start query threads
-            self.running = True
+            started_threads = 0
             for query in self.queries:
-                thread = threading.Thread(target=self.execute_query_thread, args=(query,))
-                thread.daemon = True
-                thread.start()
-                self.threads.append(thread)
+                if query.interval != 'once':
+                    thread = threading.Thread(target=self.execute_query_thread, args=(query,))
+                    thread.daemon = True
+                    thread.start()
+                    self.threads.append(thread)
+                    started_threads = started_threads + 1
+            print(f"Started {started_threads} query threads")
             
             # Start failed connection retry thread
             retry_thread = threading.Thread(target=self.retry_failed_connections)
             retry_thread.daemon = True
             retry_thread.start()
             self.threads.append(retry_thread)
-            
-            print(f"Started {len(self.queries)} query threads")
             print("Started connection retry thread")
             
             # Main loop - generate plots periodically
