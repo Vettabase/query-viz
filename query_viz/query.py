@@ -3,6 +3,12 @@ Query configuration
 """
 
 
+from .interval import Interval
+
+
+QUERY_INTERVAL_SPECIAL_VALUES = ['once']
+
+
 class QueryConfig:
     """Query configuration.
     The keyed singleton guarantees that only an instance can exist for each query.
@@ -37,6 +43,11 @@ class QueryConfig:
         self.time_type = config.get('time_type', 'timestamp')
         self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
         self.on_file_rotation_keep_history = config.get('on_file_rotation_keep_history')
+
+        interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
+        interval_parser.validate(self.interval)
+        self.is_recurring = not interval_parser.is_special_value()
+        interval_parser = None
         
         # Handle both column formats
         if 'columns' in config and config['columns'] is not None:
