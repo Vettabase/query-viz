@@ -73,35 +73,6 @@ class QueryViz:
         # Add extension
         return f"{normalised}.{extension}"
     
-    def _parse_interval(self, interval_str):
-        """Parse interval string to seconds"""
-        if isinstance(interval_str, (int, float)):
-            return float(interval_str)
-        
-        # ignore all space-like characters
-        interval_str = str(interval_str).translate(str.maketrans('', '', ' \t\n\r\f\v'))
-        
-        # Extract numeric part and unit
-        if interval_str[-1].isalpha():
-            unit = interval_str[-1]
-            value = float(interval_str[:-1])
-        else:
-            unit = 's'  # default to seconds
-            value = float(interval_str)
-        
-        if unit == 's':
-            return value
-        elif unit == 'm':
-            return value * 60
-        elif unit == 'h':
-            return value * 3600
-        elif unit == 'd':
-            return value * 86400
-        elif unit == 'w':
-            return value * 604800
-        else:
-            raise QueryVizError(f"Invalid interval format: {interval_str}")
-    
     def exit(self, code=0):
         """Exit with code 0 if running in Docker, otherwise use specified code"""
         if os.environ.get('IN_DOCKER') == '1':
