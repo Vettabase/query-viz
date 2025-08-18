@@ -58,7 +58,9 @@ class DataFile:
         
         # Create temporal column formatter based on query's time_type
         self.temporal_column = TemporalColumnRegistry.create(self.time_type)
-        
+        if self.time_type == 'elapsed_seconds':
+            self.temporal_column.start_time = getattr(query_object, 'start_time', None)
+
         # Normalize query name for filename
         self.filename = self._generate_filename(query_object.name)
         self.filepath = os.path.join(output_dir, self.filename)

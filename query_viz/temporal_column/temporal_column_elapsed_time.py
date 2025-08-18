@@ -10,6 +10,9 @@ from .temporal_column import TemporalColumn
 class TemporalColumnElapsedTime(TemporalColumn):
     """Handle temporal columns as elapsed seconds"""
     
+    def __init__(self):
+        self.start_time = None
+
     def format_value(self, time_value) -> str:
         """
         Format time value as elapsed seconds
