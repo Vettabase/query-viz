@@ -8,8 +8,14 @@ from .interval import Interval
 from .temporal_column import TemporalColumnRegistry
 
 
+# Supported special value for 'interval' setting
 QUERY_INTERVAL_SPECIAL_VALUES = ['once']
+
+# Minimum allowed value for query intervals (in seconds)
 MIN_QUERY_INTERVAL = 1
+
+# Minimum allowed value for on_rotation_keep_datapoints
+MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
 
 class QueryConfig:
@@ -123,6 +129,12 @@ class QueryConfig:
             # Handle special 'once' value, which means:
             # There is no interval, the query will run once
             Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(config['interval'], MIN_QUERY_INTERVAL)
+        
+        # Validate on_rotation_keep_datapoints
+        if 'on_rotation_keep_datapoints' in config:
+            query_keep_datapoints = config['on_rotation_keep_datapoints']
+            if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+                raise QueryVizError(f"Query '{config['name']}': 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
     
     def get_metrics(self):
         """Get list of metric columns"""
