@@ -9,6 +9,7 @@ from .temporal_column import TemporalColumnRegistry
 
 
 QUERY_INTERVAL_SPECIAL_VALUES = ['once']
+MIN_QUERY_INTERVAL = 1
 
 
 class QueryConfig:
