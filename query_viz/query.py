@@ -5,6 +5,7 @@ Query configuration
 
 from .exceptions import QueryVizError
 from .interval import Interval
+from .temporal_column import TemporalColumnRegistry
 
 
 QUERY_INTERVAL_SPECIAL_VALUES = ['once']
@@ -84,6 +85,11 @@ class QueryConfig:
         for field in required_fields:
             if field not in config:
                 raise QueryVizError(f"Query: '{field}' is required")
+
+        # Validate time_type if specified
+        if 'time_type' in config:
+            if not TemporalColumnRegistry.validate(config['time_type']):
+                raise QueryVizError(f"Query '{config['name']}': invalid time_type '{config['time_type']}'")
     
     def get_metrics(self):
         """Get list of metric columns"""
