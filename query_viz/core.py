@@ -142,11 +142,6 @@ class QueryViz:
         
         query_names = set()
         for i, query in enumerate(queries):
-            required_fields = ['name', 'query']
-            for field in required_fields:
-                if field not in query:
-                    raise QueryVizError(f"Query {i}: '{field}' is required")
-            
             # Validate time_type if specified
             if 'time_type' in query:
                 from .temporal_column import TemporalColumnRegistry

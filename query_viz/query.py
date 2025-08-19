@@ -80,7 +80,10 @@ class QueryConfig:
     
     def _validate_config(self, config):
         """Validate query configuration"""
-        return True
+        required_fields = ['name', 'query']
+        for field in required_fields:
+            if field not in config:
+                raise QueryVizError(f"Query: '{field}' is required")
     
     def get_metrics(self):
         """Get list of metric columns"""
