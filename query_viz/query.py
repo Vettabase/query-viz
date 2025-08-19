@@ -135,6 +135,17 @@ class QueryConfig:
             query_keep_datapoints = config['on_rotation_keep_datapoints']
             if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
                 raise QueryVizError(f"Query '{config['name']}': 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
+        
+        # Validate on_file_rotation_keep_history
+        if 'on_file_rotation_keep_history' in config:
+            # Check that it's only specified for timestamp queries
+            time_type = config.get('time_type', 'timestamp')
+            if time_type != 'timestamp':
+                raise QueryVizError(f"Query '{config['name']}': 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
+            try:
+                config['on_file_rotation_keep_history'] = Interval().setget(config['on_file_rotation_keep_history'])
+            except QueryVizError as e:
+                raise QueryVizError(f"Query '{config['name']}': invalid 'on_file_rotation_keep_history' format: {e}")
     
     def get_metrics(self):
         """Get list of metric columns"""
