@@ -142,12 +142,6 @@ class QueryViz:
         
         query_names = set()
         for i, query in enumerate(queries):
-            # Validate query-level interval if specified
-            if 'interval' in query:
-                # Handle special 'once' value, which means:
-                # There is no interval, the query will run once
-                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query['interval'], MIN_QUERY_INTERVAL)
-            
             # Validate on_rotation_keep_datapoints
             if 'on_rotation_keep_datapoints' in query:
                 query_keep_datapoints = query['on_rotation_keep_datapoints']

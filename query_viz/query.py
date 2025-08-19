@@ -124,6 +124,12 @@ class QueryConfig:
             def get_metrics_count(self):
                 """Get number of metric columns"""
                 return len(self.get_metrics())
+        
+        # Validate optional query.interval
+            if 'interval' in config:
+                # Handle special 'once' value, which means:
+                # There is no interval, the query will run once
+                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(config['interval'], MIN_QUERY_INTERVAL)
     
     @classmethod
     def clear_all_instances(cls):
