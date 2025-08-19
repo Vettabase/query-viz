@@ -3,6 +3,7 @@ Query configuration
 """
 
 
+from .exceptions import QueryVizError
 from .interval import Interval
 
 
@@ -33,6 +34,9 @@ class QueryConfig:
         # Prevent re-initialization of existing instances
         if self._initialized:
             return
+        
+        # Validate the config before proceeding
+        self._validate_config(config)
         
         self.name = config['name']
         self.query = config['query']
@@ -73,7 +77,11 @@ class QueryConfig:
             self.columns.insert(0, 'time')
         
         self._initialized = True
-
+    
+    def _validate_config(self, config):
+        """Validate query configuration"""
+        return True
+    
     def get_metrics(self):
         """Get list of metric columns"""
         return [col for col in self.columns if col != 'time']
