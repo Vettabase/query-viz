@@ -117,20 +117,20 @@ class QueryConfig:
                 raise QueryVizError(f"Query '{config['name']}': 'column' must be a non-empty string")
             if config['column'] == 'time':
                 raise QueryVizError(f"Query '{config['name']}': at least one metric-column must be specified")
-
-            def get_metrics(self):
-                """Get list of metric columns"""
-                return [col for col in self.columns if col != 'time']
-            
-            def get_metrics_count(self):
-                """Get number of metric columns"""
-                return len(self.get_metrics())
         
         # Validate optional query.interval
-            if 'interval' in config:
-                # Handle special 'once' value, which means:
-                # There is no interval, the query will run once
-                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(config['interval'], MIN_QUERY_INTERVAL)
+        if 'interval' in config:
+            # Handle special 'once' value, which means:
+            # There is no interval, the query will run once
+            Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(config['interval'], MIN_QUERY_INTERVAL)
+    
+    def get_metrics(self):
+        """Get list of metric columns"""
+        return [col for col in self.columns if col != 'time']
+    
+    def get_metrics_count(self):
+        """Get number of metric columns"""
+        return len(self.get_metrics())
     
     @classmethod
     def clear_all_instances(cls):
