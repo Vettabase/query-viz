@@ -90,14 +90,40 @@ class QueryConfig:
         if 'time_type' in config:
             if not TemporalColumnRegistry.validate(config['time_type']):
                 raise QueryVizError(f"Query '{config['name']}': invalid time_type '{config['time_type']}'")
-    
-    def get_metrics(self):
-        """Get list of metric columns"""
-        return [col for col in self.columns if col != 'time']
-    
-    def get_metrics_count(self):
-        """Get number of metric columns"""
-        return len(self.get_metrics())
+        
+        # Validate column specification - column and columns are mutually exclusive
+        has_column = 'column' in config and config['column'] is not None
+        has_columns = 'columns' in config and config['columns'] is not None
+        if has_column == has_columns:
+            raise QueryVizError(f"Query '{config['name']}': 'column' and 'columns' are mutually exclusive, but one of them must be specified")
+
+        # Recommended format: "columns"
+        if has_columns:
+            if not isinstance(config['columns'], list) or len(config['columns']) == 0:
+                raise QueryVizError(f"Query '{config['name']}': 'columns' must be a non-empty list")
+            has_metrics = False
+            for col in config['columns']:
+                if not isinstance(col, str) or not col.strip():
+                    raise QueryVizError(f"Query '{config['name']}': all column names must be non-empty strings")
+                if col != 'time':
+                    has_metrics = True
+            if not has_metrics:
+                raise QueryVizError(f"Query '{config['name']}': at least one metric-column must be specified")
+
+        # Legacy format: "column"
+        if has_column:
+            if not isinstance(config['column'], str) or not config['column'].strip():
+                raise QueryVizError(f"Query '{config['name']}': 'column' must be a non-empty string")
+            if config['column'] == 'time':
+                raise QueryVizError(f"Query '{config['name']}': at least one metric-column must be specified")
+
+            def get_metrics(self):
+                """Get list of metric columns"""
+                return [col for col in self.columns if col != 'time']
+            
+            def get_metrics_count(self):
+                """Get number of metric columns"""
+                return len(self.get_metrics())
     
     @classmethod
     def clear_all_instances(cls):
