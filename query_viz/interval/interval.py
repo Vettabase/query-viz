@@ -31,6 +31,18 @@ class Interval:
         self.special_values = special_values
         self._value = None
         self._is_special = None
+        self._interval_type = {
+                'default': {
+                    'min': 0,
+                    'max': None,
+                    'special_values': []
+                },
+                'query_interval': {
+                    'min': 1,
+                    'max': None,
+                    'special_values': ['once']
+                }
+            }
     
     def validate(self, interval_str, min_seconds=None, max_seconds=None):
         """
