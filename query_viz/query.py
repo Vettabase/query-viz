@@ -37,6 +37,8 @@ class QueryConfig:
         if self._initialized:
             return
         
+        self.defaults = {}
+
         # Validate the config before proceeding
         self._validate_config(config)
         
@@ -79,6 +81,41 @@ class QueryConfig:
             self.columns.insert(0, 'time')
         
         self._initialized = True
+    
+    @classmethod
+    def set_global_interval(cls, setting_name, setting_value):
+        """Validate a global interval-type setting and remember it.
+        It might be used later as a default.
+        Defaults are shared between all instances."""
+        interval_parser = Interval(setting_name)
+        interval_parser.validate(setting_value)
+        cls.defaults[setting_name] = setting_value
+        return setting_value
+    
+    def _set_local_interval(self, config, setting_name):
+        """Validate a local (query-level) interval-type setting and remember it.
+        If not set, use the corresponding default.
+        If the setting is query_interval, set is_recurring.
+        Defaults are shared between all instances."""
+
+        # global values are mandatory, no matter if they're used
+        if setting_name not in self.defaults or self.defaults[setting_name] is None:
+            raise QueryVizError(f"Missing global value: {setting_name}")
+        # the setting must be in the configuration object
+        if setting_name not in config:
+            raise QueryVizError(f"Missing key in config: {setting_name}")
+
+        setting_value = config[setting_name]
+        if setting_value is None:
+            setting_value = self.defaults[setting_name]
+        interval_parser = Interval(setting_name)
+        interval_parser.validate(setting_value)
+        # special case must be handled here
+        # FIXME: After renaming the setting to query_interval, we must
+        # remove every reference to the generic name "interval"
+        if setting_name == 'interval' or setting_name == 'query_interval':
+            self.is_recurring = not interval_parser.is_special_value()
+        setattr(self, setting_name, setting_value)
     
     def _validate_config(self, config):
         """Validate query configuration"""
