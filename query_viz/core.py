@@ -23,12 +23,6 @@ from .interval import Interval
 # Minimum allowed value for on_rotation_keep_datapoints
 MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
-# Minimum allowed value for query intervals (in seconds)
-MIN_QUERY_INTERVAL = 1
-
-# Supported special value for 'interval' setting
-QUERY_INTERVAL_SPECIAL_VALUES = ['once']
-
 
 class QueryViz:
     """Main query-viz application"""
@@ -241,10 +235,7 @@ class QueryViz:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
         # Parse and validate global interval
-        self.config['interval'] = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(
-                self.config['interval'],
-                MIN_QUERY_INTERVAL
-        )
+        self.config['interval'] = Interval('query_interval').setget(self.config['interval'])
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
@@ -254,7 +245,7 @@ class QueryViz:
             'on_file_rotation_keep_history'
         ]
         for setting in interval_settings:
-            self.config[setting] = Interval().setget(self.config[setting])
+            self.config[setting] = Interval(setting).setget(self.config[setting])
         interval_settings = None
     
     def setup_connections(self):
@@ -353,7 +344,7 @@ class QueryViz:
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
             # Parse query interval
-            query.interval = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query.interval)
+            query.interval = Interval('query_interval').setget(query.interval)
             
             # Validate connection exists
             if query.connection_name not in self.connections:

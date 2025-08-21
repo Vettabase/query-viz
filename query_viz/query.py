@@ -8,12 +8,6 @@ from .interval import Interval
 from .temporal_column import TemporalColumnRegistry
 
 
-# Supported special value for 'interval' setting
-QUERY_INTERVAL_SPECIAL_VALUES = ['once']
-
-# Minimum allowed value for query intervals (in seconds)
-MIN_QUERY_INTERVAL = 1
-
 # Minimum allowed value for on_rotation_keep_datapoints
 MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
@@ -58,7 +52,7 @@ class QueryConfig:
         # For recurring queries, this will be set on first run
         self.start_time = None
         
-        interval_parser = Interval(QUERY_INTERVAL_SPECIAL_VALUES)
+        interval_parser = Interval('query_interval')
         interval_parser.validate(self.interval)
         self.is_recurring = not interval_parser.is_special_value()
         interval_parser = None
@@ -128,7 +122,7 @@ class QueryConfig:
         if 'interval' in config:
             # Handle special 'once' value, which means:
             # There is no interval, the query will run once
-            Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(config['interval'], MIN_QUERY_INTERVAL)
+            Interval('query_interval').setget(config['interval'])
         
         # Validate on_rotation_keep_datapoints
         if 'on_rotation_keep_datapoints' in config:
@@ -143,7 +137,7 @@ class QueryConfig:
             if time_type != 'timestamp':
                 raise QueryVizError(f"Query '{config['name']}': 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
             try:
-                config['on_file_rotation_keep_history'] = Interval().setget(config['on_file_rotation_keep_history'])
+                config['on_file_rotation_keep_history'] = Interval('on_file_rotation_keep_history').setget(config['on_file_rotation_keep_history'])
             except QueryVizError as e:
                 raise QueryVizError(f"Query '{config['name']}': invalid 'on_file_rotation_keep_history' format: {e}")
     

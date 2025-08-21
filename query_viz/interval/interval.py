@@ -17,46 +17,53 @@ class Interval:
         'd': 86400,
         'w': 604800
     }
+
+    # An interval type determines how the interval is validated.
+    # min and max represent the range.
+    # special_values is a list of admitted special string values.
+    # When an interval type has no match in this dictionary,
+    # the default type applies: positive, no maximum, no special
+    # values.
+    # This is a class property because the types dictionary must be
+    # shared between all intervals, and must never be modified.
+    INTERVAL_TYPES = {
+        'default': {
+            'min': 0,
+            'max': None,
+            'special_values': []
+        },
+        'query_interval': {
+            'min': 1,
+            'max': None,
+            'special_values': ['once']
+        }
+    }
     
-    def __init__(self, special_values=None):
+    def __init__(self, interval_type=None):
         """
         Initialize interval parser with optional special values
         
         Args:
-            special_values (list): List of special string values that are valid
-                                 (e.g., ['once']). Must be lowercase.
+            interval_type:         Type of interval, from INTERVAL_TYPES. Default: 'default'.
         """
-        if special_values is None:
-            special_values = []
-        self.special_values = special_values
         self._value = None
         self._is_special = None
         
-        # An interval type determines how the interval is validated.
-        # min and max represent the range.
-        # special_values is a list of admitted special string values.
-        # When an interval type has no match in this dictionary,
-        # the default type applies: positive, no maximum, no special
-        # values.
-        self._interval_type = {
-                'default': {
-                    'min': 0,
-                    'max': None,
-                    'special_values': []
-                },
-                'query_interval': {
-                    'min': 1,
-                    'max': None,
-                    'special_values': ['once']
-                }
-            }
+        # interval_type refers to an existing type in INTERVAL_TYPES, and it's
+        # an instance property.
+        if interval_type is None:
+            self.interval_type = 'default'
+        else:
+            self.interval_type = interval_type
+        if self.interval_type not in self.INTERVAL_TYPES:
+            raise QueryVizError(f"Unknown interval type: {self.interval_type}")
     
-    def validate(self, interval_str, min_seconds=None, max_seconds=None):
+    def validate(self, interval_str):
         """
         Validate and parse an interval string
         
         Args:
-            interval_str: String to validate (e.g., '1m', '30s', 'once')
+            interval_str:   String to validate (e.g., '1m', '30s', 'once')
             
         Returns:
             bool: True if valid, False otherwise
@@ -70,9 +77,15 @@ class Interval:
         if not interval_str:
             raise QueryVizError("Interval cannot be empty")
         
+        # Get validation rules based on interval_type
+        validation_rules = self.INTERVAL_TYPES[self.interval_type]
+        min_seconds = validation_rules['min']
+        max_seconds = validation_rules['max']
+        special_values = validation_rules['special_values']
+        
         # Check for special values first (case-insensitive)
         normalized_input = interval_str.lower()
-        if normalized_input in self.special_values:
+        if normalized_input in special_values:
             self._value = normalized_input
             self._is_special = True
             return True
@@ -83,7 +96,7 @@ class Interval:
             self._is_special = False
         except QueryVizError:
             raise
-
+        
         # Verify that value is in range
         if min_seconds is not None and self._value < min_seconds:
             raise QueryVizError(f"Interval is too low. Min: {min_seconds}")
@@ -176,12 +189,12 @@ class Interval:
         """
         return self._is_special
         
-    def setget(self, interval, min_seconds=None, max_seconds=None):
+    def setget(self, interval):
         """
         Validate an interval, set it internally, and return it as seconds.
 
         Args:
-            interval_str: String to validate (e.g., '1m', '30s', 'once')
+            interval_str:   String to validate (e.g., '1m', '30s', 'once')
         
         Returns:
             float or str: Interval in seconds, or special value string if applicable
@@ -189,5 +202,5 @@ class Interval:
         Raises:
             RuntimeError: If validate() hasn't been called successfully
         """
-        self.validate(interval, min_seconds, max_seconds)
+        self.validate(interval)
         return self.get_seconds()
