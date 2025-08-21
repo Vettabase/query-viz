@@ -31,6 +31,13 @@ class Interval:
         self.special_values = special_values
         self._value = None
         self._is_special = None
+        
+        # An interval type determines how the interval is validated.
+        # min and max represent the range.
+        # special_values is a list of admitted special string values.
+        # When an interval type has no match in this dictionary,
+        # the default type applies: positive, no maximum, no special
+        # values.
         self._interval_type = {
                 'default': {
                     'min': 0,
