@@ -51,12 +51,10 @@ class Interval:
         
         # interval_type refers to an existing type in INTERVAL_TYPES, and it's
         # an instance property.
-        if interval_type is None:
+        if interval_type is None or interval_type not in self.INTERVAL_TYPES:
             self.interval_type = 'default'
         else:
             self.interval_type = interval_type
-        if self.interval_type not in self.INTERVAL_TYPES:
-            raise QueryVizError(f"Unknown interval type: {self.interval_type}")
     
     def validate(self, interval_str):
         """
