@@ -117,6 +117,13 @@ class QueryConfig:
             self.is_recurring = not interval_parser.is_special_value()
         setattr(self, setting_name, setting_value)
     
+    def _error_if_local_is_set(self, config, setting_name, reason):
+        """Raise an error if a local (query-level) setting is set,
+        but it's not allowed here. The error message contains the reason.
+        The global setting is not checked."""
+        if setting_name in config:
+            raise ValueError(f"Query '{self.name}': setting not allowed: {setting_name}. Readon: {reason}.")
+    
     def _validate_config(self, config):
         """Validate query configuration"""
         required_fields = ['name', 'query']
