@@ -171,8 +171,11 @@ class QueryConfig:
         
         # Validate on_rotation_keep_datapoints
         if 'on_rotation_keep_datapoints' in config:
-            query_keep_datapoints = config['on_rotation_keep_datapoints']
-            if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
+            self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
+            if (
+                    not isinstance(self.on_rotation_keep_datapoints, int) or
+                    self.on_rotation_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS
+                ):
                 raise QueryVizError(f"Query '{config['name']}': 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
         
         # Validate on_file_rotation_keep_history
