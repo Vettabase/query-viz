@@ -129,11 +129,7 @@ class QueryViz:
         global_keep_datapoints = self.config['on_rotation_keep_datapoints']
         if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
             raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
-        
-        # Validate global on_file_rotation_keep_history
-        #if 'on_file_rotation_keep_history' not in self.config:
-        #    raise QueryVizError("Global 'on_file_rotation_keep_history' is required")
-        
+
         query_names = set()
         for i, query in enumerate(queries):
             # Check for duplicate query names
@@ -239,10 +235,9 @@ class QueryViz:
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
-            'failed_connections_interval',
-            'initial_grace_period', 
-            'grace_period_retry_interval',
-            'on_file_rotation_keep_history'
+              'failed_connections_interval'
+            , 'initial_grace_period'
+            , 'grace_period_retry_interval'
         ]
         for setting in interval_settings:
             self.config[setting] = Interval(setting).setget(self.config[setting])
@@ -334,9 +329,8 @@ class QueryViz:
         """Setup query configurations"""
         global_interval = self.config['interval']
         global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        global_keep_history = self.config['on_file_rotation_keep_history']
         
-        QueryConfig.set_global_interval('on_file_rotation_keep_history', global_keep_history)
+        QueryConfig.set_global_interval('on_file_rotation_keep_history', self.config['on_file_rotation_keep_history'])
         
         for i, query_config in enumerate(self.config['queries']):
             if 'on_rotation_keep_datapoints' not in query_config:
