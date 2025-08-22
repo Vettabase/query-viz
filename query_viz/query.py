@@ -50,7 +50,6 @@ class QueryConfig:
         self.color = config.get('color')
         self.time_type = config.get('time_type', 'timestamp')
         self.on_rotation_keep_datapoints = config['on_rotation_keep_datapoints']
-        self.on_file_rotation_keep_history = config.get('on_file_rotation_keep_history')
         # For recurring queries, this will be set on first run
         self.start_time = None
         
