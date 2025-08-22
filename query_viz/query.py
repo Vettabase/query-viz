@@ -180,13 +180,15 @@ class QueryConfig:
         # Validate on_file_rotation_keep_history
         if 'on_file_rotation_keep_history' in config:
             # Check that it's only specified for timestamp queries
-            time_type = config.get('time_type', 'timestamp')
+            time_type = config['time_type']
             if time_type != 'timestamp':
-                raise QueryVizError(f"Query '{config['name']}': 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
-            try:
-                config['on_file_rotation_keep_history'] = Interval('on_file_rotation_keep_history').setget(config['on_file_rotation_keep_history'])
-            except QueryVizError as e:
-                raise QueryVizError(f"Query '{config['name']}': invalid 'on_file_rotation_keep_history' format: {e}")
+                self._error_if_local_is_set(config, 'on_file_rotation_keep_history',
+                    "'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
+            else:
+                try:
+                    self.on_file_rotation_keep_history = Interval('on_file_rotation_keep_history').setget(config['on_file_rotation_keep_history']).get_seconds()
+                except QueryVizError as e:
+                    raise QueryVizError(f"Query '{config['name']}': invalid 'on_file_rotation_keep_history' format: {e}")
     
     def get_metrics(self):
         """Get list of metric columns"""
