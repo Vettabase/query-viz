@@ -180,7 +180,7 @@ class QueryConfig:
         # Validate on_file_rotation_keep_history
         if 'on_file_rotation_keep_history' in config:
             # Check that it's only specified for timestamp queries
-            time_type = config['time_type']
+            time_type = self.time_type
             if time_type != 'timestamp':
                 self._error_if_local_is_set(config, 'on_file_rotation_keep_history',
                     "'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
