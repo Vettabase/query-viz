@@ -19,6 +19,9 @@ class QueryConfig:
     
     # Instance dictionary. The key is query name
     _instances = {}
+
+    # Global values serve as defaults for query-level values
+    defaults = {}
     
     def __new__(cls, config, default_connection, global_interval):
         """
