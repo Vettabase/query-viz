@@ -125,7 +125,7 @@ class QueryConfig:
         but it's not allowed here. The error message contains the reason.
         The global setting is not checked."""
         if setting_name in config:
-            raise ValueError(f"Query '{self.name}': setting not allowed: {setting_name}. Readon: {reason}.")
+            raise ValueError(f"Query '{self.name}': setting not allowed: {setting_name}. Reason: {reason}.")
     
     def _validate_config(self, config):
         """Validate query configuration"""
