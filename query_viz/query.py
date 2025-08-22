@@ -183,7 +183,7 @@ class QueryConfig:
             time_type = self.time_type
             if time_type != 'timestamp':
                 self._error_if_local_is_set(config, 'on_file_rotation_keep_history',
-                    "'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
+                    f"'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'. Current value: {time_type}")
             else:
                 try:
                     self.on_file_rotation_keep_history = Interval('on_file_rotation_keep_history').setget(config['on_file_rotation_keep_history'])
