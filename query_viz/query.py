@@ -168,7 +168,7 @@ class QueryConfig:
         if 'interval' in config:
             # Handle special 'once' value, which means:
             # There is no interval, the query will run once
-            Interval('query_interval').setget(config['interval'])
+            self.interval = Interval('query_interval').setget(config['interval'])
         
         # Validate on_rotation_keep_datapoints
         if 'on_rotation_keep_datapoints' in config:

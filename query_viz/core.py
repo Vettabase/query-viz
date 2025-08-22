@@ -337,9 +337,6 @@ class QueryViz:
                 query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
             query = QueryConfig(query_config, self.default_connection, global_interval)
             
-            # Parse query interval
-            query.interval = Interval('query_interval').setget(query.interval)
-            
             # Validate connection exists
             if query.connection_name not in self.connections:
                 raise QueryVizError(f"Query '{query.name}': connection '{query.connection_name}' not found")
