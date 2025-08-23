@@ -40,8 +40,6 @@ class QueryConfig:
         if self._initialized:
             return
         
-        self.defaults = {}
-        
         self.name = config['name']
         self.query = config['query']
         self.connection_name = config.get('connection', default_connection)
