@@ -162,7 +162,7 @@ class QueryConfig:
         if setting_name in config:
             raise ValueError(f"Query '{self.name}': setting not allowed: {setting_name}. Reason: {reason}.")
     
-    def get_setting(self, setting_name, debug_notes=None):
+    def get_setting(self, setting_name, default_value=None, debug_notes=None):
         """Return the specified setting's value. The local (per-query) value is preferred.
         If missing, the global value is returned.
         If none of them is set, raise an error."""
@@ -178,6 +178,9 @@ class QueryConfig:
         global_value = self.defaults.get(setting_name, None)
         if global_value is not None:
             return global_value
+        
+        if default_value is not None:
+            return default_value
         
         # no local or global setting? return error
         raise ValueError(f"Query '{self.name}': Setting not found: {setting_name}. Debug notes: {debug_notes}")

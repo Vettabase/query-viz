@@ -47,7 +47,7 @@ class DataFile:
             return
         
         self.query_name = query_object.name
-        self.query_description = query_object.description or ""
+        self.query_description = query_object.get_setting(description, '')
         self.query_interval = query_object.interval
         self.columns = query_object.columns
         self.output_dir = output_dir
