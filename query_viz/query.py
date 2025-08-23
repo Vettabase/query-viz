@@ -84,6 +84,22 @@ class QueryConfig:
         self._initialized = True
     
     @classmethod
+    def set_global_int(cls, setting_name, setting_value, min=0, max=None):
+        """Validate a global int setting and remember it.
+        It might be used later as a default.
+        Defaults are shared between all instances."""
+        if setting_value is None:
+            raise QueryVizError(f"Missing value: {setting_name}")
+        if not isinstance(setting_value, int):
+            raise QueryVizError(f"Invalid type for {setting_name}: int expected")
+        if (
+                (min is not None and min > setting_value) or
+                (max is not None and max < setting_value)
+            ):
+            raise QueryVizError(f"Value out of range: {setting_name}. Min: {min}; max: {max}")
+        return setting_value
+    
+    @classmethod
     def set_global_interval(cls, setting_name, setting_value):
         """Validate a global interval-type setting and remember it.
         It might be used later as a default.
@@ -92,6 +108,28 @@ class QueryConfig:
         interval_parser.validate(setting_value)
         cls.defaults[setting_name] = setting_value
         return setting_value
+    
+    def _set_local_int(self, config, setting_name, min=0, max=None):
+        """Validate a local (query-level) int setting and remember it.
+        If not set, use the corresponding default.
+        Defaults are shared between all instances."""
+
+        # global values are mandatory, no matter if they're used
+        if setting_name not in self.defaults or self.defaults[setting_name] is None:
+            raise QueryVizError(f"Missing global value: {setting_name}")
+        # the setting must be in the configuration object
+        if setting_name not in config:
+            raise QueryVizError(f"Missing key in config: {setting_name}")
+
+        setting_value = config[setting_name]
+        if setting_value is None:
+            setting_value = self.defaults[setting_name]
+        if (
+                (min is not None and min > setting_value) or
+                (max is not None and max < setting_value)
+            ):
+            raise QueryVizError(f"Value out of range: {setting_name}. Min: {min}; max: {max}")
+        setattr(self, setting_name, setting_value)
     
     def _set_local_interval(self, config, setting_name):
         """Validate a local (query-level) interval-type setting and remember it.
