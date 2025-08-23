@@ -63,7 +63,7 @@ class DataFile:
             self.temporal_column.get_start_time = lambda: getattr(query_object, 'start_time', None)
 
         # Normalize query name for filename
-        self.filename = self._generate_filename(self.name)
+        self.filename = self._generate_filename(self.query_name)
         self.filepath = os.path.join(output_dir, self.filename)
         
         # File handle and tracking
