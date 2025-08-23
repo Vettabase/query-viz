@@ -51,7 +51,7 @@ class DataFile:
         self.query_interval = query_object.interval
         self.columns = query_object.columns
         self.output_dir = output_dir
-        self.max_points = query_object.on_rotation_keep_datapoints
+        self.max_points = query_object.get_setting("on_rotation_keep_datapoints")
         self.has_time_column = (self.columns[0] == 'time')
         self.time_type = query_object.time_type
         self.on_file_rotation_keep_history = getattr(query_object, 'on_file_rotation_keep_history', None)
