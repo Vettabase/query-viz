@@ -21,7 +21,7 @@ def main():
     verbosity_level = args.v
     print(f"Verbosity level: {verbosity_level}")
     
-    app = QueryViz(args.config, verbosity_level)
+    app = QueryViz(verbosity_level, args.config)
     return app.run()
 
 
