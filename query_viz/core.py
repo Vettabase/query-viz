@@ -122,15 +122,6 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
-        # Validate global on_rotation_keep_datapoints
-        if 'on_rotation_keep_datapoints' not in self.config:
-            raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
-        global_keep_datapoints = QueryConfig.set_global_int(
-            'on_rotation_keep_datapoints',
-            self.config['on_rotation_keep_datapoints'],
-            min=MIN_ON_ROTATION_KEEP_DATAPOINTS
-        )
-
         query_names = set()
         for i, query in enumerate(queries):
             # Check for duplicate query names
@@ -331,6 +322,7 @@ class QueryViz:
         global_interval = self.config['interval']
         global_keep_datapoints = self.config['on_rotation_keep_datapoints']
         
+        QueryConfig.set_global_int('on_rotation_keep_datapoints', global_keep_datapoints, min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
         QueryConfig.set_global_interval('on_file_rotation_keep_history', self.config['on_file_rotation_keep_history'])
         
         for i, query_config in enumerate(self.config['queries']):
