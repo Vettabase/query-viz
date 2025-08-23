@@ -97,6 +97,7 @@ class QueryConfig:
                 (max is not None and max < setting_value)
             ):
             raise QueryVizError(f"Value out of range: {setting_name}. Min: {min}; max: {max}")
+        cls.defaults[setting_name] = setting_value
         return setting_value
     
     @classmethod
