@@ -326,15 +326,18 @@ class QueryViz:
         for i, query_config in enumerate(self.config['queries']):
             query = QueryConfig(query_config, self.default_connection)
             
+            name = query.get_setting("name")
+            connection_name = query.get_setting("connection_name")
+            
             # Validate connection exists
-            if query.connection_name not in self.connections:
-                raise QueryVizError(f"Query '{query.name}': connection '{query.connection_name}' not found")
+            if query.get_setting("connection_name") not in self.connections:
+                raise QueryVizError(f"Query '{name}': connection '{connection_name}' not found")
             
             self.queries.append(query)
             
             # Initialize DataFile for this query
             data_file = DataFile(query, self.output_dir)
-            self.data_files[query.name] = data_file
+            self.data_files[name] = data_file
         
         # For fast access, build a query objects lookup
         # and a pre-computed chart-to-queries map
