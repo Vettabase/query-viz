@@ -125,10 +125,11 @@ class QueryViz:
         # Validate global on_rotation_keep_datapoints
         if 'on_rotation_keep_datapoints' not in self.config:
             raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
-        
-        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
-            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
+        global_keep_datapoints = QueryConfig.set_global_int(
+            'on_rotation_keep_datapoints',
+            self.config['on_rotation_keep_datapoints'],
+            min=MIN_ON_ROTATION_KEEP_DATAPOINTS
+        )
 
         query_names = set()
         for i, query in enumerate(queries):
