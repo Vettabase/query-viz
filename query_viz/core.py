@@ -20,10 +20,6 @@ from .exceptions import QueryVizError
 from .interval import Interval
 
 
-# Minimum allowed value for on_rotation_keep_datapoints
-MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
-
-
 class QueryViz:
     """Main query-viz application"""
     
