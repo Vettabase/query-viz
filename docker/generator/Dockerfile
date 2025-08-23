@@ -75,4 +75,4 @@ LABEL org.opencontainers.image.description="Query-Viz application image"
 RUN mkdir -p /app/output && chmod 755 /app/output
 VOLUME ["/app/output"]
 
-CMD ["python", "-u", "qv.py"]
+CMD ["python", "-u", "qv.py", "-vv"]
