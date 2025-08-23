@@ -210,7 +210,7 @@ class QueryConfig:
         
         # Validate on_rotation_keep_datapoints
         if 'on_rotation_keep_datapoints' in config:
-            self._set_local_int(config, config.get('on_rotation_keep_datapoints', None), min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
+            self._set_local_int(config, 'on_rotation_keep_datapoints', min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
         
         # Validate on_file_rotation_keep_history
         if 'on_file_rotation_keep_history' in config:
