@@ -27,7 +27,7 @@ MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 class QueryViz:
     """Main query-viz application"""
     
-    def __init__(self, config_file='config.yaml'):
+    def __init__(self, verbosity_level, config_file='config.yaml'):
         self.config_file = config_file
         self.config = None
         self.connections = {}
