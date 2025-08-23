@@ -23,17 +23,11 @@ from .interval import Interval
 # Minimum allowed value for on_rotation_keep_datapoints
 MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
-# Minimum allowed value for query intervals (in seconds)
-MIN_QUERY_INTERVAL = 1
-
-# Supported special value for 'interval' setting
-QUERY_INTERVAL_SPECIAL_VALUES = ['once']
-
 
 class QueryViz:
     """Main query-viz application"""
     
-    def __init__(self, config_file='config.yaml'):
+    def __init__(self, verbosity_level, config_file='config.yaml'):
         self.config_file = config_file
         self.config = None
         self.connections = {}
@@ -128,80 +122,8 @@ class QueryViz:
         if not isinstance(queries, list) or len(queries) == 0:
             raise QueryVizError("At least one query must be specified")
         
-        # Validate global on_rotation_keep_datapoints
-        if 'on_rotation_keep_datapoints' not in self.config:
-            raise QueryVizError("Global 'on_rotation_keep_datapoints' is required")
-        
-        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        if not isinstance(global_keep_datapoints, int) or global_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
-            raise QueryVizError("Global 'on_rotation_keep_datapoints' must be an integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
-        
-        # Validate global on_file_rotation_keep_history
-        if 'on_file_rotation_keep_history' not in self.config:
-            raise QueryVizError("Global 'on_file_rotation_keep_history' is required")
-        
         query_names = set()
         for i, query in enumerate(queries):
-            required_fields = ['name', 'query']
-            for field in required_fields:
-                if field not in query:
-                    raise QueryVizError(f"Query {i}: '{field}' is required")
-            
-            # Validate time_type if specified
-            if 'time_type' in query:
-                from .temporal_column import TemporalColumnRegistry
-                if not TemporalColumnRegistry.validate(query['time_type']):
-                    raise QueryVizError(f"Query {i}: invalid time_type '{query['time_type']}'")
-
-            # Validate column specification - column and columns are mutually exclusive
-            has_column = 'column' in query and query['column'] is not None
-            has_columns = 'columns' in query and query['columns'] is not None
-            if has_column == has_columns:
-                raise QueryVizError(f"Query {i}: 'column' and 'columns' are mutually exclusive, but one of them must be specified")
-            
-            # Recommended format: "columns"
-            if has_columns:
-                if not isinstance(query['columns'], list) or len(query['columns']) == 0:
-                    raise QueryVizError(f"Query {i}: 'columns' must be a non-empty list")
-                has_metrics = False
-                for col in query['columns']:
-                    if not isinstance(col, str) or not col.strip():
-                        raise QueryVizError(f"Query {i}: all column names must be non-empty strings")
-                    if col != 'time':
-                        has_metrics = True
-                if not has_metrics:
-                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
-            
-            # Legacy format: "column"
-            if has_column:
-                if not isinstance(query['column'], str) or not query['column'].strip():
-                    raise QueryVizError(f"Query {i}: 'column' must be a non-empty string")
-                if query['column'] == 'time':
-                    raise QueryVizError(f"Query {i}: at least one metric-column must be specified")
-            
-            # Validate query-level interval if specified
-            if 'interval' in query:
-                # Handle special 'once' value, which means:
-                # There is no interval, the query will run once
-                Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query['interval'], MIN_QUERY_INTERVAL)
-            
-            # Validate on_rotation_keep_datapoints
-            if 'on_rotation_keep_datapoints' in query:
-                query_keep_datapoints = query['on_rotation_keep_datapoints']
-                if not isinstance(query_keep_datapoints, int) or query_keep_datapoints < MIN_ON_ROTATION_KEEP_DATAPOINTS:
-                    raise QueryVizError(f"Query {i}: 'on_rotation_keep_datapoints' must be a positive integer. Minimum value: {MIN_ON_ROTATION_KEEP_DATAPOINTS}")
-            
-            # Validate on_file_rotation_keep_history
-            if 'on_file_rotation_keep_history' in query:
-                # Check that it's only specified for timestamp queries
-                time_type = query.get('time_type', 'timestamp')
-                if time_type != 'timestamp':
-                    raise QueryVizError(f"Query {i}: 'on_file_rotation_keep_history' can only be specified for queries with time_type='timestamp'")
-                try:
-                    query['on_file_rotation_keep_history'] = Interval().setget(query['on_file_rotation_keep_history'])
-                except QueryVizError as e:
-                    raise QueryVizError(f"Query {i}: invalid 'on_file_rotation_keep_history' format: {e}")
-
             # Check for duplicate query names
             if query['name'] in query_names:
                 raise QueryVizError(f"Query {i}: duplicate query name '{query['name']}'")
@@ -301,20 +223,16 @@ class QueryViz:
             raise QueryVizError("'db_connection_timeout_seconds' must be a positive integer")
         
         # Parse and validate global interval
-        self.config['interval'] = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(
-                self.config['interval'],
-                MIN_QUERY_INTERVAL
-        )
+        self.config['interval'] = Interval('query_interval').setget(self.config['interval'])
         
         # Intervals specified in the "10m" format can now be parsed
         interval_settings = [
-            'failed_connections_interval',
-            'initial_grace_period', 
-            'grace_period_retry_interval',
-            'on_file_rotation_keep_history'
+              'failed_connections_interval'
+            , 'initial_grace_period'
+            , 'grace_period_retry_interval'
         ]
         for setting in interval_settings:
-            self.config[setting] = Interval().setget(self.config[setting])
+            self.config[setting] = Interval(setting).setget(self.config[setting])
         interval_settings = None
     
     def setup_connections(self):
@@ -401,29 +319,25 @@ class QueryViz:
     
     def setup_queries(self):
         """Setup query configurations"""
-        global_interval = self.config['interval']
-        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        global_keep_history = self.config['on_file_rotation_keep_history']
+        QueryConfig.set_global_int('on_rotation_keep_datapoints', self.config['on_rotation_keep_datapoints'], min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
+        QueryConfig.set_global_interval('on_file_rotation_keep_history', self.config['on_file_rotation_keep_history'])
+        QueryConfig.set_global_interval('interval', self.config['interval'])
         
         for i, query_config in enumerate(self.config['queries']):
-            if 'on_rotation_keep_datapoints' not in query_config:
-                query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
-            if 'on_file_rotation_keep_history' not in query_config:
-                query_config['on_file_rotation_keep_history'] = global_keep_history
-            query = QueryConfig(query_config, self.default_connection, global_interval)
+            query = QueryConfig(query_config, self.default_connection)
             
-            # Parse query interval
-            query.interval = Interval(QUERY_INTERVAL_SPECIAL_VALUES).setget(query.interval)
+            name = query.get_setting("name")
+            connection_name = query.get_setting("connection_name")
             
             # Validate connection exists
-            if query.connection_name not in self.connections:
-                raise QueryVizError(f"Query '{query.name}': connection '{query.connection_name}' not found")
+            if query.get_setting("connection_name") not in self.connections:
+                raise QueryVizError(f"Query '{name}': connection '{connection_name}' not found")
             
             self.queries.append(query)
             
             # Initialize DataFile for this query
             data_file = DataFile(query, self.output_dir)
-            self.data_files[query.name] = data_file
+            self.data_files[name] = data_file
         
         # For fast access, build a query objects lookup
         # and a pre-computed chart-to-queries map
