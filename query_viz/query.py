@@ -23,7 +23,7 @@ class QueryConfig:
     # Global values serve as defaults for query-level values
     defaults = {}
     
-    def __new__(cls, config, default_connection, global_interval):
+    def __new__(cls, config, default_connection):
         """
         Ensure only one QueryConfig instance per query name.
         """
@@ -35,7 +35,7 @@ class QueryConfig:
             instance._initialized = False
         return cls._instances[key]
     
-    def __init__(self, config, default_connection, global_interval):
+    def __init__(self, config, default_connection):
         # Prevent re-initialization of existing instances
         if self._initialized:
             return
@@ -43,7 +43,7 @@ class QueryConfig:
         self.name = config['name']
         self.query = config['query']
         self.connection_name = config.get('connection', default_connection)
-        self.interval = config.get('interval', global_interval)
+        self.interval = config.get('interval')
         self.description = config.get('description')
         self.color = config.get('color')
         self.time_type = config.get('time_type', 'timestamp')
