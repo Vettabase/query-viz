@@ -319,15 +319,11 @@ class QueryViz:
     
     def setup_queries(self):
         """Setup query configurations"""
-        global_keep_datapoints = self.config['on_rotation_keep_datapoints']
-        
-        QueryConfig.set_global_int('on_rotation_keep_datapoints', global_keep_datapoints, min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
+        QueryConfig.set_global_int('on_rotation_keep_datapoints', self.config['on_rotation_keep_datapoints'], min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
         QueryConfig.set_global_interval('on_file_rotation_keep_history', self.config['on_file_rotation_keep_history'])
         QueryConfig.set_global_interval('interval', self.config['interval'])
         
         for i, query_config in enumerate(self.config['queries']):
-            if 'on_rotation_keep_datapoints' not in query_config:
-                query_config['on_rotation_keep_datapoints'] = global_keep_datapoints
             query = QueryConfig(query_config, self.default_connection)
             
             # Validate connection exists
