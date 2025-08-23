@@ -50,7 +50,7 @@ class DataFile:
         self.query_description = query_object.get_setting("description", '')
         self.query_interval = query_object.get_setting("interval")
         self.columns = query_object.get_setting("columns")
-        self.output_dir = query_object.get_setting("output_dir")
+        self.output_dir = query_object.get_setting("output_dir", '')
         self.max_points = query_object.get_setting("on_rotation_keep_datapoints")
         self.has_time_column = (self.columns[0] == 'time')
         self.time_type = query_object.get_setting("time_type")
