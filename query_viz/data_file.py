@@ -24,7 +24,7 @@ class DataFile:
         """
         Ensure only one DataFile instance per query_name.
         """
-        key = query_object.name
+        key = query_object.get_setting("name")
         
         with cls._lock:
             if key not in cls._instances:
@@ -46,15 +46,15 @@ class DataFile:
         if self._initialized:
             return
         
-        self.query_name = query_object.name
+        self.query_name = query_object.get_setting("name")
         self.query_description = query_object.get_setting("description", '')
-        self.query_interval = query_object.interval
-        self.columns = query_object.columns
-        self.output_dir = output_dir
+        self.query_interval = query_object.get_setting("interval")
+        self.columns = query_object.get_setting("columns")
+        self.output_dir = query_object.get_setting("output_dir")
         self.max_points = query_object.get_setting("on_rotation_keep_datapoints")
         self.has_time_column = (self.columns[0] == 'time')
-        self.time_type = query_object.time_type
-        self.on_file_rotation_keep_history = getattr(query_object, 'on_file_rotation_keep_history', None)
+        self.time_type = query_object.get_setting("time_type")
+        self.on_file_rotation_keep_history = query_object.get_setting("on_file_rotation_keep_history", False)
         
         # Create temporal column formatter based on query's time_type
         self.temporal_column = TemporalColumnRegistry.create(self.time_type)
@@ -63,7 +63,7 @@ class DataFile:
             self.temporal_column.get_start_time = lambda: getattr(query_object, 'start_time', None)
 
         # Normalize query name for filename
-        self.filename = self._generate_filename(query_object.name)
+        self.filename = self._generate_filename(self.name)
         self.filepath = os.path.join(output_dir, self.filename)
         
         # File handle and tracking
@@ -229,7 +229,7 @@ class DataFile:
         
         # Time-based filtering for timestamp queries
         if (self.time_type == 'timestamp' and 
-            self.on_file_rotation_keep_history is not None):
+            self.on_file_rotation_keep_history is not False):
             
             current_time = time.time()
             cutoff_time = current_time - self.on_file_rotation_keep_history
