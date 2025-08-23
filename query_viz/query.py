@@ -163,13 +163,24 @@ class QueryConfig:
             raise ValueError(f"Query '{self.name}': setting not allowed: {setting_name}. Reason: {reason}.")
     
     def get_setting(self, setting_name, debug_notes=None):
-        """Raise an error if a local (query-level) setting is set,
-        but it's not allowed here. The error message contains the reason.
-        The global setting is not checked."""
+        """Return the specified setting's value. The local (per-query) value is preferred.
+        If missing, the global value is returned.
+        If none of them is set, raise an error."""
         if debug_notes is None:
             debug_notes = ''
-        if not setting_name in config:
-            raise ValueError(f"Query '{self.name}': Setting not found: {setting_name}. Debug notes: {debug_notes}")
+
+        # return local setting, if any
+        local_value = getattr(self, setting_name, None)
+        if local_value is not None:
+            return local_value
+        
+        # return global setting, if any
+        global_value = self.defaults.get(setting_name, None)
+        if global_value is not None:
+            return global_value
+        
+        # no local or global setting? return error
+        raise ValueError(f"Query '{self.name}': Setting not found: {setting_name}. Debug notes: {debug_notes}")
     
     def _validate_config(self, config):
         """Validate query configuration"""
