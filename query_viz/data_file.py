@@ -272,6 +272,42 @@ class DataFile:
         """Get the filename (without path)"""
         return self.filename
     
+    def get_column_names(self):
+        """
+        Get list of column names from the data file header
+        
+        Returns:
+            list: List of column names, or empty list if file doesn't exist/can't be read
+        """
+        if not os.path.exists(self.filepath):
+            # For queries that haven't run yet, predict column names from configuration
+            if self.has_time_column:
+                return self.columns.copy()
+            else:
+                return ['time'] + self.columns.copy()
+        
+        try:
+            with open(self.filepath, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith('# Columns:'):
+                        columns_part = line.split(':', 1)[1].strip()
+                        column_names = [col.strip() for col in columns_part.split(',')]
+                        return column_names
+            
+            # If no column header found, fall back to predicted names
+            if self.has_time_column:
+                return self.columns.copy()
+            else:
+                return ['time'] + self.columns.copy()
+                
+        except (IOError, OSError):
+            # File exists but can't be read, fall back to predicted names
+            if self.has_time_column:
+                return self.columns.copy()
+            else:
+                return ['time'] + self.columns.copy()
+    
     def get_point_count(self):
         """Get the current number of data points"""
         return self._point_count
