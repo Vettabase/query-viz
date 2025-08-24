@@ -46,6 +46,7 @@ queries:
   - name: 'const'
     connection: mariadb-1
     query: "SELECT 1 AS one, 10 AS ten;"
+    time_type: timestamp
     columns: ['one', 'ten']
     interval: 15s
     description: 'Number of schemas'
