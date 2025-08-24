@@ -14,6 +14,7 @@ from collections import defaultdict, deque
 from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
 from .chart import ChartGenerator
+from .chart_query import ChartQuery
 from .data_file import DataFile
 from .data_file_set import DataFileSet
 from .exceptions import QueryVizError
@@ -159,11 +160,45 @@ class QueryViz:
                 print(f"Warning: Chart {i} has an empty query list")
 
             # Validate that all referenced queries exist and mark them as used
-            for query_name in chart_queries:
-                if query_name not in query_names:
-                    raise QueryVizError(f"Chart {i}: query '{query_name}' not found")
-                if query_name in unused_queries:
-                    unused_queries.remove(query_name)
+            # We need to handle both cases: query_ref can be a string or an object
+            for j, query_ref in enumerate(chart_queries):
+                if isinstance(query_ref, str):
+                    # String format: validate query name exists
+                    if query_ref not in query_names:
+                        raise QueryVizError(f"Chart {i}, query {j}: query '{query_ref}' not found")
+                    if query_ref in unused_queries:
+                        unused_queries.remove(query_ref)
+                        
+                elif isinstance(query_ref, dict):
+                    # Object format: validate structure
+                    if 'query' not in query_ref:
+                        raise QueryVizError(f"Chart {i}, query {j}: query object must have 'query' field")
+                    
+                    query_name = query_ref['query']
+                    if not isinstance(query_name, str):
+                        raise QueryVizError(f"Chart {i}, query {j}: 'query' field must be a string")
+                    
+                    if query_name not in query_names:
+                        raise QueryVizError(f"Chart {i}, query {j}: query '{query_name}' not found")
+                    
+                    # Validate columns field if present
+                    if 'columns' in query_ref:
+                        columns = query_ref['columns']
+                        if not isinstance(columns, list):
+                            raise QueryVizError(f"Chart {i}, query {j}: 'columns' must be a list")
+                        
+                        if len(columns) == 0:
+                            raise QueryVizError(f"Chart {i}, query {j}: 'columns' list cannot be empty")
+                        
+                        for k, col_spec in enumerate(columns):
+                            if not isinstance(col_spec, str) or not col_spec.strip():
+                                raise QueryVizError(f"Chart {i}, query {j}, column {k}: column specification must be a non-empty string")
+                    
+                    if query_name in unused_queries:
+                        unused_queries.remove(query_name)
+                        
+                else:
+                    raise QueryVizError(f"Chart {i}, query {j}: query must be a string or object, got {type(query_ref).__name__}")
             
             # FIXME: At this point, time_type can be None (if not specified).
             #        We don't want more hacks, so let's disable this validation for now.
@@ -340,14 +375,32 @@ class QueryViz:
             self.data_files[name] = data_file
         
         # For fast access, build a query objects lookup
-        # and a pre-computed chart-to-queries map
+        # and a pre-computed chart-to-queries map with ChartQuery objects
         self.queries_by_name = {q.name: q for q in self.queries}
         self.chart_queries = {}
         self.chart_generators = {}
         
         for i, chart in enumerate(self.config['charts']):
-            # Pre-compute query objects for this chart
-            self.chart_queries[i] = [self.queries_by_name[name] for name in chart['queries']]
+            # Pre-compute ChartQuery instances for this chart
+            chart_query_objects = []
+            
+            for query_ref in chart['queries']:
+                if isinstance(query_ref, str):
+                    # String format - use all columns
+                    chart_query = ChartQuery(query_ref)
+                elif isinstance(query_ref, dict):
+                    # Object format - only specified columns
+                    query_name = query_ref['query']
+                    selected_columns = query_ref.get('columns', [])
+                    chart_query = ChartQuery(query_name, selected_columns)
+                
+                # Validate that the referenced query exists and is known
+                if chart_query.query_name not in self.queries_by_name:
+                    raise QueryVizError(f"Chart {i}: query '{chart_query.query_name}' not found")
+                
+                chart_query_objects.append(chart_query)
+            
+            self.chart_queries[i] = chart_query_objects
             
             # Instantiate ChartGenerator for each chart
             chart_type = chart['type']
