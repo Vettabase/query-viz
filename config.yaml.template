@@ -46,7 +46,7 @@ queries:
   - name: 'const'
     connection: mariadb-1
     query: "SELECT 1 AS one, 10 AS ten;"
-    time_type: timestamp
+    time_type: elapsed_seconds
     columns: ['one', 'ten']
     interval: 15s
     description: 'Number of schemas'
@@ -97,7 +97,7 @@ charts:
     key_position: 'outside right top'
     line_width: 2
     point_type: 'linespoints'
-  - title: 'Column Selection'
+  - title: 'Column Selection (elapsed time)'
     type: line_chart
     xlabel: 'Time (seconds)'
     ylabel: 'SQL Expression'
