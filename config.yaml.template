@@ -45,9 +45,9 @@ queries:
     color: '#ff7f0e'
   - name: 'const'
     connection: mariadb-1
-    query: "SELECT 1 AS one, 10 AS ten;"
+    query: "SELECT 1 AS one, 5 AS five, 10 AS ten;"
     time_type: elapsed_seconds
-    columns: ['one', 'ten']
+    columns: ['one', 'five', 'ten']
     interval: 15s
     description: 'Number of schemas'
     color: '#ff7f0e'
@@ -103,7 +103,7 @@ charts:
     ylabel: 'SQL Expression'
     queries:
       - 'wave'
-      - {"query": "const", "columns": ["ten:Constant 10"]}
+      - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
