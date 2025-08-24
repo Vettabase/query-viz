@@ -43,6 +43,14 @@ queries:
     interval: 15s
     description: 'Number of schemas'
     color: '#ff7f0e'
+  - name: 'const'
+    connection: mariadb-1
+    query: "SELECT 1 AS one, 5 AS five, 10 AS ten;"
+    time_type: elapsed_seconds
+    columns: ['one', 'five', 'ten']
+    interval: 15s
+    description: 'Number of schemas'
+    color: '#ff7f0e'
   - name: 'wave'
     connection: mariadb-1
     query: "SELECT 5 - ABS((UNIX_TIMESTAMP() MOD 10 + 1) - 5.5) AS w;"
@@ -84,6 +92,19 @@ charts:
     queries:
       - 'wave'
     output_file: 'schemas.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
+  - title: 'Column Selection (elapsed time)'
+    type: line_chart
+    xlabel: 'Time (seconds)'
+    ylabel: 'SQL Expression'
+    queries:
+      - 'wave'
+      - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
+    output_file: 'col-select.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'
