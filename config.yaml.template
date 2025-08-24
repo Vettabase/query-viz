@@ -89,6 +89,19 @@ charts:
     key_position: 'outside right top'
     line_width: 2
     point_type: 'linespoints'
+  - title: 'Column Selection'
+    type: line_chart
+    xlabel: 'Time (seconds)'
+    ylabel: 'SQL Expression'
+    queries:
+      - 'wave'
+      - {"query": "db-metrics", "columns": ["db-count:DB count"]}
+    output_file: 'col-select.png'
+    terminal: 'png enhanced font "Arial,12" size 1400,900'
+    grid: true
+    key_position: 'outside right top'
+    line_width: 2
+    point_type: 'linespoints'
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
