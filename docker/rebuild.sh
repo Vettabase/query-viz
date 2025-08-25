@@ -12,6 +12,7 @@ if [ ! -z "$BRANCH" ]; then
     git checkout $BRANCH
     r=$?
     if [ $r != "0" ];
+    then
         echo "Could not select branch $BRANCH"
         echo "ABORTING"
         exit $r
