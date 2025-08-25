@@ -43,3 +43,6 @@ output/
 build/
 dist/
 *.egg-info/
+
+# Custom
+AUTO_VERSION

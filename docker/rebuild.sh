@@ -20,4 +20,6 @@ if [ ! -z "$BRANCH" ]; then
 fi
 
 git pull || exit 1
+git log -1 --format="%H" -- docker/web > docker/web/AUTO_VERSION
+
 docker/start.sh
