@@ -7,7 +7,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Query-Viz Dashboard</title>
     <link rel="icon" href="https://vettabase.com/favicon.ico" sizes="32x32">
-    <link rel="stylesheet" href="styles.css">
+    <script>
+        function loadResources(versionParam = '') {
+            // Create and append versioned CSS link
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = `styles.css${versionParam}`;
+            document.head.appendChild(cssLink);
+            
+            // Load versioned JavaScript
+            const script = document.createElement('script');
+            script.src = `ui.js${versionParam}`;
+            document.head.appendChild(script);
+        }
+
+        // Load AUTO_VERSION file and add its content to assets URLs
+        fetch('AUTO_VERSION')
+            .then(response => response.ok ? response.text() : '')
+            .then(version => {
+                const versionParam = version.trim() ? `?v=${version.trim()}` : '';
+                loadResources(versionParam);
+            })
+            .catch(error => {
+                console.warn('Could not load AUTO_VERSION, loading resources without version:', error);
+                loadResources();
+            });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -54,7 +79,5 @@
             Copyright: <a href="https://vettabase.com" target="_blank">Vettabase Ltd</a> 2025
         </div>
     </div>
-    
-    <script src="ui.js"></script>
 </body>
 </html>
