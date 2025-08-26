@@ -84,7 +84,8 @@ charts:
     # Whether a reference grid will be drawn inside the chart.
     # Optional. Default: true
     grid: true
-    key_position: 'outside right top'
+    # Position of the key. Default: 'outside right top'
+    key_position: below
     # Optional. Width of metrics lines. Default: 2
     metrics_line_width: 2
   - title: 'Electric Waves'
@@ -95,7 +96,6 @@ charts:
       - 'wave'
     output_file: 'schemas.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
-    key_position: 'outside right top'
     metrics_line_width: 1
   - title: 'Column Selection (elapsed time)'
     type: line_chart
@@ -106,7 +106,6 @@ charts:
       - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
-    key_position: 'outside right top'
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
@@ -116,7 +115,6 @@ charts:
     output_file: '3points.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: false
-    key_position: 'outside right top'
     metrics_line_width: 5
 
 # Global interval between queries. By default, the interval is in seconds.

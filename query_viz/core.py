@@ -141,7 +141,7 @@ class QueryViz:
             raise QueryVizError("The 'charts' list cannot be empty")
         
         for i, chart in enumerate(charts):
-            required_chart_fields = ['ylabel', 'terminal', 'key_position']
+            required_chart_fields = ['ylabel', 'terminal']
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
@@ -227,6 +227,8 @@ class QueryViz:
             if 'grid' not in chart:
                 chart['grid'] = True
             
+            if 'key_position' not in chart or not chart['key_position']:
+                chart['key_position'] = "outside right top"
             # Set default output_file if not specified or empty
             if 'output_file' not in chart or not chart['output_file']:
                 chart['output_file'] = self.normalise_filename(chart['title'], 'png')
