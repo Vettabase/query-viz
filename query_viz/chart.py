@@ -101,7 +101,7 @@ class ChartGenerator:
         if self.plot_config['grid']:
             grid_command = "set grid" 
         else:
-            grid_command = ''
+            grid_command = "unset grid"
         
         # Replace template variables
         script_content = template
