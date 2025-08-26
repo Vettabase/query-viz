@@ -9,21 +9,22 @@
     <link rel="icon" href="https://vettabase.com/favicon.ico" sizes="32x32">
     <script>
 
-function loadResources(versionParam = '') {
-    // Create and append versioned CSS link
+function loadAssets(versionParam) {
+    console.log('Loading CSS...');
     const cssLink = document.createElement('link');
     cssLink.rel = 'stylesheet';
     cssLink.href = `styles.css${versionParam}`;
     document.head.appendChild(cssLink);
     
-    // Load versioned JavaScript
+    console.log('Loading JavaScript library...');
     const script = document.createElement('script');
     script.src = `ui.js${versionParam}`;
+    script.defer = true;
     document.head.appendChild(script);
 }
 
 // Load AUTO_VERSION file and add its content to assets URLs
-console.log('About to fetch AUTO_VERSION');
+console.log('Loading AUTO_VERSION...');
 fetch('AUTO_VERSION')
     .then(response => {
         console.log('AUTO_VERSION response:', response.ok, response.status);
@@ -33,12 +34,13 @@ fetch('AUTO_VERSION')
         console.log('AUTO_VERSION content:', version);
         const versionParam = version.trim() ? `?v=${version.trim()}` : '';
         console.log('Version parameter:', versionParam);
-        loadResources(versionParam);
+        loadAssets(versionParam);
     })
     .catch(error => {
         console.log('AUTO_VERSION fetch failed:', error);
-        console.warn('Could not load AUTO_VERSION, loading resources without version:', error);
-        loadResources();
+        console.warn('Could not load AUTO_VERSION:', error);
+        console.log('Trying to load assets without a version string');
+        loadAssets('');
     });
 
     </script>
