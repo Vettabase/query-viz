@@ -98,6 +98,11 @@ class ChartGenerator:
         if not plot_lines:
             raise QueryVizError("No plot lines generated")
         
+        if self.plot_config['grid']:
+            grid_command = "set grid" 
+        else:
+            grid_command = ''
+        
         # Replace template variables
         script_content = template
         script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
@@ -105,6 +110,7 @@ class ChartGenerator:
         script_content = script_content.replace('{{TITLE}}', self.plot_config['title'])
         script_content = script_content.replace('{{XLABEL}}', xlabel)
         script_content = script_content.replace('{{YLABEL}}', self.plot_config['ylabel'])
+        script_content = script_content.replace('{{GRID}}', grid_command)
         script_content = script_content.replace('{{KEY_POSITION}}', self.plot_config['key_position'])
         script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
         script_content = script_content.replace('{{PLOT_LINES}}', 'plot ' + ', \\\n     '.join(plot_lines))

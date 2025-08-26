@@ -9,7 +9,7 @@ set title '{{TITLE}}'
 set xlabel '{{XLABEL}}'
 set ylabel '{{YLABEL}}'
 
-set grid
+{{GRID}}
 set key {{KEY_POSITION}}
 
 # Set colors and styles for different query types

@@ -81,6 +81,8 @@ charts:
     # will be placed in the output directory
     output_file: 'metrics.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
+    # Whether a reference grid will be drawn inside the chart.
+    # Optional. Default: true
     grid: true
     key_position: 'outside right top'
     # Optional. Width of metrics lines. Default: 2
@@ -94,7 +96,6 @@ charts:
       - 'wave'
     output_file: 'schemas.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
-    grid: true
     key_position: 'outside right top'
     metrics_line_width: 1
     point_type: 'linespoints'
@@ -107,7 +108,6 @@ charts:
       - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
-    grid: true
     key_position: 'outside right top'
     point_type: 'linespoints'
   - title: '3Points'
@@ -118,7 +118,7 @@ charts:
       - '3points'
     output_file: '3points.png'
     terminal: 'png enhanced font "Arial,12" size 1400,900'
-    grid: true
+    grid: false
     key_position: 'outside right top'
     metrics_line_width: 5
     point_type: 'linespoints'
