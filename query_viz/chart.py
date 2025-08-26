@@ -88,7 +88,7 @@ class ChartGenerator:
             for metric_col, title in column_specs:
                 # Use default colors by looping over the palette
                 color = colors[(line_index - 1) % len(colors)]
-                style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['line_width']} pointtype 7")
+                style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['metrics_line_width']} pointtype 7")
                 
                 data_file_path = data_file.get_filepath()
                 plot_lines.append(f"'{data_file_path}' using 1:{metric_col} with {self.plot_config['point_type']} linestyle {line_index} title '{title}'")

@@ -83,7 +83,8 @@ charts:
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'
-    line_width: 2
+    # Optional. Width of metrics lines. Default: 2
+    metrics_line_width: 2
     point_type: 'linespoints'
   - title: 'Electric Waves'
     type: line_chart
@@ -95,7 +96,7 @@ charts:
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'
-    line_width: 2
+    metrics_line_width: 1
     point_type: 'linespoints'
   - title: 'Column Selection (elapsed time)'
     type: line_chart
@@ -108,7 +109,7 @@ charts:
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'
-    line_width: 2
+    metrics_line_widt
     point_type: 'linespoints'
   - title: '3Points'
     type: line_chart
@@ -120,7 +121,6 @@ charts:
     terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: true
     key_position: 'outside right top'
-    line_width: 2
     point_type: 'linespoints'
 
 # Global interval between queries. By default, the interval is in seconds.

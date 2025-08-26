@@ -142,7 +142,7 @@ class QueryViz:
         
         for i, chart in enumerate(charts):
             required_chart_fields = ['ylabel', 'terminal', 
-                                   'grid', 'key_position', 'line_width', 'point_type']
+                                   'grid', 'key_position', 'point_type']
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
@@ -221,6 +221,9 @@ class QueryViz:
                 chart['type'] = 'line_chart'
             if 'title' not in chart:
                 chart['title'] = f"Chart #{i}"
+            
+            if 'metrics_line_width' not in chart or not chart['metrics_line_width']:
+                chart['metrics_line_width'] = 2
             
             # Set default output_file if not specified or empty
             if 'output_file' not in chart or not chart['output_file']:
