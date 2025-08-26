@@ -91,7 +91,7 @@ class ChartGenerator:
                 style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['metrics_line_width']} pointtype 7")
                 
                 data_file_path = data_file.get_filepath()
-                plot_lines.append(f"'{data_file_path}' using 1:{metric_col} with {self.plot_config['point_type']} linestyle {line_index} title '{title}'")
+                plot_lines.append(f"'{data_file_path}' using 1:{metric_col} with linespoints linestyle {line_index} title '{title}'")
                 
                 line_index += 1
         

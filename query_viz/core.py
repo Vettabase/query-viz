@@ -141,7 +141,7 @@ class QueryViz:
             raise QueryVizError("The 'charts' list cannot be empty")
         
         for i, chart in enumerate(charts):
-            required_chart_fields = ['ylabel', 'terminal', 'key_position', 'point_type']
+            required_chart_fields = ['ylabel', 'terminal', 'key_position']
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
