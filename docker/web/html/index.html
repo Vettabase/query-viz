@@ -7,41 +7,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Query-Viz Dashboard</title>
     <link rel="icon" href="https://vettabase.com/favicon.ico" sizes="32x32">
+    <script src="ui.js?v=618089397d9234e2a248f3c68d9e5c174f5d1992" defer></script>
     <script>
 
-function loadAssets(versionParam) {
-    console.log('Loading CSS...');
-    const cssLink = document.createElement('link');
-    cssLink.rel = 'stylesheet';
-    cssLink.href = `styles.css${versionParam}`;
-    document.head.appendChild(cssLink);
-    
-    console.log('Loading JavaScript library...');
-    const script = document.createElement('script');
-    script.src = `ui.js${versionParam}`;
-    script.defer = true;
-    document.head.appendChild(script);
-}
+        document.addEventListener('DOMContentLoaded', function() {
+            function loadAssets(versionParam) {
+                console.log('Loading CSS...');
+                const cssLink = document.createElement('link');
+                cssLink.rel = 'stylesheet';
+                cssLink.href = `styles.css${versionParam}`;
+                document.head.appendChild(cssLink);
+                /*
+                console.log('Loading JavaScript library...');
+                const script = document.createElement('script');
+                script.src = `ui.js${versionParam}`;
+                // 'defer' is still a good practice here
+                script.defer = true; 
+                document.head.appendChild(script);
+                */
+            }
 
-// Load AUTO_VERSION file and add its content to assets URLs
-console.log('Loading AUTO_VERSION...');
-fetch('AUTO_VERSION')
-    .then(response => {
-        console.log('AUTO_VERSION response:', response.ok, response.status);
-        return response.ok ? response.text() : '';
-    })
-    .then(version => {
-        console.log('AUTO_VERSION content:', version);
-        const versionParam = version.trim() ? `?v=${version.trim()}` : '';
-        console.log('Version parameter:', versionParam);
-        loadAssets(versionParam);
-    })
-    .catch(error => {
-        console.log('AUTO_VERSION fetch failed:', error);
-        console.warn('Could not load AUTO_VERSION:', error);
-        console.log('Trying to load assets without a version string');
-        loadAssets('');
-    });
+            console.log('Loading AUTO_VERSION...');
+            fetch('AUTO_VERSION')
+                .then(response => {
+                    console.log('AUTO_VERSION response:', response.ok, response.status);
+                    return response.ok ? response.text() : '';
+                })
+                .then(version => {
+                    console.log('AUTO_VERSION content:', version);
+                    const versionParam = version.trim() ? `?v=${version}` : '';
+                    console.log('Version parameter:', versionParam);
+                    loadAssets(versionParam);
+                })
+                .catch(error => {
+                    console.log('AUTO_VERSION fetch failed:', error);
+                    console.warn('Could not load AUTO_VERSION:', error);
+                    console.log('Trying to load assets without a version string');
+                    loadAssets('');
+                });
+        });
 
     </script>
 </head>
