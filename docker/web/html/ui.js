@@ -264,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadChartIndex()
         .then(() => {
+            console.log('Images found:', chartContainer.querySelectorAll('.chart-image').length);
             refreshChart();
         })
         .catch(error => {
