@@ -96,6 +96,20 @@ class QueryViz:
         
         self._validate_config()
     
+    def validate_dimensions(self, dimensions, default_dimensions=None):
+       for i, value in enumerate(dimensions):
+           if value is None:
+               if default_dimensions is None:
+                   dimension_name = ['chart_width', 'chart_height'][i]
+                   raise QueryVizError(f"Global '{dimension_name}' is required")
+               else:
+                   dimensions[i] = default_dimensions[i]
+           else:
+               if not isinstance(value, int) or value <= 0:
+                   dimension_name = ['chart_width', 'chart_height'][i]
+                   context = "Global" if default_dimensions is None else "Chart"
+                   raise QueryVizError(f"{context} '{dimension_name}' must be a positive integer")
+    
     def _validate_config(self):
         """Validate configuration structure and required fields"""
         if not isinstance(self.config, dict):
@@ -140,11 +154,25 @@ class QueryViz:
         if not isinstance(charts, list) or len(charts) == 0:
             raise QueryVizError("The 'charts' list cannot be empty")
         
+       # Validate global chart dimensions
+        global_dimensions = [self.config.get('chart_width'), self.config.get('chart_height')]
+        self.validate_dimensions(global_dimensions)
+        global_width, global_height = global_dimensions
+
         for i, chart in enumerate(charts):
-            required_chart_fields = ['ylabel', 'terminal']
+            required_chart_fields = ['ylabel']
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
+            
+            # Validate chart dimensions if specified, otherwise use default dimensions
+            chart_dimensions = [chart.get('chart_width'), chart.get('chart_height')]
+            self.validate_dimensions(chart_dimensions, [global_width, global_height])
+            chart['chart_width'], chart['chart_height'] = chart_dimensions
+            
+            if 'chart_height' in chart:
+                if not isinstance(chart['chart_height'], int) or chart['chart_height'] <= 0:
+                    raise QueryVizError(f"Chart {i}: 'chart_height' must be a positive integer")
             
             # Validate per-chart queries
             if 'queries' not in chart:

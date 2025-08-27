@@ -105,7 +105,8 @@ class ChartGenerator:
         
         # Replace template variables
         script_content = template
-        script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
+        script_content = script_content.replace('{{CHART_WIDTH}}', str(self.plot_config['chart_width']))
+        script_content = script_content.replace('{{CHART_HEIGHT}}', str(self.plot_config['chart_height']))
         script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, self.plot_config['output_file']))
         script_content = script_content.replace('{{TITLE}}', self.plot_config['title'])
         script_content = script_content.replace('{{XLABEL}}', xlabel)

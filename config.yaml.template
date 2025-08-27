@@ -78,9 +78,11 @@ charts:
     queries:
       - 'com-selects'
       - 'db-count'
+    # Optional. Chart dimensions
+    chart_width: 700
+    chart_height: 450
     # will be placed in the output directory
     output_file: 'metrics.png'
-    terminal: 'png enhanced font "Arial,12" size 1400,900'
     # Whether a reference grid will be drawn inside the chart.
     # Optional. Default: true
     grid: true
@@ -95,7 +97,6 @@ charts:
     queries:
       - 'wave'
     output_file: 'schemas.png'
-    terminal: 'png enhanced font "Arial,12" size 1400,900'
     metrics_line_width: 1
   - title: 'Column Selection (elapsed time)'
     type: line_chart
@@ -105,7 +106,6 @@ charts:
       - 'wave'
       - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
-    terminal: 'png enhanced font "Arial,12" size 1400,900'
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
@@ -113,7 +113,6 @@ charts:
     queries:
       - '3points'
     output_file: '3points.png'
-    terminal: 'png enhanced font "Arial,12" size 1400,900'
     grid: false
     metrics_line_width: 5
 
@@ -149,6 +148,10 @@ initial_grace_period: 1m
 # but this interval is used rather than failed_connections_interval.
 # For a format explanation, see below.
 grace_period_retry_interval: 5s
+
+# Default chart dimensions
+chart_width: 1400
+chart_height: 900
 
 # Timeouts can be specified in the following format:
 #   <num>[unit]
