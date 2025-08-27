@@ -27,7 +27,6 @@ MIN_ON_ROTATION_KEEP_DATAPOINTS = 60
 
 class QueryViz:
     """Main query-viz application"""
-    
     def __init__(self, verbosity_level, config_file='config.yaml'):
         self.config_file = config_file
         self.config = None
@@ -96,20 +95,43 @@ class QueryViz:
         
         self._validate_config()
     
-    def validate_dimensions(self, dimensions, default_dimensions=None):
-       for i, value in enumerate(dimensions):
-           if value is None:
-               if default_dimensions is None:
-                   dimension_name = ['chart_width', 'chart_height'][i]
-                   raise QueryVizError(f"Global '{dimension_name}' is required")
-               else:
-                   dimensions[i] = default_dimensions[i]
-           else:
-               if not isinstance(value, int) or value <= 0:
-                   dimension_name = ['chart_width', 'chart_height'][i]
-                   context = "Global" if default_dimensions is None else "Chart"
-                   raise QueryVizError(f"{context} '{dimension_name}' must be a positive integer")
-    
+    def _validate_and_parse_chart_dimensions(self, chart_config, context=""):
+        """
+        Validates and parses chart dimensions from chart_size or chart_width/chart_height.
+        
+        Args:
+            chart_config (dict): A dictionary containing chart configuration.
+            context (str): A string to add context to error messages (e.g., "Global" or "Chart 1").
+        """
+        has_size = 'chart_size' in chart_config
+        has_width = 'chart_width' in chart_config
+        has_height = 'chart_height' in chart_config
+
+        if has_size and (has_width or has_height):
+            raise QueryVizError(f"{context}: 'chart_size' and 'chart_width'/'chart_height' are mutually exclusive.")
+
+        if has_size:
+            size_str = chart_config['chart_size']
+            if not isinstance(size_str, str):
+                raise QueryVizError(f"{context}: 'chart_size' must be a string in the format 'WIDTHxHEIGHT'")
+            
+            match = re.match(r'^(\d+)x(\d+)$', size_str.strip())
+            if not match:
+                raise QueryVizError(f"{context}: Invalid 'chart_size' format. Expected 'WIDTHxHEIGHT', got '{size_str}'")
+
+            width, height = match.groups()
+            chart_config['chart_width'] = int(width)
+            chart_config['chart_height'] = int(height)
+            del chart_config['chart_size']
+        
+        # Now validate dimensions based on width and height
+        if 'chart_width' in chart_config:
+            if not isinstance(chart_config['chart_width'], int) or chart_config['chart_width'] <= 0:
+                raise QueryVizError(f"{context}: 'chart_width' must be a positive integer")
+        if 'chart_height' in chart_config:
+            if not isinstance(chart_config['chart_height'], int) or chart_config['chart_height'] <= 0:
+                raise QueryVizError(f"{context}: 'chart_height' must be a positive integer")
+
     def _validate_config(self):
         """Validate configuration structure and required fields"""
         if not isinstance(self.config, dict):
@@ -154,25 +176,23 @@ class QueryViz:
         if not isinstance(charts, list) or len(charts) == 0:
             raise QueryVizError("The 'charts' list cannot be empty")
         
-       # Validate global chart dimensions
-        global_dimensions = [self.config.get('chart_width'), self.config.get('chart_height')]
-        self.validate_dimensions(global_dimensions)
-        global_width, global_height = global_dimensions
-
+        # Validate global chart dimensions
+        self._validate_and_parse_chart_dimensions(self.config, context="Global config")
+        
         for i, chart in enumerate(charts):
             required_chart_fields = ['ylabel']
             for field in required_chart_fields:
                 if field not in chart:
                     raise QueryVizError(f"Chart {i}: '{field}' is required")
             
-            # Validate chart dimensions if specified, otherwise use default dimensions
-            chart_dimensions = [chart.get('chart_width'), chart.get('chart_height')]
-            self.validate_dimensions(chart_dimensions, [global_width, global_height])
-            chart['chart_width'], chart['chart_height'] = chart_dimensions
+            # Validate per-chart dimensions
+            self._validate_and_parse_chart_dimensions(chart, context=f"Chart {i}")
             
-            if 'chart_height' in chart:
-                if not isinstance(chart['chart_height'], int) or chart['chart_height'] <= 0:
-                    raise QueryVizError(f"Chart {i}: 'chart_height' must be a positive integer")
+            # Use global defaults if not specified for a specific chart
+            if 'chart_width' not in chart:
+                chart['chart_width'] = self.config['chart_width']
+            if 'chart_height' not in chart:
+                chart['chart_height'] = self.config['chart_height']
             
             # Validate per-chart queries
             if 'queries' not in chart:
