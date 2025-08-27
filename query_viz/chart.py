@@ -88,23 +88,30 @@ class ChartGenerator:
             for metric_col, title in column_specs:
                 # Use default colors by looping over the palette
                 color = colors[(line_index - 1) % len(colors)]
-                style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['line_width']} pointtype 7")
+                style_lines.append(f"set style line {line_index} linecolor rgb '{color}' linewidth {self.plot_config['metrics_line_width']} pointtype 7")
                 
                 data_file_path = data_file.get_filepath()
-                plot_lines.append(f"'{data_file_path}' using 1:{metric_col} with {self.plot_config['point_type']} linestyle {line_index} title '{title}'")
+                plot_lines.append(f"'{data_file_path}' using 1:{metric_col} with linespoints linestyle {line_index} title '{title}'")
                 
                 line_index += 1
         
         if not plot_lines:
             raise QueryVizError("No plot lines generated")
         
+        if self.plot_config['grid']:
+            grid_command = "set grid" 
+        else:
+            grid_command = "unset grid"
+        
         # Replace template variables
         script_content = template
-        script_content = script_content.replace('{{TERMINAL}}', self.plot_config['terminal'])
+        script_content = script_content.replace('{{CHART_WIDTH}}', str(self.plot_config['chart_width']))
+        script_content = script_content.replace('{{CHART_HEIGHT}}', str(self.plot_config['chart_height']))
         script_content = script_content.replace('{{OUTPUT_FILE}}', os.path.join(self.output_dir, self.plot_config['output_file']))
         script_content = script_content.replace('{{TITLE}}', self.plot_config['title'])
         script_content = script_content.replace('{{XLABEL}}', xlabel)
         script_content = script_content.replace('{{YLABEL}}', self.plot_config['ylabel'])
+        script_content = script_content.replace('{{GRID}}', grid_command)
         script_content = script_content.replace('{{KEY_POSITION}}', self.plot_config['key_position'])
         script_content = script_content.replace('{{STYLE_LINES}}', '\n'.join(style_lines))
         script_content = script_content.replace('{{PLOT_LINES}}', 'plot ' + ', \\\n     '.join(plot_lines))
