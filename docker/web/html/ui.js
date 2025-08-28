@@ -129,10 +129,18 @@ document.addEventListener('DOMContentLoaded', function() {
             permalink.textContent = '¶ Permalink';
             permalink.title = 'Permalink to this chart';
             permalink.className = 'chart-picrow';
+
+            // Create a download button
+            const downloadButton = document.createElement('a');
+            downloadButton.href = `${PATHS.PLOTS_BASE}${chartPath}`;
+            downloadButton.textContent = '💾 Download';
+            downloadButton.title = 'Download this chart';
+            downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
             
             const buttonBar = document.createElement('div');
             buttonBar.className = 'chart-button-bar';
             buttonBar.appendChild(permalink);
+            buttonBar.appendChild(downloadButton);
             
             const chartImage = document.createElement('img');
             chartImage.className = 'chart-image';
