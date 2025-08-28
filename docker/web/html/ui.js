@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             permalink.id = 'permalink_' + chartId;
             permalink.textContent = '¶ Permalink';
             permalink.title = 'Permalink to this chart';
-            permalink.className = 'chart-picrow';
+            permalink.className = 'chart-button';
 
             // Create a download button
             const downloadButton = document.createElement('a');
@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadButton.textContent = '💾 Download';
             downloadButton.title = 'Download this chart';
             downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
+            downloadButton.className = 'chart-button';
             
             const buttonBar = document.createElement('div');
             buttonBar.className = 'chart-button-bar';
