@@ -78,7 +78,9 @@ charts:
     queries:
       - 'com-selects'
       - 'db-count'
-    # Optional. Chart dimensions
+    # Optional. Chart dimensions.
+    # See below for a complete explanation.
+    # chart_size: 700x450
     chart_width: 700
     chart_height: 450
     # will be placed in the output directory
@@ -96,6 +98,7 @@ charts:
     ylabel: 'SQL Expression'
     queries:
       - 'wave'
+    chart_size: 1400x900
     output_file: 'schemas.png'
     metrics_line_width: 1
   - title: 'Column Selection (elapsed time)'
@@ -149,9 +152,14 @@ initial_grace_period: 1m
 # For a format explanation, see below.
 grace_period_retry_interval: 5s
 
-# Default chart dimensions
-chart_width: 1400
-chart_height: 900
+# Default chart dimensions. Can be indicated as one string (800x600) or
+# separately (chart_width: 800, chart_height: 600).
+# Indicating both the options is not allowed.
+# It can be useful to indicate only one dimension at a chart level,
+# and inherit the other from the global context.
+chart_size: 1120x720
+#chart_width: 1120
+#chart_height: 720
 
 # Timeouts can be specified in the following format:
 #   <num>[unit]
