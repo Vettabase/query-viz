@@ -113,7 +113,7 @@ class QueryViz:
         if has_size:
             size_str = chart_config['chart_size']
             if not isinstance(size_str, str):
-                raise QueryVizError(f"{context}: 'chart_size' must be a string in the format 'WIDTHxHEIGHT'")
+                raise QueryVizError(f"{context}: 'chart_size' must be a string in the format '800x600'")
             
             match = re.match(r'^(\d+)x(\d+)$', size_str.strip())
             if not match:
