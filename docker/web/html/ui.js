@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const permalink = document.createElement('a');
             permalink.href = '#permalink_' + chartId;
             permalink.id = 'permalink_' + chartId;
-            permalink.textContent = '¶';
+            permalink.textContent = '¶ Permalink';
             permalink.className = 'chart-picrow';
             
             permalinkDiv.appendChild(permalink);
