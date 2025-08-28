@@ -118,13 +118,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create new chart elements
         chartPaths.forEach((chartPath, index) => {
+            // Assign a (most likely) unique id
+            // by replacing the URL's special chars
+            chartId = chartPath.replace(/[^a-zA-Z0-9]/g, '_');
+            
+            // Create a picrow
+            const permalinkDiv = document.createElement('div');
+            permalinkDiv.className = 'chart-permalink';
+            const permalink = document.createElement('a');
+            permalink.href = `#${chartId}`;
+            permalink.textContent = 'Permalink';
+            
+            permalinkDiv.appendChild(permalink);
+            
             const chartImage = document.createElement('img');
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
             chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
-            // Assign a (most likely) unique id
-            // by replacing the URL's special chars
-            chartImage.id = chartPath.replace(/[^a-zA-Z0-9]/g, '_');
+            chartImage.id = chartId
             
             // Handle image load error
             chartImage.addEventListener('error', function() {
@@ -137,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Insert before error message
+            chartContainer.insertBefore(permalinkDiv, errorMessage);
             chartContainer.insertBefore(chartImage, errorMessage);
         });
     }
