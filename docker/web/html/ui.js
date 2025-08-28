@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             permalinkDiv.className = 'chart-permalink';
             const permalink = document.createElement('a');
             permalink.href = `#${chartId}`;
-            permalink.textContent = 'Permalink';
+            permalink.textContent = '¶';
             
             permalinkDiv.appendChild(permalink);
             
