@@ -48,10 +48,6 @@ header h1 {
     transition: color 0.3s ease-in-out;
 }
 
-.chart-permalink:hover {
-    color: #388E3C; /* A slightly darker shade of the same green for a hover effect */
-}
-
 .chart-image {
     max-width: 100%;
     height: auto;
