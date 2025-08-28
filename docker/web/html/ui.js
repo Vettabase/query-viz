@@ -123,8 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
             chartId = chartPath.replace(/[^a-zA-Z0-9]/g, '_');
             
             // Create a picrow
-            const permalinkDiv = document.createElement('div');
-            permalinkDiv.className = 'chart-permalink';
             const permalink = document.createElement('a');
             permalink.href = '#permalink_' + chartId;
             permalink.id = 'permalink_' + chartId;
@@ -132,7 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
             permalink.title = 'Permalink to this chart';
             permalink.className = 'chart-picrow';
             
-            permalinkDiv.appendChild(permalink);
+            const buttonBar = document.createElement('div');
+            buttonBar.className = 'chart-button-bar';
+            buttonBar.appendChild(permalink);
             
             const chartImage = document.createElement('img');
             chartImage.className = 'chart-image';
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Insert before error message
-            chartContainer.insertBefore(permalinkDiv, errorMessage);
+            chartContainer.insertBefore(buttonBar, errorMessage);
             chartContainer.insertBefore(chartImage, errorMessage);
         });
     }
