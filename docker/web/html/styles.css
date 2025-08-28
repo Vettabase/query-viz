@@ -45,6 +45,11 @@ header h1 {
     border: 1px solid #eee;
 }
 
+.chart-item:hover .chart-permalink {
+    visibility: visible;
+    opacity: 1;
+}
+
 .error-message {
     color: #e74c3c;
     font-size: 16px;
