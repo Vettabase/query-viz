@@ -126,7 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const permalinkDiv = document.createElement('div');
             permalinkDiv.className = 'chart-permalink';
             const permalink = document.createElement('a');
-            permalink.href = `#${chartId}`;
+            permalink.href = '#permalink_' + chartId;
+            permalink.id = 'permalink_' + chartId;
             permalink.textContent = '¶';
             
             permalinkDiv.appendChild(permalink);
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
             chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
-            chartImage.id = chartId
+            chartImage.id = 'chart_' + chartId;
             
             // Handle image load error
             chartImage.addEventListener('error', function() {
