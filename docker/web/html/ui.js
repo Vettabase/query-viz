@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Hide loading message just before loading charts
         hideLoadingMessage();
-
+        
         // Clear existing charts
         const existingCharts = chartContainer.querySelectorAll('.chart-image');
         existingCharts.forEach(chart => chart.remove());
@@ -122,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
             chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
+            // Assign a (most likely) unique id
+            // by replacing the URL's special chars
+            chartImage.id = chartPath.replace(/[^a-zA-Z0-9]/g, '_');
             
             // Handle image load error
             chartImage.addEventListener('error', function() {
