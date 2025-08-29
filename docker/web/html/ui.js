@@ -160,15 +160,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Button: Next Chart
             has_next = false
-            prevPermalink = null
+            nextPermalink = null
             if (index < chartPaths.length - 1) {
                 has_next = true
                 nextChartId = chartIdList[index + 1]
-                prevPermalink = document.createElement('a');
-                prevPermalink.href = '#permalink_' + nextChartId;
-                prevPermalink.textContent = 'Next ▶';
-                prevPermalink.title = 'Move to next chart';
-                prevPermalink.className = 'chart-button';
+                nextPermalink = document.createElement('a');
+                nextPermalink.href = '#permalink_' + nextChartId;
+                nextPermalink.textContent = 'Next ▶';
+                nextPermalink.title = 'Move to next chart';
+                nextPermalink.className = 'chart-button';
             }
             
             // Create buttonBar and insert the buttons generated above
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
             buttonBar.appendChild(permalink);
             buttonBar.appendChild(downloadButton);
             if (has_next) {
-                buttonBar.appendChild(prevPermalink);
+                buttonBar.appendChild(nextPermalink);
             }
             
             // Create the img element
