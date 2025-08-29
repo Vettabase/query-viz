@@ -130,7 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
             chartId = chartIdList[index]
             
             // Button: Previous Chart
+            has_prev = false
             if (index > 0) {
+                has_prev = true
                 prevChartId = chartIdList[index - 1]
                 const prevPermalink = document.createElement('a');
                 prevPermalink.href = '#permalink_' + prevChartId;
@@ -156,20 +158,28 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadButton.className = 'chart-button';
             
             // Button: Next Chart
+            has_next = false
             if (index < chartPaths.length - 1) {
+                has_next = true
                 nextChartId = chartIdList[index + 1]
-                const nextChartId = document.createElement('a');
-                nextChartId.href = '#permalink_' + nextChartId;
-                nextChartId.textContent = 'Next ▶';
-                nextChartId.title = 'Move to next chart';
-                nextChartId.className = 'chart-button';
+                const prevPermalink = document.createElement('a');
+                prevPermalink.href = '#permalink_' + nextChartId;
+                prevPermalink.textContent = 'Next ▶';
+                prevPermalink.title = 'Move to next chart';
+                prevPermalink.className = 'chart-button';
             }
             
             // Create buttonBar and insert the buttons generated above
             const buttonBar = document.createElement('div');
             buttonBar.className = 'chart-button-bar';
+            if (has_prev) {
+                buttonBar.appendChild(prevPermalink);
+            }
             buttonBar.appendChild(permalink);
             buttonBar.appendChild(downloadButton);
+            if (has_next) {
+                buttonBar.appendChild(prevPermalink);
+            }
             
             // Create the img element
             const chartImage = document.createElement('img');
