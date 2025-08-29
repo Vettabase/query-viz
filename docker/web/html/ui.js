@@ -129,15 +129,25 @@ document.addEventListener('DOMContentLoaded', function() {
             // by replacing the URL's special chars
             chartId = chartIdList[index]
             
-            // Create a picrow
+            // Button: Previous Chart
+            if (index > 0) {
+                prevChartId = chartIdList[index - 1]
+                const prevPermalink = document.createElement('a');
+                prevPermalink.href = '#permalink_' + prevChartId;
+                prevPermalink.textContent = '◀ Prev';
+                prevPermalink.title = 'Move to previous chart';
+                prevPermalink.className = 'chart-button';
+            }
+            
+            // Button: Picrow
             const permalink = document.createElement('a');
             permalink.href = '#permalink_' + chartId;
             permalink.id = 'permalink_' + chartId;
             permalink.textContent = '¶ Permalink';
             permalink.title = 'Permalink to this chart';
             permalink.className = 'chart-button';
-
-            // Create a download button
+            
+            // Button: Download
             const downloadButton = document.createElement('a');
             downloadButton.href = `${PATHS.PLOTS_BASE}${chartPath}`;
             downloadButton.textContent = '💾 Download';
@@ -145,11 +155,23 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
             downloadButton.className = 'chart-button';
             
+            // Button: Next Chart
+            if (index < chartPaths.length - 1) {
+                nextChartId = chartIdList[index + 1]
+                const nextChartId = document.createElement('a');
+                nextChartId.href = '#permalink_' + nextChartId;
+                nextChartId.textContent = 'Next ▶';
+                nextChartId.title = 'Move to next chart';
+                nextChartId.className = 'chart-button';
+            }
+            
+            // Create buttonBar and insert the buttons generated above
             const buttonBar = document.createElement('div');
             buttonBar.className = 'chart-button-bar';
             buttonBar.appendChild(permalink);
             buttonBar.appendChild(downloadButton);
             
+            // Create the img element
             const chartImage = document.createElement('img');
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
