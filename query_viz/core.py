@@ -81,7 +81,7 @@ class QueryViz:
         print(f"\nShutting down...")
         self.running = False
         DataFileSet.close_all()
-        for conn in self.connections.values():
+        for conn in self.connection_manager.connections.values():
             conn.close()
         self.exit(0)
         
@@ -470,7 +470,7 @@ class QueryViz:
         for query_config in once_queries:
             try:
                 # Skip query if connection has failed
-                connection = self.connection_manager.connections[query_config.connection_name]  # Use ConnectionManager's storage
+                connection = self.connection_manager.connections[query_config.connection_name]
                 if connection.status == FAIL:
                     print(f"Skipping 'once' query '{query_config.name}': connection failed")
                     continue
@@ -506,7 +506,7 @@ class QueryViz:
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
-        connection = self.connection_manager.connections[query_config.connection_name]  # Use ConnectionManager's storage
+        connection = self.connection_manager.connections[query_config.connection_name]
         data_file = DataFileSet.get(query_config.name)
         
         if (
