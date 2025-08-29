@@ -335,7 +335,12 @@ class QueryViz:
 
             self.connections[conn_config['name']] = connection_manager(conn_config, db_timeout)
         
-        self.default_connection = self.config['connections'][0]['name']
+        # Use ConnectionManager facade to setup connections
+        self.default_connection = connection_manager.setup_connections_for(
+            self.connections, 
+            self.config['connections'], 
+            db_timeout
+        )
     
     def test_connections(self):
         """Test all database connections before starting main loop"""

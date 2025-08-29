@@ -49,3 +49,44 @@ class ConnectionManager:
         for field in required_fields:
             if field not in conn_config:
                 raise QueryVizError(f"Connection {index}: '{field}' is required")
+    
+    def setup_connections_for(self, connections_dict, connections_config, db_timeout):
+        """
+        Setup database connections in the provided dictionary (facade pattern)
+        
+        Args:
+            connections_dict (dict): Dictionary to store connections in
+            connections_config (list): List of connection configurations
+            db_timeout (int): Database connection timeout in seconds
+            
+        Returns:
+            str: Name of the default connection (first in list)
+            
+        Raises:
+            QueryVizError: If connection setup fails
+        """
+        for i, conn_config in enumerate(connections_config):
+            # Use existing helper methods
+            self.validate_connection_config(conn_config, i)
+            connection_class = self.get_connection_class(conn_config['dbms'])
+            
+            # Create connection instance
+            conn = connection_class(conn_config, db_timeout)
+            connections_dict[conn_config['name']] = conn
+        
+        # Return default connection name
+        return connections_config[0]['name']
+    
+    def test_connections(self):
+        """Test all database connections before starting main loop"""
+        connection_manager = ConnectionManager()
+        
+        grace_period_retry_interval = self.config['grace_period_retry_interval']
+        initial_grace_period = self.config['initial_grace_period']
+        
+        # Use ConnectionManager facade to test connections
+        return connection_manager.test_connections_for(
+            self.connections,
+            initial_grace_period,
+            grace_period_retry_interval
+        )
