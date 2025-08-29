@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
         autoRefreshSelect.disabled = true;
         refreshBtn.disabled = true;
     }
+
+    function getIdFromPath(chartPath) {
+        return chartPath.replace(/[^a-zA-Z0-9]/g, '_');
+    }
     
     function createChartElements(chartPaths) {
         // FIXME: We shouldn't recreate all charts when any of them changed. We should:
@@ -120,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chartPaths.forEach((chartPath, index) => {
             // Assign a (most likely) unique id
             // by replacing the URL's special chars
-            chartId = chartPath.replace(/[^a-zA-Z0-9]/g, '_');
+            chartId = getIdFromPath(chartPath)
             
             // Create a picrow
             const permalink = document.createElement('a');
