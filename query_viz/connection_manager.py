@@ -4,6 +4,7 @@ Connection management for QueryViz - handles database connections and retries
 
 from .database import MariaDBConnection
 from .exceptions import QueryVizError
+from .database import MariaDBConnection, SUCCESS, FAIL
 
 
 class ConnectionManager:
@@ -117,3 +118,32 @@ class ConnectionManager:
 	            return False
 	        
 	        time.sleep(grace_period_retry_interval)
+	
+    def retry_failed_connections_for(self, connections_dict, failed_connections_interval):
+        """
+        Retry failed connections once (facade pattern)
+        
+        Args:
+            connections_dict (dict): Dictionary of connections to check
+            failed_connections_interval (float): Interval between retries in seconds
+            
+        Returns:
+            bool: True if any connections were retried, False if none needed retry
+        """
+        import time
+        
+        retries_attempted = False
+        
+        # Check for failed connections and try to reconnect
+        for conn_name, connection in connections_dict.items():
+            if connection.status == FAIL:
+                try:
+                    print(f"Retrying connection '{conn_name}'...")
+                    connection.connect()
+                    print(f"Connection '{conn_name}': Reconnected successfully")
+                    retries_attempted = True
+                except QueryVizError:
+                    # Connection still failed, status already set to FAIL in connect()
+                    pass
+        
+        return retries_attempted
