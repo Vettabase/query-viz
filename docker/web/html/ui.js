@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
         autoRefreshSelect.disabled = true;
         refreshBtn.disabled = true;
     }
+
+    function getIdFromPath(chartPath) {
+        return chartPath.replace(/[^a-zA-Z0-9]/g, '_');
+    }
     
     function createChartElements(chartPaths) {
         // FIXME: We shouldn't recreate all charts when any of them changed. We should:
@@ -111,17 +115,80 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Hide loading message just before loading charts
         hideLoadingMessage();
-
+        
         // Clear existing charts
         const existingCharts = chartContainer.querySelectorAll('.chart-image');
         existingCharts.forEach(chart => chart.remove());
         
+        // Calculate each id only once and cache them in an array
+        const chartIdList = chartPaths.map(chartPath => getIdFromPath(chartPath));
+        
         // Create new chart elements
         chartPaths.forEach((chartPath, index) => {
+            // Assign a (most likely) unique id
+            // by replacing the URL's special chars
+            chartId = chartIdList[index]
+            
+            // Button: Previous Chart
+            has_prev = false
+            prevPermalink = null
+            if (index > 0) {
+                has_prev = true
+                prevChartId = chartIdList[index - 1]
+                prevPermalink = document.createElement('a');
+                prevPermalink.href = '#permalink_' + prevChartId;
+                prevPermalink.textContent = '◀ Prev';
+                prevPermalink.title = 'Move to previous chart';
+                prevPermalink.className = 'chart-button';
+            }
+            
+            // Button: Picrow
+            const permalink = document.createElement('a');
+            permalink.href = '#permalink_' + chartId;
+            permalink.id = 'permalink_' + chartId;
+            permalink.textContent = '¶ Permalink';
+            permalink.title = 'Permalink to this chart';
+            permalink.className = 'chart-button';
+            
+            // Button: Download
+            const downloadButton = document.createElement('a');
+            downloadButton.href = `${PATHS.PLOTS_BASE}${chartPath}`;
+            downloadButton.textContent = '💾 Download';
+            downloadButton.title = 'Download this chart';
+            downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
+            downloadButton.className = 'chart-button';
+            
+            // Button: Next Chart
+            has_next = false
+            nextPermalink = null
+            if (index < chartPaths.length - 1) {
+                has_next = true
+                nextChartId = chartIdList[index + 1]
+                nextPermalink = document.createElement('a');
+                nextPermalink.href = '#permalink_' + nextChartId;
+                nextPermalink.textContent = 'Next ▶';
+                nextPermalink.title = 'Move to next chart';
+                nextPermalink.className = 'chart-button';
+            }
+            
+            // Create buttonBar and insert the buttons generated above
+            const buttonBar = document.createElement('div');
+            buttonBar.className = 'chart-button-bar';
+            if (has_prev) {
+                buttonBar.appendChild(prevPermalink);
+            }
+            buttonBar.appendChild(permalink);
+            buttonBar.appendChild(downloadButton);
+            if (has_next) {
+                buttonBar.appendChild(nextPermalink);
+            }
+            
+            // Create the img element
             const chartImage = document.createElement('img');
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
             chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
+            chartImage.id = 'chart_' + chartId;
             
             // Handle image load error
             chartImage.addEventListener('error', function() {
@@ -134,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Insert before error message
+            chartContainer.insertBefore(buttonBar, errorMessage);
             chartContainer.insertBefore(chartImage, errorMessage);
         });
     }

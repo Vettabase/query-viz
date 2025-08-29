@@ -117,7 +117,7 @@ class QueryViz:
             
             match = re.match(r'^(\d+)x(\d+)$', size_str.strip())
             if not match:
-                raise QueryVizError(f"{context}: Invalid 'chart_size' format. Expected 'WIDTHxHEIGHT', got '{size_str}'")
+                raise QueryVizError(f"{context}: Invalid 'chart_size' format: '{size_str}'")
 
             width, height = match.groups()
             chart_config['chart_width'] = int(width)

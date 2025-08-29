@@ -32,11 +32,42 @@ header h1 {
 }
 
 .chart-container {
+    text-align: center;
     background-color: white;
     border-radius: 4px;
     padding: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    text-align: center;
+}
+
+.chart-button-bar a:hover {
+    color: red;
+    text-decoration: underline;
+}
+
+.chart-button-bar {
+    text-align: right;
+    margin-bottom: 5px;
+    margin-top: 15px;
+}
+
+.chart-button-bar a {
+    color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+    margin-left: 15px;
+}
+
+.permalink {
+    text-align: left;
+}
+
+.chart-button {
+    text-align: left;
+    margin-bottom: 5px;
+    margin-top: 15px;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
 }
 
 .chart-image {
