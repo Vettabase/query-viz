@@ -379,7 +379,7 @@ class QueryViz:
             connection_name = query.get_setting("connection_name")
             
             # Validate connection exists
-            if query.get_setting("connection_name") not in self.connections:
+            if query.get_setting("connection_name") not in self.connection_manager.connections:
                 raise QueryVizError(f"Query '{name}': connection '{connection_name}' not found")
             
             self.queries.append(query)
