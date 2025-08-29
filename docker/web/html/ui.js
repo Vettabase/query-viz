@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chartPaths.forEach((chartPath, index) => {
             // Assign a (most likely) unique id
             // by replacing the URL's special chars
-            chartId = chartIdList[i]
+            chartId = chartIdList[index]
             
             // Create a picrow
             const permalink = document.createElement('a');
