@@ -333,7 +333,7 @@ class QueryViz:
         
         # Use ConnectionManager facade to setup connections
         self.default_connection = self.connection_manager.setup_connections_for(
-            self.connections, 
+            self.connection_manager.connections,
             self.config['connections'], 
             db_timeout
         )
@@ -345,7 +345,7 @@ class QueryViz:
         
         # Use ConnectionManager facade to test connections
         return self.connection_manager.test_connections_for(
-            self.connections,
+            self.connection_manager.connections,
             initial_grace_period,
             grace_period_retry_interval
         )
@@ -362,7 +362,7 @@ class QueryViz:
             
             # Use ConnectionManager facade to retry failed connections
             self.connection_manager.retry_failed_connections_for(
-                self.connections, 
+                self.connection_manager.connections,
                 failed_connections_interval
             )
     
