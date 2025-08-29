@@ -359,17 +359,12 @@ class QueryViz:
             
             if not self.running:
                 break
-                
-            # Check for failed connections and try to reconnect
-            for conn_name, connection in self.connections.items():
-                if connection.status == FAIL:
-                    try:
-                        print(f"Retrying connection '{conn_name}'...")
-                        connection.connect()
-                        print(f"Connection '{conn_name}': Reconnected successfully")
-                    except QueryVizError:
-                        # Connection still failed, status already set to FAIL in connect()
-                        pass
+            
+            # Use ConnectionManager facade to retry failed connections
+            self.connection_manager.retry_failed_connections_for(
+                self.connections, 
+                failed_connections_interval
+            )
     
     def setup_queries(self):
         """Setup query configurations"""
