@@ -676,7 +676,7 @@ class QueryViz:
         finally:
             self.running = False
             DataFileSet.close_all()
-            for conn in self.connections.values():
+            for conn in self.connection_manager.connections.values():  # Use ConnectionManager's storage
                 conn.close()
         
         self.exit(0)
