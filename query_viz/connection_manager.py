@@ -77,43 +77,43 @@ class ConnectionManager:
         # Return default connection name
         return connections_config[0]['name']
     
-def test_connections_for(self, connections_dict, initial_grace_period, grace_period_retry_interval):
-    """Test all database connections with grace period (facade pattern)"""
-    import time
-    
-    print("Testing connections...")
-    start_time = time.time()
-    
-    while True:
-        failed_connections = 0
-        total_connections = len(connections_dict)
-        
-        for conn_name, connection in connections_dict.items():
-            try:
-                print(f"Connection attempt to '{connection.host}'... ", end="")
-                connection.connect()
-                print("success")
-            except QueryVizError as e:
-                failed_connections += 1
-                elapsed_time = time.time() - start_time
-                if elapsed_time >= initial_grace_period:
-                    print("fail. WON'T RETRY")
-                else:
-                    print("fail. Will retry")
-                print(f"    Reason: {e}")
-        
-        if failed_connections > 0:
-            print(f"{failed_connections}/{total_connections} connections are not working")
-        
-        if failed_connections == 0:
-            print("Execution will continue")
-            return True
-        
-        elapsed_time = time.time() - start_time
-        if elapsed_time >= initial_grace_period:
-            print("Aborting")
-            for conn in connections_dict.values():
-                conn.close()
-            return False
-        
-        time.sleep(grace_period_retry_interval)
+    def test_connections_for(self, connections_dict, initial_grace_period, grace_period_retry_interval):
+	    """Test all database connections with grace period (facade pattern)"""
+	    import time
+	    
+	    print("Testing connections...")
+	    start_time = time.time()
+	    
+	    while True:
+	        failed_connections = 0
+	        total_connections = len(connections_dict)
+	        
+	        for conn_name, connection in connections_dict.items():
+	            try:
+	                print(f"Connection attempt to '{connection.host}'... ", end="")
+	                connection.connect()
+	                print("success")
+	            except QueryVizError as e:
+	                failed_connections += 1
+	                elapsed_time = time.time() - start_time
+	                if elapsed_time >= initial_grace_period:
+	                    print("fail. WON'T RETRY")
+	                else:
+	                    print("fail. Will retry")
+	                print(f"    Reason: {e}")
+	        
+	        if failed_connections > 0:
+	            print(f"{failed_connections}/{total_connections} connections are not working")
+	        
+	        if failed_connections == 0:
+	            print("Execution will continue")
+	            return True
+	        
+	        elapsed_time = time.time() - start_time
+	        if elapsed_time >= initial_grace_period:
+	            print("Aborting")
+	            for conn in connections_dict.values():
+	                conn.close()
+	            return False
+	        
+	        time.sleep(grace_period_retry_interval)
