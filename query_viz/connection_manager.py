@@ -12,7 +12,12 @@ class ConnectionManager:
     
     def __init__(self):
         """Initialize connection manager"""
-        pass
+        self._connections = {}
+    
+    @property
+    def connections(self):
+        """Get connections dictionary"""
+        return self._connections
     
     @staticmethod
     def get_connection_class(dbms_type):
