@@ -32,6 +32,7 @@ class QueryViz:
         self.config_file = config_file
         self.config = None
         self.connections = {}
+        self.connection_manager = ConnectionManager()
         self.queries = []
         # fast loopup of a single query object
         self.queries_by_name = {}
@@ -329,14 +330,9 @@ class QueryViz:
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
-        for i, conn_config in enumerate(self.config['connections']):
-            ConnectionManager.validate_connection_config(conn_config, i)
-            connection_manager = ConnectionManager.get_connection_class(conn_config['dbms'])
-
-            self.connections[conn_config['name']] = connection_manager(conn_config, db_timeout)
         
         # Use ConnectionManager facade to setup connections
-        self.default_connection = connection_manager.setup_connections_for(
+        self.default_connection = self.connection_manager.setup_connections_for(
             self.connections, 
             self.config['connections'], 
             db_timeout
@@ -344,51 +340,15 @@ class QueryViz:
     
     def test_connections(self):
         """Test all database connections before starting main loop"""
-        print("Testing connections...")
-        
         grace_period_retry_interval = self.config['grace_period_retry_interval']
         initial_grace_period = self.config['initial_grace_period']
         
-        start_time = time.time()
-        
-        while True:
-            failed_connections = 0
-            total_connections = len(self.connections)
-            
-            for conn_name, connection in self.connections.items():
-                try:
-                    print(f"Connection attempt to '{connection.host}'... ", end="")
-                    connection.connect()
-                    print("success")
-                    # Keep connection open for reuse
-                except QueryVizError as e:
-                    failed_connections += 1
-                    # Check if grace period has expired to determine retry message
-                    elapsed_time = time.time() - start_time
-                    if elapsed_time >= initial_grace_period:
-                        print("fail. WON'T RETRY")
-                    else:
-                        print("fail. Will retry")
-                    print(f"    Reason: {e}")
-            
-            if failed_connections > 0:
-                print(f"{failed_connections}/{total_connections} connections are not working")
-            
-            if failed_connections == 0:
-                print("Execution will continue")
-                return True
-            
-            # Check if grace period has expired
-            elapsed_time = time.time() - start_time
-            if elapsed_time >= initial_grace_period:
-                print("Aborting")
-                # Close any connections that might have been opened
-                for conn in self.connections.values():
-                    conn.close()
-                return False
-            
-            # Wait before retrying
-            time.sleep(grace_period_retry_interval)
+        # Use ConnectionManager facade to test connections
+        return self.connection_manager.test_connections_for(
+            self.connections,
+            initial_grace_period,
+            grace_period_retry_interval
+        )
     
     def retry_failed_connections(self):
         """Periodically retry failed connections"""

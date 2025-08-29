@@ -167,7 +167,6 @@ def test_test_connections_for_all_succeed(mock_time, mock_sleep):
     assert mock_conn2.connect.called
     mock_sleep.assert_not_called()  # Should not retry if all succeed
 
-
 @pytest.mark.unit
 @patch('time.sleep')  # Mock sleep to speed up test
 @patch('time.time')   # Mock time to control timing
