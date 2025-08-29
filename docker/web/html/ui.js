@@ -131,10 +131,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Button: Previous Chart
             has_prev = false
+            prevPermalink = null
             if (index > 0) {
                 has_prev = true
                 prevChartId = chartIdList[index - 1]
-                const prevPermalink = document.createElement('a');
+                prevPermalink = document.createElement('a');
                 prevPermalink.href = '#permalink_' + prevChartId;
                 prevPermalink.textContent = '◀ Prev';
                 prevPermalink.title = 'Move to previous chart';
@@ -159,10 +160,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Button: Next Chart
             has_next = false
+            prevPermalink = null
             if (index < chartPaths.length - 1) {
                 has_next = true
                 nextChartId = chartIdList[index + 1]
-                const prevPermalink = document.createElement('a');
+                prevPermalink = document.createElement('a');
                 prevPermalink.href = '#permalink_' + nextChartId;
                 prevPermalink.textContent = 'Next ▶';
                 prevPermalink.title = 'Move to next chart';
