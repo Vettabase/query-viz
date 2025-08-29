@@ -17,6 +17,7 @@ from .chart import ChartGenerator
 from .chart_query import ChartQuery
 from .data_file import DataFile
 from .data_file_set import DataFileSet
+from .connection_manager import ConnectionManager
 from .exceptions import QueryVizError
 from .interval import Interval
 
@@ -328,14 +329,12 @@ class QueryViz:
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
-        for conn_config in self.config['connections']:
-            if conn_config['dbms'] == 'mariadb':
-                conn = MariaDBConnection(conn_config, db_timeout)
-            else:
-                raise QueryVizError(f"Unsupported DBMS: {conn_config['dbms']}")
-            self.connections[conn_config['name']] = conn
+        for i, conn_config in enumerate(self.config['connections']):
+            ConnectionManager.validate_connection_config(conn_config, i)
+            connection_manager = ConnectionManager.get_connection_class(conn_config['dbms'])
+
+            self.connections[conn_config['name']] = connection_manager(conn_config, db_timeout)
         
-        # Set default connection
         self.default_connection = self.config['connections'][0]['name']
     
     def test_connections(self):
