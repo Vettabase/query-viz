@@ -634,8 +634,6 @@ class QueryViz:
             
             # Start failed connection retry thread
             retry_thread = self.connection_manager.start_connection_retry_thread(self.config, self.running)
-            retry_thread.daemon = True
-            retry_thread.start()
             self.threads.append(retry_thread)
             print("Started connection retry thread")
             
