@@ -649,7 +649,7 @@ class QueryViz:
             print(f"Started {started_threads} query threads")
             
             # Start failed connection retry thread
-            retry_thread = threading.Thread(target=self.retry_failed_connections)
+            retry_thread = self.connection_manager.start_connection_retry_thread(self.config, self.running)
             retry_thread.daemon = True
             retry_thread.start()
             self.threads.append(retry_thread)
