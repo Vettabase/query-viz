@@ -164,7 +164,7 @@ class ConnectionManager:
                 self.connections, 
                 failed_connections_interval
             )
-	
+    
     def retry_failed_connections_for(self, connections_dict, failed_connections_interval):
         """
         Retry failed connections once (facade pattern)
@@ -176,8 +176,6 @@ class ConnectionManager:
         Returns:
             bool: True if any connections were retried, False if none needed retry
         """
-        import time
-        
         retries_attempted = False
         
         # Check for failed connections and try to reconnect
