@@ -350,22 +350,6 @@ class QueryViz:
             grace_period_retry_interval
         )
     
-    def retry_failed_connections(self):
-        """Periodically retry failed connections"""
-        failed_connections_interval = self.config['failed_connections_interval']
-        
-        while self.running:
-            time.sleep(failed_connections_interval)
-            
-            if not self.running:
-                break
-            
-            # Use ConnectionManager facade to retry failed connections
-            self.connection_manager.retry_failed_connections_for(
-                self.connection_manager.connections,
-                failed_connections_interval
-            )
-    
     def setup_queries(self):
         """Setup query configurations"""
         QueryConfig.set_global_int('on_rotation_keep_datapoints', self.config['on_rotation_keep_datapoints'], min=MIN_ON_ROTATION_KEEP_DATAPOINTS)
