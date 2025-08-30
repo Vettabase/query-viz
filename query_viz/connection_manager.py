@@ -124,7 +124,7 @@ class ConnectionManager:
 	            return False
 	        
 	        time.sleep(grace_period_retry_interval)
-	
+	.
 	def start_connection_retry_thread(self, config, running_flag):
         """
         Start the connection retry thread
@@ -137,21 +137,21 @@ class ConnectionManager:
             threading.Thread: The started thread
         """
         import threading
+    
+    def retry_thread_worker():
+        failed_connections_interval = config['failed_connections_interval']
         
-        def retry_thread_worker():
-            failed_connections_interval = config['failed_connections_interval']
+        while running_flag:
+            time.sleep(failed_connections_interval)
             
-            while running_flag:
-                time.sleep(failed_connections_interval)
-                
-                if not running_flag:
-                    break
-                
-                # Retry failed connections
-                self.retry_failed_connections_for(
-                    self.connections, 
-                    failed_connections_interval
-                )
+            if not running_flag:
+                break
+            
+            # Retry failed connections
+            self.retry_failed_connections_for(
+                self.connections, 
+                failed_connections_interval
+            )
         
         retry_thread = threading.Thread(target=retry_thread_worker)
         retry_thread.daemon = True
