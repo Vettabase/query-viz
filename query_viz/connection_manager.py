@@ -124,7 +124,7 @@ class ConnectionManager:
 	            return False
 	        
 	        time.sleep(grace_period_retry_interval)
-	.
+	
 	def start_connection_retry_thread(self, config, running_flag):
         """
         Start the connection retry thread
