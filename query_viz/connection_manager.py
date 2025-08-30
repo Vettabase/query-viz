@@ -2,9 +2,10 @@
 Connection management for QueryViz - handles database connections and retries
 """
 
-from .database import MariaDBConnection
-from .exceptions import QueryVizError
+import time
+
 from .database import MariaDBConnection, SUCCESS, FAIL
+from .exceptions import QueryVizError
 
 
 class ConnectionManager:
@@ -123,6 +124,39 @@ class ConnectionManager:
 	            return False
 	        
 	        time.sleep(grace_period_retry_interval)
+	
+	def start_connection_retry_thread(self, config, running_flag):
+        """
+        Start the connection retry thread
+        
+        Args:
+            config (dict): Configuration dictionary with failed_connections_interval
+            running_flag: Reference to QueryViz.running flag
+            
+        Returns:
+            threading.Thread: The started thread
+        """
+        import threading
+        
+        def retry_thread_worker():
+            failed_connections_interval = config['failed_connections_interval']
+            
+            while running_flag:
+                time.sleep(failed_connections_interval)
+                
+                if not running_flag:
+                    break
+                
+                # Retry failed connections
+                self.retry_failed_connections_for(
+                    self.connections, 
+                    failed_connections_interval
+                )
+        
+        retry_thread = threading.Thread(target=retry_thread_worker)
+        retry_thread.daemon = True
+        retry_thread.start()
+        return retry_thread
 	
     def retry_failed_connections_for(self, connections_dict, failed_connections_interval):
         """
