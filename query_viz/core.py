@@ -31,7 +31,7 @@ class QueryViz:
     def __init__(self, verbosity_level, config_file='config.yaml'):
         self.config_file = config_file
         self.config = None
-        self.connections = {}
+        # All interactions with the databases should be handled by ConnectionManager
         self.connection_manager = ConnectionManager()
         self.queries = []
         # fast loopup of a single query object
