@@ -70,13 +70,14 @@ class ConnectionManager:
         
         return self.connections[connection_name].status == FAIL
     
-    def execute_query(self, connection_name, query):
+    def execute_query(self, connection_name, query_id, query_text):
         """
         Execute a query on the specified connection
         
         Args:
             connection_name (str): Name of the connection to use
-            query (str): SQL query to execute
+            query_id (str):    ID of the query
+            query_text (str):  SQL query to execute
             
         Returns:
             tuple: (columns, results) where columns is list of column names
@@ -89,7 +90,7 @@ class ConnectionManager:
             raise QueryVizError(f"Connection '{connection_name}' not found")
         
         connection = self.connections[connection_name]
-        return connection.execute_query(query)
+        return connection.execute_query(query_text)
     
     @staticmethod
     def validate_connection_config(conn_config, index):

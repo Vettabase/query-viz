@@ -462,7 +462,8 @@ class QueryViz:
                 # Execute the query
                 print(f"Executing 'once' query '{query_config.name}'...")
                 columns, results = self.connection_manager.execute_query(
-                    query_config.connection_name, 
+                    query_config.connection_name,
+                    query_config.name,
                     query_config.query
                 )
                 
@@ -505,6 +506,7 @@ class QueryViz:
                 start_time = time.time()
                 columns, results = self.connection_manager.execute_query(
                     query_config.connection_name,
+                    query_config.name,
                     query_config.query
                 )
                 
