@@ -81,10 +81,9 @@ class QueryViz:
         print(f"\nShutting down...")
         self.running = False
         DataFileSet.close_all()
-        for conn in self.connection_manager.connections.values():
-            conn.close()
+        self.connection_manager.connections.close_all_connections();
         self.exit(0)
-        
+    
     def load_config(self):
         """Load and validate configuration"""
         try:
@@ -654,7 +653,6 @@ class QueryViz:
         finally:
             self.running = False
             DataFileSet.close_all()
-            for conn in self.connection_manager.connections.values():
-                conn.close()
+            self.connection_manager.close_all_connections()
         
         self.exit(0)

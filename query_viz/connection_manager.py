@@ -83,6 +83,15 @@ class ConnectionManager:
         # Return default connection name
         return connections_config[0]['name']
     
+    def close_all_connections(self):
+        """Close all database connections"""
+        for conn in self.connections.values():
+            try:
+                conn.close()
+            except Exception as e:
+                # Log error but continue closing other connections
+                print(f"Warning: Error closing connection '{conn.name}': {e}")
+    
     def test_connections(self, initial_grace_period, grace_period_retry_interval):
         """
         Test all database connections with grace period
