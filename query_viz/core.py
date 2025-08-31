@@ -17,6 +17,7 @@ from .chart import ChartGenerator
 from .chart_query import ChartQuery
 from .data_file import DataFile
 from .data_file_set import DataFileSet
+from .connection_manager import ConnectionManager
 from .exceptions import QueryVizError
 from .interval import Interval
 
@@ -30,7 +31,8 @@ class QueryViz:
     def __init__(self, verbosity_level, config_file='config.yaml'):
         self.config_file = config_file
         self.config = None
-        self.connections = {}
+        # All interactions with the databases should be handled by ConnectionManager
+        self.connection_manager = ConnectionManager()
         self.queries = []
         # fast loopup of a single query object
         self.queries_by_name = {}
@@ -79,7 +81,7 @@ class QueryViz:
         print(f"\nShutting down...")
         self.running = False
         DataFileSet.close_all()
-        for conn in self.connections.values():
+        for conn in self.connection_manager.connections.values():
             conn.close()
         self.exit(0)
         
@@ -328,84 +330,21 @@ class QueryViz:
     def setup_connections(self):
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
-        for conn_config in self.config['connections']:
-            if conn_config['dbms'] == 'mariadb':
-                conn = MariaDBConnection(conn_config, db_timeout)
-            else:
-                raise QueryVizError(f"Unsupported DBMS: {conn_config['dbms']}")
-            self.connections[conn_config['name']] = conn
         
-        # Set default connection
-        self.default_connection = self.config['connections'][0]['name']
+        self.default_connection = self.connection_manager.setup_connections(
+            self.config['connections'], 
+            db_timeout
+        )
     
     def test_connections(self):
         """Test all database connections before starting main loop"""
-        print("Testing connections...")
-        
         grace_period_retry_interval = self.config['grace_period_retry_interval']
         initial_grace_period = self.config['initial_grace_period']
         
-        start_time = time.time()
-        
-        while True:
-            failed_connections = 0
-            total_connections = len(self.connections)
-            
-            for conn_name, connection in self.connections.items():
-                try:
-                    print(f"Connection attempt to '{connection.host}'... ", end="")
-                    connection.connect()
-                    print("success")
-                    # Keep connection open for reuse
-                except QueryVizError as e:
-                    failed_connections += 1
-                    # Check if grace period has expired to determine retry message
-                    elapsed_time = time.time() - start_time
-                    if elapsed_time >= initial_grace_period:
-                        print("fail. WON'T RETRY")
-                    else:
-                        print("fail. Will retry")
-                    print(f"    Reason: {e}")
-            
-            if failed_connections > 0:
-                print(f"{failed_connections}/{total_connections} connections are not working")
-            
-            if failed_connections == 0:
-                print("Execution will continue")
-                return True
-            
-            # Check if grace period has expired
-            elapsed_time = time.time() - start_time
-            if elapsed_time >= initial_grace_period:
-                print("Aborting")
-                # Close any connections that might have been opened
-                for conn in self.connections.values():
-                    conn.close()
-                return False
-            
-            # Wait before retrying
-            time.sleep(grace_period_retry_interval)
-    
-    def retry_failed_connections(self):
-        """Periodically retry failed connections"""
-        failed_connections_interval = self.config['failed_connections_interval']
-        
-        while self.running:
-            time.sleep(failed_connections_interval)
-            
-            if not self.running:
-                break
-                
-            # Check for failed connections and try to reconnect
-            for conn_name, connection in self.connections.items():
-                if connection.status == FAIL:
-                    try:
-                        print(f"Retrying connection '{conn_name}'...")
-                        connection.connect()
-                        print(f"Connection '{conn_name}': Reconnected successfully")
-                    except QueryVizError:
-                        # Connection still failed, status already set to FAIL in connect()
-                        pass
+        return self.connection_manager.test_connections(
+            initial_grace_period,
+            grace_period_retry_interval
+        )
     
     def setup_queries(self):
         """Setup query configurations"""
@@ -420,7 +359,7 @@ class QueryViz:
             connection_name = query.get_setting("connection_name")
             
             # Validate connection exists
-            if query.get_setting("connection_name") not in self.connections:
+            if query.get_setting("connection_name") not in self.connection_manager.connections:
                 raise QueryVizError(f"Query '{name}': connection '{connection_name}' not found")
             
             self.queries.append(query)
@@ -511,7 +450,7 @@ class QueryViz:
         for query_config in once_queries:
             try:
                 # Skip query if connection has failed
-                connection = self.connections[query_config.connection_name]
+                connection = self.connection_manager.connections[query_config.connection_name]
                 if connection.status == FAIL:
                     print(f"Skipping 'once' query '{query_config.name}': connection failed")
                     continue
@@ -547,7 +486,7 @@ class QueryViz:
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
-        connection = self.connections[query_config.connection_name]
+        connection = self.connection_manager.connections[query_config.connection_name]
         data_file = DataFileSet.get(query_config.name)
         
         if (
@@ -690,9 +629,7 @@ class QueryViz:
             print(f"Started {started_threads} query threads")
             
             # Start failed connection retry thread
-            retry_thread = threading.Thread(target=self.retry_failed_connections)
-            retry_thread.daemon = True
-            retry_thread.start()
+            retry_thread = self.connection_manager.start_connection_retry_thread(self.config, self)
             self.threads.append(retry_thread)
             print("Started connection retry thread")
             
@@ -717,7 +654,7 @@ class QueryViz:
         finally:
             self.running = False
             DataFileSet.close_all()
-            for conn in self.connections.values():
+            for conn in self.connection_manager.connections.values():
                 conn.close()
         
         self.exit(0)

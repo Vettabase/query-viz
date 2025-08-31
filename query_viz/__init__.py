@@ -6,7 +6,8 @@ License: AGPLv3
 
 from .core import QueryViz
 from .query import QueryConfig
+from .connection_manager import ConnectionManager
 from .exceptions import QueryVizError
 
 __version__ = "1.0.0"
-__all__ = ['QueryViz', 'QueryConfig', 'QueryVizError']
+__all__ = ['QueryViz', 'QueryConfig', 'ConnectionManager', 'QueryVizError']
