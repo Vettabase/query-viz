@@ -84,18 +84,25 @@ class ConnectionManager:
         # Return default connection name
         return connections_config[0]['name']
     
-    def test_connections_for(self, connections_dict, initial_grace_period, grace_period_retry_interval):
-        """Test all database connections with grace period (facade pattern)"""
-        import time
+    def test_connections(self, initial_grace_period, grace_period_retry_interval):
+        """
+        Test all database connections with grace period
         
+        Args:
+            initial_grace_period (float): Grace period in seconds
+            grace_period_retry_interval (float): Retry interval in seconds
+            
+        Returns:
+            bool: True if at least one connection succeeded, False otherwise
+        """
         print("Testing connections...")
         start_time = time.time()
         
         while True:
             failed_connections = 0
-            total_connections = len(connections_dict)
+            total_connections = len(self.connections)
             
-            for conn_name, connection in connections_dict.items():
+            for conn_name, connection in self.connections.items():
                 try:
                     print(f"Connection attempt to '{connection.host}'... ", end="")
                     connection.connect()
@@ -119,7 +126,7 @@ class ConnectionManager:
             elapsed_time = time.time() - start_time
             if elapsed_time >= initial_grace_period:
                 print("Aborting")
-                for conn in connections_dict.values():
+                for conn in self.connections.values():
                     conn.close()
                 return False
             

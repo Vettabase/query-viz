@@ -343,9 +343,7 @@ class QueryViz:
         grace_period_retry_interval = self.config['grace_period_retry_interval']
         initial_grace_period = self.config['initial_grace_period']
         
-        # Use ConnectionManager facade to test connections
-        return self.connection_manager.test_connections_for(
-            self.connection_manager.connections,
+        return self.connection_manager.test_connections(
             initial_grace_period,
             grace_period_retry_interval
         )
