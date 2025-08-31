@@ -81,7 +81,7 @@ class QueryViz:
         print(f"\nShutting down...")
         self.running = False
         DataFileSet.close_all()
-        self.connection_manager.connections.close_all_connections();
+        self.connection_manager.close_all_connections()
         self.exit(0)
     
     def load_config(self):
@@ -358,7 +358,7 @@ class QueryViz:
             connection_name = query.get_setting("connection_name")
             
             # Validate connection exists
-            if self.connection_manager.connection_exists(query.get_setting("connection_name")):
+            if not self.connection_manager.connection_exists(query.get_setting("connection_name")):
                 raise QueryVizError(f"Query '{name}': connection '{connection_name}' not found")
             
             self.queries.append(query)
