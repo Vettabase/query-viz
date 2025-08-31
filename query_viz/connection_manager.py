@@ -40,6 +40,18 @@ class ConnectionManager:
         else:
             raise QueryVizError(f"Unsupported DBMS: {dbms_type}")
     
+    def connection_exists(self, connection_name):
+        """
+        Return whether a connection with the given name exists.
+        
+        Args:
+            connection_name (str): Name of the connection to look for
+            
+        Returns:
+            bool: True if connection exists, False otherwise
+        """
+        return connection_name in self.connections
+    
     @staticmethod
     def validate_connection_config(conn_config, index):
         """
