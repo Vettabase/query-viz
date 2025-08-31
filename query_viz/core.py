@@ -461,7 +461,10 @@ class QueryViz:
                 
                 # Execute the query
                 print(f"Executing 'once' query '{query_config.name}'...")
-                columns, results = connection.execute_query(query_config.query)
+                columns, results = self.connection_manager.execute_query(
+                    query_config.connection_name, 
+                    query_config.query
+                )
                 
                 try:
                     data_file.open()
@@ -484,7 +487,6 @@ class QueryViz:
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
-        connection = self.connection_manager.connections[query_config.connection_name]
         data_file = DataFileSet.get(query_config.name)
         
         if (
@@ -501,7 +503,10 @@ class QueryViz:
                     continue
                 
                 start_time = time.time()
-                columns, results = connection.execute_query(query_config.query)
+                columns, results = self.connection_manager.execute_query(
+                    query_config.connection_name,
+                    query_config.query
+                )
                 
                 if not results:
                     print(f"Warning: Query '{query_config.name}' returned no results")
