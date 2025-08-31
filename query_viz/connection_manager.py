@@ -52,6 +52,24 @@ class ConnectionManager:
         """
         return connection_name in self.connections
     
+    def connection_has_failed(self, connection_name):
+        """
+        Check if a connection has failed
+        
+        Args:
+            connection_name (str): Name of the connection to check
+            
+        Returns:
+            bool: True if connection has failed, False otherwise
+            
+        Raises:
+            QueryVizError: If connection name doesn't exist
+        """
+        if connection_name not in self.connections:
+            raise QueryVizError(f"Connection '{connection_name}' not found")
+        
+        return self.connections[connection_name].status == FAIL
+    
     @staticmethod
     def validate_connection_config(conn_config, index):
         """

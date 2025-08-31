@@ -449,8 +449,7 @@ class QueryViz:
         for query_config in once_queries:
             try:
                 # Skip query if connection has failed
-                connection = self.connection_manager.connections[query_config.connection_name]
-                if connection.status == FAIL:
+                if self.connection_manager.connection_has_failed(query_config.connection_name):
                     print(f"Skipping 'once' query '{query_config.name}': connection failed")
                     continue
                 
@@ -497,7 +496,7 @@ class QueryViz:
         while self.running:
             try:
                 # Skip query if connection has failed
-                if connection.status == FAIL:
+                if self.connection_manager.connection_has_failed(query_config.connection_name):
                     time.sleep(query_config.interval)
                     continue
                 
