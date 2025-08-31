@@ -331,9 +331,7 @@ class QueryViz:
         """Setup database connections"""
         db_timeout = self.config['db_connection_timeout_seconds']
         
-        # Use ConnectionManager facade to setup connections
-        self.default_connection = self.connection_manager.setup_connections_for(
-            self.connection_manager.connections,
+        self.default_connection = self.connection_manager.setup_connections(
             self.config['connections'], 
             db_timeout
         )

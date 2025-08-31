@@ -57,12 +57,11 @@ class ConnectionManager:
             if field not in conn_config:
                 raise QueryVizError(f"Connection {index}: '{field}' is required")
     
-    def setup_connections_for(self, connections_dict, connections_config, db_timeout):
+    def setup_connections(self, connections_config, db_timeout):
         """
-        Setup database connections in the provided dictionary (facade pattern)
+        Setup database connections
         
         Args:
-            connections_dict (dict): Dictionary to store connections in
             connections_config (list): List of connection configurations
             db_timeout (int): Database connection timeout in seconds
             
@@ -79,7 +78,7 @@ class ConnectionManager:
             
             # Create connection instance
             conn = connection_class(conn_config, db_timeout)
-            connections_dict[conn_config['name']] = conn
+            self.connections[conn_config['name']] = conn
         
         # Return default connection name
         return connections_config[0]['name']
