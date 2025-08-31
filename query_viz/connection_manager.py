@@ -166,17 +166,13 @@ class ConnectionManager:
                 break
             
             # Retry failed connections
-            self.retry_failed_connections_for(
-                self.connections, 
-                failed_connections_interval
-            )
+            self.retry_failed_connections(failed_connections_interval)
     
-    def retry_failed_connections_for(self, connections_dict, failed_connections_interval):
+    def retry_failed_connections(self, failed_connections_interval):
         """
-        Retry failed connections once (facade pattern)
+        Retry failed connections once
         
         Args:
-            connections_dict (dict): Dictionary of connections to check
             failed_connections_interval (float): Interval between retries in seconds
             
         Returns:
@@ -185,7 +181,7 @@ class ConnectionManager:
         retries_attempted = False
         
         # Check for failed connections and try to reconnect
-        for conn_name, connection in connections_dict.items():
+        for conn_name, connection in self.connections.items():
             if connection.status == FAIL:
                 try:
                     print(f"Retrying connection '{conn_name}'...")
