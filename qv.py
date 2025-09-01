@@ -45,34 +45,21 @@ def show_dbms_info(connector_name):
         print("=" * (len(f"DBMS Connector: {connector_name}")))
         
         # Display connector information
-        if 'connector-name' in info:
-            print(f"Name: {info['connector-name']}")
-        
-        if 'version' in info:
-            print(f"Version: {info['version']}")
-        
-        if 'maturity' in info:
-            print(f"Maturity: {info['maturity']}")
-        
-        if 'license' in info:
-            print(f"License: {info['license']}")
-        
-        if 'copyright' in info:
-            print(f"Copyright: {info['copyright']}")
-        
-        if 'connector-url' in info:
-            print(f"Project URL: {info['connector-url']}")
-        
-        if 'authors' in info and isinstance(info['authors'], list):
-            print("Authors:")
-            for author in info['authors']:
-                if isinstance(author, dict):
-                    author_line = f"  - {author.get('name', 'Unknown')}"
-                    if 'url' in author:
-                        author_line += f" ({author['url']})"
-                    print(author_line)
-                else:
-                    print(f"  - {author}")
+        print(f"Name: {info['connector-name']}")
+        print(f"Version: {info['version']}")
+        print(f"Maturity: {info['maturity']}")
+        print(f"Project URL: {info['connector-url']}")
+        print("Authors:")
+        for author in info['authors']:
+            if isinstance(author, dict):
+                author_line = f"  - {author.get('name', 'Unknown')}"
+                if 'url' in author:
+                    author_line += f" ({author['url']})"
+                print(author_line)
+            else:
+                print(f"  - {author}")
+        print(f"License: {info['license']}")
+        print(f"Copyright: {info['copyright']}")
     
     except Exception as e:
         print(f"Error: Could not show information for DBMS '{connector_name}': {e}", file=sys.stderr)

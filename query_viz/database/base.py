@@ -12,6 +12,16 @@ FAIL = "FAIL"
 class DatabaseConnection(ABC):
     """Abstract class for database connections"""
     
+    info = {
+        "connector-name": "",
+        "connector-url": "https://github.com/Vettabase/query-viz",
+        "version": "0.0.0",
+        "maturity": "dev",
+        "license": "",
+        "copyright": "",
+        "authors": []
+    }
+    
     def __init__(self, config, db_timeout):
         self.name = config['name']
         self.dbms = config['dbms']

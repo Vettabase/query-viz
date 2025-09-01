@@ -9,7 +9,10 @@ from ..exceptions import QueryVizError
 
 class MariaDBConnection(DatabaseConnection):
     """MariaDB database connection, with connection pooling support"""
-    info = {
+    
+    # If we don't set some attributes, they'll retain their defaults
+    info = DatabaseConnection.info.copy()
+    info.update({
         "connector-name": "QV-MariaDB",
         "connector-url": "https://github.com/Vettabase/query-viz",
         "version": "0.1",
@@ -17,7 +20,7 @@ class MariaDBConnection(DatabaseConnection):
         "license": "AGPLv3",
         "copyright": "2025, Vettabase Ltd",
         "authors": [{"name": "Vettabase Ltd", "url": "https://vettabase.com"}]
-    }
+    })
     
     def __init__(self, config, db_timeout):
         super().__init__(config, db_timeout)
