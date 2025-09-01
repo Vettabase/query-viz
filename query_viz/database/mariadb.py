@@ -37,6 +37,8 @@ class MariaDBConnection(DatabaseConnection):
         Raises:
             QueryVizError: If configuration is invalid
         """
+        connection_name = config.get('name', None)
+
         # Validate all required fields for MariaDB
         required_fields = ['name', 'dbms', 'host', 'port', 'user', 'password']
         for field in required_fields:
@@ -52,24 +54,24 @@ class MariaDBConnection(DatabaseConnection):
         """Create connection pool"""
         try:
             self.pool = mariadb.ConnectionPool(
-                pool_name=f"pool_{self.name}",
-                pool_size=5,  # Adjustable
-                host=self.host,
-                port=self.port,
-                user=self.user,
-                password=self.password,
+                pool_name='pool_' + self.config['name'],
+                pool_size=5,
+                host=self.config['host'],
+                port=self.config['port'],
+                user=self.config['user'],
+                password=self.config['password'],
                 connect_timeout=self.db_timeout
             )
-            print(f"[mariadb] Created connection pool to {self.host}:{self.port}")
+            print("[mariadb] Created connection pool to " + self.config['host'] + ":" + str(self.config['port']))
             self.status = SUCCESS
         except mariadb.Error as e:
             self.status = FAIL
-            raise QueryVizError(f"[mariadb] Failed to create connection pool for {self.host}: {e}")
+            raise QueryVizError("[mariadb] Failed to create connection pool for " + self.config['host'] + ": " + str(e))
     
     def execute_query(self, query):
         """Get connection from pool, execute query, return connection"""
         if not self.pool:
-            raise QueryVizError(f"[mariadb] No connection")
+            raise QueryVizError("[mariadb] No connection")
         
         connection = self.pool.get_connection()
         try:
@@ -80,7 +82,7 @@ class MariaDBConnection(DatabaseConnection):
             cursor.close()
             return columns, results
         except mariadb.Error as e:
-            raise QueryVizError(f"[mariadb] Query execution failed on {self.name}: {e}")
+            raise QueryVizError("[mariadb] Query execution failed on " + self.config['name'] + ": " + str(e))
         finally:
             # Return connection to pool
             connection.close()

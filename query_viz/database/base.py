@@ -24,12 +24,7 @@ class DatabaseConnection(ABC):
     }
     
     def __init__(self, config, db_timeout):
-        self.name = config['name']
-        self.dbms = config['dbms']
-        self.host = config['host']
-        self.port = config['port']
-        self.user = config['user']
-        self.password = config['password']
+        self.config = config
         self.status = None
         self.db_timeout = db_timeout
     
