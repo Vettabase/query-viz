@@ -268,7 +268,7 @@ class ConnectionManager:
             
             for conn_name, connection in self.connections.items():
                 try:
-                    print(f"Connection attempt to '{connection.host}'... ", end="")
+                    print(f"Connection attempt to '{connection.config.host}'... ", end="")
                     connection.connect()
                     print("success")
                 except QueryVizError as e:
