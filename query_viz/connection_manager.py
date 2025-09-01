@@ -24,7 +24,7 @@ class ConnectionManager:
         Dynamically load database class for the specified DBMS type
         
         Args:
-            dbms_type (str): The DBMS type to load (case-insensitive)
+            dbms_type (str): The DBMS type to load (case-sensitive)
             
         Returns:
             class: The DatabaseConnection subclass
@@ -32,19 +32,17 @@ class ConnectionManager:
         Raises:
             QueryVizError: If the DBMS module cannot be loaded
         """
-        dbms = dbms_type.lower()
-        
         # Check if already loaded
-        if dbms in self._dbms_list:
-            return self._dbms_list[dbms]
+        if dbms_type in self._dbms_list:
+            return self._dbms_list[dbms_type]
             
         try:
-            # Import the module dynamically
-            module_name = f"query_viz.database.{dbms}"
-            module = __import__(module_name, fromlist=[dbms])
+            # Import the module dynamically (convert to lowercase for module name)
+            module_name = f"query_viz.database.{dbms_type.lower()}"
+            module = __import__(module_name, fromlist=[dbms_type.lower()])
             
             # Construct expected class name, eg: MariaDBConnection
-            class_name = f"{dbms_type.capitalize()}Connection"
+            class_name = f"{dbms_type}Connection"
             
             # Get the class from the module
             if not hasattr(module, class_name):
@@ -57,7 +55,7 @@ class ConnectionManager:
                 raise QueryVizError(f"Class '{class_name}' is not a DatabaseConnection subclass")
             
             # Cache the class
-            self._dbms_list[dbms] = db_class
+            self._dbms_list[dbms_type] = db_class
             
             print(f"Successfully loaded database support for: {dbms_type}")
             return db_class
