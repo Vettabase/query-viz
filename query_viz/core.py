@@ -11,7 +11,6 @@ import re
 import os
 from collections import defaultdict, deque
 
-from .database import DatabaseConnection, MariaDBConnection, FAIL
 from .query import QueryConfig
 from .chart import ChartGenerator
 from .chart_query import ChartQuery
