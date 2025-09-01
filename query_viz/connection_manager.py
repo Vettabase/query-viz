@@ -44,34 +44,27 @@ class ConnectionManager:
                     module_name = filename[:-3]
                     
                     # Try to load the module and check for valid connection class
-                    try:
-                        module_path = os.path.join(database_dir, filename)
-                        spec = importlib.util.spec_from_file_location(f"query_viz.database.{module_name}", module_path)
-                        module = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(module)
-                        
-                        # Look for classes that end with "Connection" and inherit from DatabaseConnection
-                        for attr_name in dir(module):
-                            if attr_name.endswith('Connection') and attr_name != 'DatabaseConnection':
-                                attr = getattr(module, attr_name)
-                                if (isinstance(attr, type) and 
-                                    issubclass(attr, DatabaseConnection) and 
-                                    attr is not DatabaseConnection):
-                                    
-                                    # Extract DBMS name from class name
-                                    # MariaDBConnection -> MariaDB
+                    # Let's not catch Python errors, or debugging failed imports will be impossible
+                    module_path = os.path.join(database_dir, filename)
+                    spec = importlib.util.spec_from_file_location(f"query_viz.database.{module_name}", module_path)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    
+                    # Look for classes that end with "Connection" and inherit from DatabaseConnection
+                    for attr_name in dir(module):
+                        if attr_name.endswith('Connection') and attr_name != 'DatabaseConnection':
+                            attr = getattr(module, attr_name)
+                            if (isinstance(attr, type) and 
+                                issubclass(attr, DatabaseConnection) and 
+                                attr is not DatabaseConnection):
+                                
+                                # Extract DBMS name from class name
+                                # MariaDBConnection -> MariaDB
 
-                                    # Remove Connection (10 chars)
-                                    dbms_name = attr_name[:-10]
-                                    dbms_list.append(dbms_name)
-                                    break
-                                    
-                    except Exception:
-                        # Skip modules that can't be loaded
-                        continue
-        
-        except OSError:
-            return []
+                                # Remove Connection (10 chars)
+                                dbms_name = attr_name[:-10]
+                                dbms_list.append(dbms_name)
+                                break
         
         return sorted(dbms_list)
     
