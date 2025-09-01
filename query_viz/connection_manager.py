@@ -2,6 +2,7 @@
 Connection management for QueryViz - handles database connections and retries
 """
 
+import importlib
 import time
 import os
 
