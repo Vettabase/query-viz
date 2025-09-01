@@ -3,6 +3,7 @@ Base database connection class
 """
 
 from abc import ABC, abstractmethod
+from ..exceptions import QueryVizError
 
 # Global constants for connection status
 SUCCESS = "SUCCESS"
@@ -44,6 +45,23 @@ class DatabaseConnection(ABC):
             NotImplementedError: Always, as this must be implemented by subclasses
         """
         raise NotImplementedError("validate_config() must be implemented by subclasses")
+    
+    @classmethod
+    def validationError(cls, connection_name, message):
+        """
+        Raise a validation error with connection name prefix
+        
+        Args:
+            connection_name (str): Name of the connection
+            message (str): Error message
+            
+        Raises:
+            QueryVizError: Always, with formatted message
+        """
+        if connection_name is not None and connection_name > '':
+            raise QueryVizError(f"Connection '{connection_name}': {message}")
+        else:
+            raise QueryVizError(message)
     
     @abstractmethod
     def connect(self):

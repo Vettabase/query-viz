@@ -41,12 +41,12 @@ class MariaDBConnection(DatabaseConnection):
         required_fields = ['name', 'dbms', 'host', 'port', 'user', 'password']
         for field in required_fields:
             if field not in config:
-                raise QueryVizError(f"'{field}' is required")
+                cls.validationError(connection_name, f"'{field}' is required")
         
         # MariaDB-specific validation
         port = config['port']
         if not isinstance(port, int) or port <= 0 or port > 65535:
-            raise QueryVizError("'port' must be a valid port number (1-65535)")
+            cls.validationError(connection_name, "'port' must be a valid port number (1-65535)")
     
     def connect(self):
         """Create connection pool"""
