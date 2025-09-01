@@ -4,7 +4,8 @@ Connection management for QueryViz - handles database connections and retries
 
 import time
 
-from .database import MariaDBConnection, SUCCESS, FAIL
+from .database import SUCCESS, FAIL
+from .database.base import DatabaseConnection
 from .exceptions import QueryVizError
 
 
@@ -14,31 +15,62 @@ class ConnectionManager:
     def __init__(self):
         """Initialize connection manager"""
         self._connections = {}
+        # List of imported database classes. The key is the DBMS type
+        # and the value is the class itself
+        self._dbms_list = {}
+    
+    def _load_database_class(self, dbms_type):
+        """
+        Dynamically load database class for the specified DBMS type
+        
+        Args:
+            dbms_type (str): The DBMS type to load (case-insensitive)
+            
+        Returns:
+            class: The DatabaseConnection subclass
+            
+        Raises:
+            QueryVizError: If the DBMS module cannot be loaded
+        """
+        dbms = dbms_type.lower()
+        
+        # Check if already loaded
+        if dbms in self._dbms_list:
+            return self._dbms_list[dbms]
+            
+        try:
+            # Import the module dynamically
+            module_name = f"query_viz.database.{dbms}"
+            module = __import__(module_name, fromlist=[dbms])
+            
+            # Construct expected class name, eg: MariaDBConnection
+            class_name = f"{dbms_type.capitalize()}Connection"
+            
+            # Get the class from the module
+            if not hasattr(module, class_name):
+                raise QueryVizError(f"Class '{class_name}' not found in module '{module_name}'")
+            
+            db_class = getattr(module, class_name)
+            
+            # Verify it's a DatabaseConnection subclass
+            if not issubclass(db_class, DatabaseConnection):
+                raise QueryVizError(f"Class '{class_name}' is not a DatabaseConnection subclass")
+            
+            # Cache the class
+            self._dbms_list[dbms] = db_class
+            
+            print(f"Successfully loaded database support for: {dbms_type}")
+            return db_class
+            
+        except ImportError as e:
+            raise QueryVizError(f"Failed to import database module for '{dbms_type}': {e}")
+        except Exception as e:
+            raise QueryVizError(f"Failed to load database class for '{dbms_type}': {e}")
     
     @property
     def connections(self):
         """Get connections dictionary"""
         return self._connections
-    
-    @staticmethod
-    def get_connection_class(dbms_type):
-        """
-        Get the appropriate connection class for a DBMS type
-        
-        Args:
-            dbms_type (str): The DBMS type ('mariadb', etc.)
-            
-        Returns:
-            class: The appropriate DatabaseConnection subclass
-            
-        Raises:
-            QueryVizError: If DBMS type is not supported
-        """
-        # TODO: DBMS types should not be hardcoded
-        if dbms_type == 'mariadb':
-            return MariaDBConnection
-        else:
-            raise QueryVizError(f"Unsupported DBMS: {dbms_type}")
     
     def connection_exists(self, connection_name):
         """
@@ -91,22 +123,28 @@ class ConnectionManager:
         connection = self.connections[connection_name]
         return connection.execute_query(query)
     
-    @staticmethod
-    def validate_connection_config(conn_config, index):
+    def validate_connection_config(self, conn_config, index):
         """
-        Validate a single connection configuration
+        Validate a single connection configuration and load its database class
         
         Args:
             conn_config (dict): Connection configuration
             index (int): Index of this connection (for error messages)
             
         Raises:
-            QueryVizError: If configuration is invalid
+            QueryVizError: If configuration is invalid or database cannot be loaded
         """
         required_fields = ['name', 'dbms', 'host', 'port', 'user', 'password']
         for field in required_fields:
             if field not in conn_config:
                 raise QueryVizError(f"Connection {index}: '{field}' is required")
+        
+        # Load the database class to validate DBMS support
+        dbms_type = conn_config['dbms']
+        try:
+            self._load_database_class(dbms_type)
+        except QueryVizError as e:
+            raise QueryVizError(f"Connection {index}: {e}")
     
     def setup_connections(self, connections_config, db_timeout):
         """
@@ -125,7 +163,7 @@ class ConnectionManager:
         for i, conn_config in enumerate(connections_config):
             # Use existing helper methods
             self.validate_connection_config(conn_config, i)
-            connection_class = self.get_connection_class(conn_config['dbms'])
+            connection_class = self._load_database_class(conn_config['dbms'])
             
             # Create connection instance
             conn = connection_class(conn_config, db_timeout)
