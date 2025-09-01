@@ -3,6 +3,7 @@ Connection management for QueryViz - handles database connections and retries
 """
 
 import time
+import os
 
 from .database import SUCCESS, FAIL
 from .database.base import DatabaseConnection
