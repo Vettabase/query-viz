@@ -68,6 +68,25 @@ class ConnectionManager:
         
         return sorted(dbms_list)
     
+    def get_dbms_info(self, dbms_type):
+        """
+        Get detailed information about a specific Connector
+        
+        Args:
+            dbms_type (str): The Connector to get info for (case-sensitive)
+            
+        Returns:
+            dict: Information dictionary from the connector's info property
+            
+        Raises:
+            QueryVizError: If the DBMS module cannot be loaded or has no info
+        """
+        try:
+            db_class = self._load_database_class(dbms_type)
+            return db_class.info
+        except Exception as e:
+            raise QueryVizError(f"Failed to get information for DBMS '{dbms_type}': {e}")
+    
     def _load_database_class(self, dbms_type):
         """
         Dynamically load database class for the specified DBMS type
