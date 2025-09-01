@@ -191,7 +191,7 @@ class ConnectionManager:
     
     def validate_connection_config(self, conn_config, index):
         """
-        Validate a single connection configuration and load its database class
+        Validate a single connection configuration by delegating to the appropriate connector
         
         Args:
             conn_config (dict): Connection configuration
@@ -200,15 +200,16 @@ class ConnectionManager:
         Raises:
             QueryVizError: If configuration is invalid or database cannot be loaded
         """
-        required_fields = ['name', 'dbms', 'host', 'port', 'user', 'password']
-        for field in required_fields:
-            if field not in conn_config:
-                raise QueryVizError(f"Connection {index}: '{field}' is required")
+        # Check basic required fields first
+        if 'dbms' not in conn_config:
+            raise QueryVizError(f"Connection {index}: 'dbms' is required")
         
-        # Load the database class to validate DBMS support
+        # Load the database class and delegate validation to it
         dbms_type = conn_config['dbms']
         try:
-            self._load_database_class(dbms_type)
+            db_class = self._load_database_class(dbms_type)
+            # Delegate validation to the connector class
+            db_class.validate_config(conn_config)
         except QueryVizError as e:
             raise QueryVizError(f"Connection {index}: {e}")
     

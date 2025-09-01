@@ -32,6 +32,19 @@ class DatabaseConnection(ABC):
         self.status = None
         self.db_timeout = db_timeout
     
+    @classmethod
+    def validate_config(cls, config):
+        """
+        Validate connection configuration for this connector type
+        
+        Args:
+            config (dict): Connection configuration to validate
+        
+        Raises:
+            NotImplementedError: Always, as this must be implemented by subclasses
+        """
+        raise NotImplementedError("validate_config() must be implemented by subclasses")
+    
     @abstractmethod
     def connect(self):
         """Establish database connection"""
