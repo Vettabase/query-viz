@@ -76,6 +76,8 @@ def show_dbms_info(connector_name):
     
     except Exception as e:
         print(f"Error: Could not show information for DBMS '{connector_name}': {e}", file=sys.stderr)
+        print("Hint: Connector names are case-sensitive.")
+        print("Hint: Run --list-dbms for the exact Connector name.")
 
 
 def main():
