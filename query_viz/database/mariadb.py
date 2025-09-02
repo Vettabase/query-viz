@@ -22,6 +22,14 @@ class MariaDBConnection(DatabaseConnection):
         "authors": [{"name": "Vettabase Ltd", "url": "https://vettabase.com"}]
     })
     
+    # Default configuration values for MariaDB connections
+    defaults = {
+        'host': 'localhost',
+        'port': 3306,
+        'user': None,
+        'password': None
+    }
+    
     def __init__(self, config, db_timeout):
         super().__init__(config, db_timeout)
         self.pool = None

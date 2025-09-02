@@ -23,10 +23,32 @@ class DatabaseConnection(ABC):
         "authors": []
     }
     
+    # Default configuration values
+    defaults = {}
+    
     def __init__(self, config, db_timeout):
+        self._set_defaults(config)
         self.config = config
         self.status = None
         self.db_timeout = db_timeout
+    
+    def _set_defaults(self, config):
+        """
+        Set default values for configuration keys that are missing
+        
+        Args:
+            config (dict): Connection configuration to modify
+            
+        Raises:
+            QueryVizError: If a required field (with None default) is missing
+        """
+        for key, default_value in self.defaults.items():
+            if key not in config:
+                if default_value is None:
+                    self.validationError(connection_name, f"Configuration error: '{key}' is required")
+                    raise QueryVizError(f"Connection '{connection_name}': '{key}' is required")
+                else:
+                    config[key] = default_value
     
     @classmethod
     def validate_config(cls, config):
