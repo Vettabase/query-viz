@@ -64,14 +64,25 @@ class DatabaseConnection(ABC):
 
     @classmethod
     def _is_valid_host(cls, host, allow_port=True):
+        """
+        Validates host. host can be a hostname (even multi-part),
+        an IPv4 or an IPv6. If allow_port is True, it can also contain
+        a port.
+        Return a triple with 3 elements:
+        (bool is_valid, str host_part, str port_part)
+        When not specified, port_part is None.
+        When the host is not valid, host_part and port_part might be None
+        even when specified.
+        """
         if not host:
-            return False
+            return (False, None, None)
+        host_part = port_part = None
 
         # Check if port is included
         if ':' in host:
             if not allow_port:
-                return False
-
+                return (False, host_part, port_part)
+            
             # Handle IPv6 with port [::1]:8080
             if host.startswith('[') and ']:' in host:
                 bracket_end = host.find(']:')
@@ -81,34 +92,34 @@ class DatabaseConnection(ABC):
                 # IPv4 or hostname with port
                 parts = host.rsplit(':', 1)
                 if len(parts) != 2:
-                    return False
+                    return (False, host_part, port_part)
                 host_part, port_part = parts
             
             # Validate port
             if not cls._is_valid_port(port_part):
-                return False
+                return (False, host_part, port_part)
         else:
             host_part = host
 
         # Try hostname first
         if cls._is_valid_hostname(host_part):
-            return True
+            return (True, host_part, port_part)
         
         # Try IPv4
         try:
             ipaddress.IPv4Address(host_part)
-            return True
+            return (True, host_part, port_part)
         except:
             pass
         
         # Try IPv6
         try:
             ipaddress.IPv6Address(host_part)
-            return True
+            return (True, host_part, port_part)
         except:
             pass
         
-        return False
+        return (False, host_part, port_part)
     
     @classmethod
     def _is_valid_hostname(cls, hostname):
