@@ -98,7 +98,7 @@ class DatabaseConnection(ABC):
                 # Use multi-host validation
                 default_port = config.get('port', 3306)  # Default port for validation
                 try:
-                    validated_hosts = self.validate_host_list(config['host'], default_port)
+                    validated_hosts = self._validate_host_list(config['host'], default_port)
                     # Update config with validated hosts
                     config['host'] = validated_hosts
                 except QueryVizError as e:
@@ -161,19 +161,6 @@ class DatabaseConnection(ABC):
             raise QueryVizError("No valid hosts found in list")
         
         return cls._make_list(validated_hosts)
-    
-    @classmethod
-    def _make_list(cls, host_list):
-        """
-        Merge a list of host strings into a single comma-separated string.
-        
-        Args:
-            host_list (list): List of host strings with ports included
-            
-        Returns:
-            str: Comma-separated string of hosts
-        """
-        return ','.join(host_list)
     
     @classmethod
     def _is_valid_port(cls, port):
