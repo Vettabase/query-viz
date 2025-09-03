@@ -67,8 +67,7 @@ services:
       target: qv-gen-test
     container_name: qv-test
     environment:
-      <<: *mariadb-env
-      <<: *postgresql-env
+      <<: [*mariadb-env, *postgresql-env]
     profiles:
       - test
       - full
