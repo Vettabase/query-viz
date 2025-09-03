@@ -7,7 +7,7 @@ connections:
     port: 3306
     user: queryviz
     password: S3cretz
-    - name: mariadb-2
+  - name: mariadb-2
     dbms: MariaDB
     enabled: 0
     host: not-exists
