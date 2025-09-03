@@ -1,2 +1,4 @@
-mariadb==1.1.8
 PyYAML==6.0.1
+# Connectors
+mariadb==1.1.8
+mysql-connector-python==9.1.0
