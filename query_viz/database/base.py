@@ -54,6 +54,38 @@ class DatabaseConnection(ABC):
                 else:
                     config[key] = default_value
     
+    def _auto_validate(self, config):
+        """
+        Validate standard configuration properties that are present.
+        Subclasses can call this method if they use standard properties.
+        DatabaseConnection does not call this, to leave subclasses free
+        to use non-standard configuration properties.
+        Return an error if configuration is not valid.
+        
+        Args:
+            config (dict): Connection configuration to validate
+            
+        Raises:
+            QueryVizError: If validation fails
+        """
+        connection_name = config.get('name', None)
+        
+        # Validate port if present
+        if 'port' in config:
+            if not self._is_valid_port(config['port']):
+                self.validationError(connection_name, f"Invalid port: {config['port']}")
+        
+        # Validate host if present
+        if 'host' in config:
+            is_valid, host_part, port_part = self._is_valid_host(config['host'], allow_port=True)
+            
+            if not is_valid:
+                self.validationError(connection_name, f"Invalid host: {config['host']}")
+            
+            # If host contains a port and config.port is also present, host's port overwrites config.port
+            if port_part is not None and 'port' in config:
+                config['port'] = int(port_part)
+    
     @classmethod
     def _is_valid_port(cls, port):
         try:

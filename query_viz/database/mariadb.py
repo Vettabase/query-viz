@@ -32,6 +32,7 @@ class MariaDBConnection(DatabaseConnection):
     
     def __init__(self, config, db_timeout):
         super().__init__(config, db_timeout)
+        super()._auto_validate(config)
         self.pool = None
     
     @classmethod
