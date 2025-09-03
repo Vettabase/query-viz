@@ -87,6 +87,67 @@ class DatabaseConnection(ABC):
                 config['port'] = int(port_part)
     
     @classmethod
+    def _validate_host_list(cls, hosts, default_port):
+        """
+        Validate a comma-separated list of hosts and add default ports where missing.
+        
+        Args:
+            hosts (str): Comma-separated list of hosts (hostname, IPv4, or IPv6, optionally with port)
+            default_port (int): Default port to use when not specified in host
+            
+        Returns:
+            str: Comma-separated list of validated hosts with ports included
+            
+        Raises:
+            QueryVizError: If any host is invalid or default_port is invalid
+        """
+        # Validate default port first
+        if not cls._is_valid_port(default_port):
+            raise QueryVizError(f"Invalid default port: {default_port}")
+        
+        if not hosts or not hosts.strip():
+            raise QueryVizError("Host list cannot be empty")
+        
+        # Split hosts by comma and clean whitespace
+        host_list = [host.strip() for host in hosts.split(',')]
+        validated_hosts = []
+        
+        for host in host_list:
+            if not host:  # Skip empty entries
+                continue
+                
+            is_valid, host_part, port_part = cls._is_valid_host(host, allow_port=True)
+            
+            if not is_valid:
+                raise QueryVizError(f"Invalid host: {host}")
+            
+            # Add default port if no port was specified
+            if port_part is None:
+                validated_host = f"{host_part}:{default_port}"
+            else:
+                validated_host = f"{host_part}:{port_part}"
+            
+            validated_hosts.append(validated_host)
+        
+        if not validated_hosts:
+            raise QueryVizError("No valid hosts found in list")
+        
+        return cls._make_list(validated_hosts)
+    
+    @classmethod
+    def _make_list(cls, host_list):
+        """
+        Merge a list of host strings into a single comma-separated string.
+        
+        Args:
+            host_list (list): List of host strings with ports included
+            
+        Returns:
+            str: Comma-separated string of hosts
+        """
+        return ','.join(host_list)
+    
+    @classmethod
     def _is_valid_port(cls, port):
         try:
             port_int = int(port)
