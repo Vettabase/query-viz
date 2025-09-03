@@ -2,9 +2,15 @@ connections:
   # At least one connection must be specified.
   # The first connection is the default connection.
   - name: mariadb-1
-    # supported DBMSs: MariaDB
     dbms: MariaDB
     host: mariadb
+    port: 3306
+    user: queryviz
+    password: S3cretz
+    - name: mariadb-2
+    dbms: MariaDB
+    enabled: 0
+    host: not-exists
     port: 3306
     user: queryviz
     password: S3cretz

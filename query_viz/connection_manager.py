@@ -215,7 +215,7 @@ class ConnectionManager:
     
     def setup_connections(self, connections_config, db_timeout):
         """
-        Setup database connections
+        Setup database connections, except for disabled connections.
         
         Args:
             connections_config (list): List of connection configurations
@@ -225,9 +225,17 @@ class ConnectionManager:
             str: Name of the default connection (first in list)
             
         Raises:
-            QueryVizError: If connection setup fails
+            QueryVizError: If connection setup fails or no enabled
+                           connections were found.
         """
         for i, conn_config in enumerate(connections_config):
+            # If the connection is disabled, skip it
+            if 'enabled' in conn_config:
+                enabled_value = str(conn_config['enabled']).lower()
+                if enabled_value in ['no', 'n', 'false', '0']:
+                    print("Found disabled connection: " + conn_config['name'])
+                    continue
+            
             # Use existing helper methods
             self.validate_connection_config(conn_config, i)
             connection_class = self._load_database_class(conn_config['dbms'])
@@ -236,8 +244,11 @@ class ConnectionManager:
             conn = connection_class(conn_config, db_timeout)
             self.connections[conn_config['name']] = conn
         
+        if not self.connections:
+            raise QueryVizError("No enabled connections found")
+
         # Return default connection name
-        return connections_config[0]['name']
+        return list(self.connections.keys())[0]
     
     def close_all_connections(self):
         """Close all database connections"""
