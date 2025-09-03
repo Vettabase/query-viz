@@ -29,6 +29,8 @@ class DatabaseConnection(ABC):
     
     # Default configuration values
     defaults = {}
+    # Indicates whether multi-host logic is supported by this connector
+    supports_multiple_hosts = False
     
     def __init__(self, config, db_timeout):
         self._set_defaults(config)
@@ -54,6 +56,21 @@ class DatabaseConnection(ABC):
                 else:
                     config[key] = default_value
     
+    @classmethod
+    def _make_list(cls, host_list):
+        """
+        Merge a list of host strings into a single comma-separated string.
+        Different database drivers have different syntax for this,
+        so some subclasses are expected to override this method.
+        
+        Args:
+            host_list (list): List of host strings with ports included
+            
+        Returns:
+            str: Comma-separated string of hosts
+        """
+        return ','.join(host_list)
+    
     def _auto_validate(self, config):
         """
         Validate standard configuration properties that are present.
@@ -77,14 +94,25 @@ class DatabaseConnection(ABC):
         
         # Validate host if present
         if 'host' in config:
-            is_valid, host_part, port_part = self._is_valid_host(config['host'], allow_port=True)
-            
-            if not is_valid:
-                self.validationError(connection_name, f"Invalid host: {config['host']}")
-            
-            # If host contains a port and config.port is also present, host's port overwrites config.port
-            if port_part is not None and 'port' in config:
-                config['port'] = int(port_part)
+            if self.supports_multiple_hosts:
+                # Use multi-host validation
+                default_port = config.get('port', 3306)  # Default port for validation
+                try:
+                    validated_hosts = self.validate_host_list(config['host'], default_port)
+                    # Update config with validated hosts
+                    config['host'] = validated_hosts
+                except QueryVizError as e:
+                    self.validationError(connection_name, f"Invalid host list: {e}")
+            else:
+                # Use single host validation (existing logic)
+                is_valid, host_part, port_part = self._is_valid_host(config['host'], allow_port=True)
+                
+                if not is_valid:
+                    self.validationError(connection_name, f"Invalid host: {config['host']}")
+                
+                # If host contains a port and config.port is also present, host's port overwrites config.port
+                if port_part is not None and 'port' in config:
+                    config['port'] = int(port_part)
     
     @classmethod
     def _validate_host_list(cls, hosts, default_port):
