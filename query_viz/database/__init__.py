@@ -13,5 +13,6 @@ __all__ = [
     'FAIL',
     # Connectors
     'MariaDBConnection',
-    'MySQLConnection'
+    'MySQLConnection',
+    'PostgreSQLConnection'
 ]

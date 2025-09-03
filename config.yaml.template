@@ -7,6 +7,7 @@ connections:
     port: 3306
     user: queryviz
     password: S3cretz
+  # Non-working configuration, disabled
   - name: mariadb-2
     dbms: MariaDB
     enabled: 0
@@ -14,6 +15,14 @@ connections:
     port: 3306
     user: queryviz
     password: S3cretz
+  - name: postgres-1
+    dbms: PostgreSQL
+    enabled: 0
+    host: localhost
+    port: 5432
+    user: queryviz
+    password: S3cretz
+    database: monitoring
 
 queries:
   # At least one query must be specified.

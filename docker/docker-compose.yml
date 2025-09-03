@@ -1,6 +1,7 @@
 # We have the following profiles:
 #   - default         Only services needed for production
 #   - mariadb         A MariaDB service for manual tests
+#   - postgresql      A PostgreSQL service for manual tests
 #   - test            A container for automated tests, plus
 #                     any database container used by the tests
 #   - full            All testing and production services
@@ -8,11 +9,17 @@
 
 # To test databases, we set their authentication variables
 # here and then we pass them to the relevant containers
+
 x-mariadb-env: &mariadb-env
   MYSQL_ROOT_PASSWORD: rSecret
   MYSQL_DATABASE:
   MYSQL_USER: queryviz
   MYSQL_PASSWORD: S3cretz
+
+x-postgresql-env: &postgresql-env
+  POSTGRES_PASSWORD: rSecret
+  POSTGRES_USER: queryviz
+  POSTGRES_DB: queryviz
 
 services:
   qv-generator:
@@ -30,6 +37,7 @@ services:
     profiles:
       - default
       - mariadb
+      - postgresql
       - full
     
   qv-web:
@@ -49,6 +57,7 @@ services:
     profiles:
       - default
       - mariadb
+      - postgresql
       - full
 
   qv-test:
@@ -59,6 +68,7 @@ services:
     container_name: qv-test
     environment:
       <<: *mariadb-env
+      <<: *postgresql-env
     profiles:
       - test
       - full
@@ -84,6 +94,27 @@ services:
       - full
     healthcheck:
       test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+      start_period: 30s
+
+  postgresql:
+    image: postgres:16
+    container_name: qv-test-postgresql
+    environment:
+      <<: *postgresql-env
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - qv
+    profiles:
+      - postgresql
+      - test
+      - full
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       timeout: 5s
       interval: 5s
       retries: 10
