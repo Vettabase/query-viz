@@ -31,6 +31,9 @@ class DatabaseConnection(ABC):
     defaults = {}
     # Indicates whether multi-host logic is supported by this connector
     supports_multiple_hosts = False
+    # Only relevant is supports_multiple_hosts = True
+    # Indicates if each host might contain a port part: "localhost:12345"
+    supports_multiple_ports = False
     
     def __init__(self, config, db_timeout):
         self._set_defaults(config)
@@ -148,6 +151,12 @@ class DatabaseConnection(ABC):
             
             if not is_valid:
                 raise QueryVizError(f"Invalid host: {host}")
+            if (
+                    (not cls.supports_multiple_ports)
+                    and port_part is not None
+                    and int(port_part) != default_port
+                ):
+                raise QueryVizError(f"All hosts must use the same port: {host}")
             
             # Add default port if no port was specified
             if port_part is None:
