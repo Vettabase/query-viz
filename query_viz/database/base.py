@@ -35,11 +35,15 @@ class DatabaseConnection(ABC):
     # Indicates if each host might contain a port part: "localhost:12345"
     supports_multiple_ports = False
     
+    
     def __init__(self, config, db_timeout):
         self._set_defaults(config)
         self.config = config
         self.status = None
         self.db_timeout = db_timeout
+        # When True, a connection is supposed to be open but it's not guaranteed.
+        # When False, no connection is open or the Connector doesn't update this variable.
+        self.maybe_connected = False
     
     def _set_defaults(self, config):
         """

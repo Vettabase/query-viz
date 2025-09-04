@@ -102,7 +102,10 @@ class PostgreSQLConnection(DatabaseConnection):
     
     def close(self):
         """Close connection pool"""
+        if not self.maybe_connected:
+            return False
         if not self.pool:
             raise QueryVizError(f"[postgresql] No connection to close")
         self.pool.closeall()
         self.pool = None
+        return True
