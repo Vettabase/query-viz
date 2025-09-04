@@ -146,32 +146,38 @@ class DatabaseConnection(ABC):
         # Split hosts by comma and clean whitespace
         host_list = [host.strip() for host in hosts.split(',')]
         validated_hosts = []
-        
-        for host in host_list:
-            if not host:  # Skip empty entries
-                continue
+
+        if cls.supports_multiple_ports:
+            for host in host_list:
+                if not host:
+                    raise QueryVizError('Empty host found in the list')
+                    
+                is_valid, host_part, port_part = cls._is_valid_host(host, allow_port=True)
+                if not is_valid:
+                    raise QueryVizError(f"Invalid host: {host}")
                 
-            is_valid, host_part, port_part = cls._is_valid_host(host, allow_port=True)
-            
-            if not is_valid:
-                raise QueryVizError(f"Invalid host: {host}")
-            if (
-                    (not cls.supports_multiple_ports)
-                    and port_part is not None
-                    and int(port_part) != default_port
-                ):
-                raise QueryVizError(f"All hosts must use the same port: {host}")
-            
-            # Add default port if no port was specified
-            if port_part is None:
-                validated_host = f"{host_part}:{default_port}"
-            else:
-                validated_host = f"{host_part}:{port_part}"
-            
-            validated_hosts.append(validated_host)
+                # Add default port if no port was specified
+                if port_part is None:
+                    validated_host = f"{host_part}:{default_port}"
+                else:
+                    validated_host = f"{host_part}:{port_part}"
+                
+                validated_hosts.append(validated_host)
+        else:
+            for host in host_list:
+                if not host:
+                    raise QueryVizError('Empty host found in the list')
+                
+                is_valid, host_part, port_part = cls._is_valid_host(host, allow_port=True)
+                if not is_valid:
+                    raise QueryVizError(f"Invalid host: {host}")
+                
+                if port_part is not None and int(port_part) != default_port:
+                    raise QueryVizError(f"All hosts must use the same port: {host}")
+                validated_hosts.append(host_part)
         
         if not validated_hosts:
-            raise QueryVizError("No valid hosts found in list")
+            raise QueryVizError("No hosts found in list")
         
         return cls._make_list(validated_hosts)
     
