@@ -72,7 +72,7 @@ class MySQLConnection(DatabaseConnection):
             self.pool = pooling.MySQLConnectionPool(
                 pool_name='pool_' + self.config['name'],
                 pool_size=5,
-                host=,
+                host=self.config['host'],
                 port=self.config['port'],
                 user=self.config['user'],
                 password=self.config['password'],
