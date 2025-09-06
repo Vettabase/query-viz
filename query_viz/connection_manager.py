@@ -278,6 +278,8 @@ class ConnectionManager:
             total_connections = len(self.connections)
             
             for conn_name, connection in self.connections.items():
+                if connection.status == SUCCESS:
+                    continue
                 try:
                     print("Connection attempt to '" + connection.config['host'] + "'... ", end="")
                     connection.connect()
