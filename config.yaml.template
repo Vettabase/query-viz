@@ -89,7 +89,7 @@ queries:
     interval: ONCE
     description: 'Three points'
   - name: 'pg_time'
-    connection: mariadb-1
+    connection: postgres-1
     query: "SELECT EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
     columns: ['time', 'sec_part']
     time_type: timestamp
