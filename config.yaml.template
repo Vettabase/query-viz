@@ -18,7 +18,15 @@ connections:
   - name: postgres-1
     dbms: PostgreSQL
     enabled: 0
-    host: localhost
+    host: not-exists
+    port: 5432
+    user: queryviz
+    password: S3cretz
+    database: monitoring
+  - name: postgres-1
+    dbms: PostgreSQL
+    enabled: 1
+    host: postgresql-1
     port: 5432
     user: queryviz
     password: S3cretz
@@ -80,6 +88,12 @@ queries:
     time_type: timestamp
     interval: ONCE
     description: 'Three points'
+  - name: 'pg_time'
+    connection: mariadb-1
+    query: "SELECT EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
+    columns: ['time', 'sec_part']
+    time_type: timestamp
+    description: 'Seconds part in current time'
 
 charts:
   # At least one chart must be specified.
