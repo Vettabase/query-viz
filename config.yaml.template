@@ -144,7 +144,7 @@ charts:
     xlabel: 'Time (seconds)'
     ylabel: 'SQL Expression'
     queries:
-      - 'pg_time'
+      - {"query": "pg_time", "columns": ["sec_part:seconds"]}
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
