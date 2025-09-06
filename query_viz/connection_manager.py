@@ -296,8 +296,12 @@ class ConnectionManager:
             if failed_connections > 0:
                 print(f"{failed_connections}/{total_connections} connections are not working")
             
+            successful_connections = total_connections - failed_connections
             if failed_connections == 0:
                 print("Execution will continue")
+                return True
+            elif successful_connections > 0:
+                print("Execution will continue with " + str(successful_connections) + " working connections")
                 return True
             
             elapsed_time = time.time() - start_time
