@@ -30,7 +30,7 @@ connections:
     port: 5432
     user: queryviz
     password: S3cretz
-    database: monitoring
+    database: queryviz
 
 queries:
   # At least one query must be specified.
