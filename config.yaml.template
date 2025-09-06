@@ -90,7 +90,7 @@ queries:
     description: 'Three points'
   - name: 'pg_time'
     connection: postgres-1
-    query: "SELECT EXTRACT(EPOCH FROM NOW()) AS time, EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
+    query: "SELECT EXTRACT(EPOCH FROM NOW())::bigint AS time, EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
     columns: ['time', 'sec_part']
     time_type: timestamp
     description: 'Seconds part in current time'
