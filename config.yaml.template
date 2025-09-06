@@ -139,6 +139,12 @@ charts:
       - 'wave'
       - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
+  - title: 'PG Time'
+    type: line_chart
+    xlabel: 'Time (seconds)'
+    ylabel: 'SQL Expression'
+    queries:
+      - 'pg_time'
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
