@@ -26,7 +26,7 @@ connections:
   - name: postgres-1
     dbms: PostgreSQL
     enabled: 1
-    host: postgresql-1
+    host: postgresql
     port: 5432
     user: queryviz
     password: S3cretz
