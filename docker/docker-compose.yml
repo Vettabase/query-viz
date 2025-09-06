@@ -17,7 +17,7 @@ x-mariadb-env: &mariadb-env
   MYSQL_PASSWORD: S3cretz
 
 x-postgresql-env: &postgresql-env
-  POSTGRES_PASSWORD: rSecret
+  POSTGRES_PASSWORD: S3cretz
   POSTGRES_USER: queryviz
   POSTGRES_DB: queryviz
 
