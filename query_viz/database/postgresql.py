@@ -1,37 +1,36 @@
 """
-MariaDB database connection implementation
+PostgreSQL database connection implementation
 """
 
-import mariadb
+import psycopg2
+from psycopg2 import pool
 from .base import DatabaseConnection, SUCCESS, FAIL
 from ..exceptions import QueryVizError
 
 
-class MariaDBConnection(DatabaseConnection):
-    """MariaDB database connection, with connection pooling support"""
+class PostgreSQLConnection(DatabaseConnection):
+    """PostgreSQL database connection"""
     
-    # If we don't set some attributes, they'll retain their defaults
+    # Connector metadata
     info = DatabaseConnection.info.copy()
     info.update({
-        "connector-name": "QV-MariaDB",
+        "connector-name": "QV-PostgreSQL",
         "connector-url": "https://github.com/Vettabase/query-viz",
         "version": "0.1",
-        "maturity": "gamma",
+        "maturity": "gamma", 
         "license": "AGPLv3",
         "copyright": "2025, Vettabase Ltd",
         "authors": [{"name": "Vettabase Ltd", "url": "https://vettabase.com"}]
     })
     
-    # Default configuration values for MariaDB connections
+    # Default configuration values for PostgreSQL connections
     defaults = {
         'host': 'localhost',
-        'port': 3306,
+        'port': 5432,
         'user': None,
-        'password': None
+        'password': None,
+        'database': 'postgres'
     }
-    
-    # Enable multi-host support for failover
-    supports_multiple_hosts = True
     
     def __init__(self, config, db_timeout):
         super().__init__(config, db_timeout)
@@ -41,7 +40,7 @@ class MariaDBConnection(DatabaseConnection):
     @classmethod
     def validate_config(cls, config):
         """
-        Validate MariaDB-specific configuration
+        Validate PostgreSQL-specific configuration
         
         Args:
             config (dict): Connection configuration to validate
@@ -51,13 +50,13 @@ class MariaDBConnection(DatabaseConnection):
         """
         connection_name = config.get('name', None)
 
-        # Validate all required fields for MariaDB
+        # Validate all required fields for PostgreSQL
         required_fields = ['name', 'dbms', 'host', 'port', 'user', 'password']
         for field in required_fields:
             if field not in config:
                 cls.validationError(connection_name, f"'{field}' is required")
         
-        # MariaDB-specific validation
+        # PostgreSQL-specific validation
         port = config['port']
         if not isinstance(port, int) or port <= 0 or port > 65535:
             cls.validationError(connection_name, "'port' must be a valid port number (1-65535)")
@@ -65,27 +64,29 @@ class MariaDBConnection(DatabaseConnection):
     def connect(self):
         """Create connection pool"""
         try:
-            self.pool = mariadb.ConnectionPool(
-                pool_name='pool_' + self.config['name'],
-                pool_size=5,
+            # Use SimpleConnectionPool for single-threaded applications
+            # (matching the pattern used by MariaDB/MySQL connectors)
+            self.pool = psycopg2.pool.SimpleConnectionPool(
+                1, 5,  # minconn, maxconn
                 host=self.config['host'],
                 port=self.config['port'],
                 user=self.config['user'],
                 password=self.config['password'],
+                database=self.config['database'],
                 connect_timeout=self.db_timeout
             )
-            print("[mariadb] Created connection pool to " + self.config['host'] + ":" + str(self.config['port']))
+            print(f"[postgresql] Created connection pool to {self.config['host']}:{self.config['port']}")
             self.status = SUCCESS
-        except mariadb.Error as e:
+        except psycopg2.Error as e:
             self.status = FAIL
-            raise QueryVizError("[mariadb] Failed to create connection pool for " + self.config['host'] + ": " + str(e))
+            raise QueryVizError(f"[postgresql] Failed to create connection pool for {self.config['host']}: {str(e)}")
     
     def execute_query(self, query):
         """Get connection from pool, execute query, return connection"""
         if not self.pool:
-            raise QueryVizError("[mariadb] No connection")
+            raise QueryVizError("[postgresql] No connection")
         
-        connection = self.pool.get_connection()
+        connection = self.pool.getconn()
         try:
             cursor = connection.cursor()
             cursor.execute(query)
@@ -93,17 +94,18 @@ class MariaDBConnection(DatabaseConnection):
             results = cursor.fetchall()
             cursor.close()
             return columns, results
-        except mariadb.Error as e:
-            raise QueryVizError("[mariadb] Query execution failed on " + self.config['name'] + ": " + str(e))
+        except psycopg2.Error as e:
+            raise QueryVizError(f"[postgresql] Query execution failed on {self.config['name']}: {str(e)}")
         finally:
             # Return connection to pool
-            connection.close()
+            self.pool.putconn(connection)
     
     def close(self):
         """Close connection pool"""
         if not self.maybe_connected:
             return False
         if not self.pool:
-            raise QueryVizError(f"[mariadb] No connection to close")
+            raise QueryVizError(f"[postgresql] No connection to close")
+        self.pool.closeall()
         self.pool = None
         return True

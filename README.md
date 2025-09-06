@@ -67,6 +67,89 @@ COMPOSE_PROFILES=default docker/stop.sh
 ```
 
 
+## Connections and Connectors
+
+Connections are defined in the configuration file. For each query, you define
+the Connector to use. Currently available Connectors are:
+
+- MariaDB         (supports on-connection failover on single port, connection pool)
+- MySQL           (supports connection pool)
+- PostgreSQL      (supports connection pool)
+
+If you are interested in developing a new Connector, see
+`query-viz/database/README.md`.
+
+
+### Obtaining Information About Connectors
+
+Just in case the above list is not up to date, you can obtain the actual list
+in this way:
+
+```
+./qv.py --list-dbms
+```
+
+You can see information about a specific Connector like this:
+
+```
+./qv.py --show-dbms MariaDB
+```
+
+Currently, Connector names are case-sensitive.
+
+To run the above commands in Docker:
+
+```
+docker exec -ti qv-generator /app/qv.py --list-dbms
+docker exec -ti qv-generator /app/qv.py --show-dbms MariaDB
+```
+
+
+### Failover and Load Balancing
+
+Connectors that support on-connection failover accept a list of hosts, and will connect
+to the first responsive host in the list. The list can include a port (host1:24,host2:42)
+but some Connectors require that all hosts use the same port.
+
+Note that failover only happens on connection. After that, no form of failover
+is supported.
+
+While the program does no load balancing, you can force load balancing by assigning queries
+to different connections.
+
+As far as Query-Viz knows, each connection has a single dedicated thread. However, some
+Connectors use a connection pool intrnally, so different queries might actually run
+on different connections to the same server.
+
+
+### Connection Failures
+
+When the program starts, it verifies that at least one connection can be established.
+If not, the program cannot do anything useful, so it will exit. The exit code will be 0
+on Docker to avoid restart, and it will be 1 on other environments.
+
+Connections fail if they receive an error from the server, or after a timeout with a length
+of `failed_connections_interval`.
+
+However, initial connections might take some time, for various reasons. For this reason,
+connections have an initial Grace Period. Its length is set via `initial_grace_period`.
+During the Grace Period, connections are retried with an interval of
+`grace_period_retry_interval`.
+
+After the Grace Period, the program will check if at least one connection is established.
+If it decides to continue but at least one connection failed, it will start
+a Retry Thread. This thread is responsible for retry connections every
+`failed_connections_interval`. When all connections are established, the Retry Thread
+exits.
+
+All mentioned intervals can be configured in flexible ways:
+
+```
+initial_grace_period: 1.5m           # 90 seconds
+failed_connections_interval: 30      # 30 seconds
+grace_period_retry_interval: 30s     # 30 seconds
+```
+
 ## Directory Tree
 
 Query-Viz' directory structure is the following:

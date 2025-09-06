@@ -7,6 +7,7 @@ connections:
     port: 3306
     user: queryviz
     password: S3cretz
+  # Non-working configuration, disabled
   - name: mariadb-2
     dbms: MariaDB
     enabled: 0
@@ -14,6 +15,22 @@ connections:
     port: 3306
     user: queryviz
     password: S3cretz
+  - name: postgres-1
+    dbms: PostgreSQL
+    enabled: 0
+    host: not-exists
+    port: 5432
+    user: queryviz
+    password: S3cretz
+    database: monitoring
+  - name: postgres-1
+    dbms: PostgreSQL
+    enabled: 1
+    host: postgresql
+    port: 5432
+    user: queryviz
+    password: S3cretz
+    database: queryviz
 
 queries:
   # At least one query must be specified.
@@ -71,6 +88,13 @@ queries:
     time_type: timestamp
     interval: ONCE
     description: 'Three points'
+  - name: 'pg_time'
+    connection: postgres-1
+    query: "SELECT EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
+    columns: ['time', 'sec_part']
+    time_type: timestamp
+    description: 'Seconds part in current time'
+    interval: 15s
 
 charts:
   # At least one chart must be specified.

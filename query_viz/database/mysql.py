@@ -63,6 +63,12 @@ class MySQLConnection(DatabaseConnection):
     def connect(self):
         """Create connection pool"""
         try:
+            if ':' in host:
+                host = self.config['host'].split(':')[0]
+                port = self.config['port'].split(':')[1]
+            else:
+                host = self.config['host']
+                port = self.config['port']
             self.pool = pooling.MySQLConnectionPool(
                 pool_name='pool_' + self.config['name'],
                 pool_size=5,
@@ -99,6 +105,9 @@ class MySQLConnection(DatabaseConnection):
     
     def close(self):
         """Close connection pool"""
+        if not self.maybe_connected:
+            return False
         if not self.pool:
             raise QueryVizError(f"[mysql] No connection to close")
         self.pool = None
+        return True
