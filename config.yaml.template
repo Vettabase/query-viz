@@ -94,6 +94,7 @@ queries:
     columns: ['time', 'sec_part']
     time_type: timestamp
     description: 'Seconds part in current time'
+    interval: 15s
 
 charts:
   # At least one chart must be specified.
