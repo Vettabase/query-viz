@@ -141,7 +141,7 @@ charts:
     output_file: 'col-select.png'
   - title: 'PG Time'
     type: line_chart
-    xlabel: 'Time (seconds)'
+    xlabel: 'Time'
     ylabel: 'SQL Expression'
     queries:
       - {"query": "pg_time", "columns": ["sec_part:seconds"]}
