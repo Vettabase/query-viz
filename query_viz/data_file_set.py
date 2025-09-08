@@ -21,7 +21,18 @@ class DataFileSet:
         cls._data_files[query_object.name] = data_file
     
     @classmethod
-    def get(cls, query_name):
+    def has_started(cls, query_name):
+        """Returns whether the DataFile exists and writing has started at least once.
+        However, it might be currently empty: during rotation, the Data File's content
+        is entirely replaced, so for a brief period of time it is empty."""
+        data_file = cls._data_files.get(query_name)
+        if data_file is not None:
+            return data_file.get_point_count() > 0
+       else:
+            return False
+    
+    @classmethod
+    def is_ready(cls, query_name):
         """Returns the DataFile instance for the specified query name, or None"""
         return cls._data_files.get(query_name)
     

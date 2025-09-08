@@ -90,7 +90,7 @@ queries:
     description: 'Three points'
   - name: 'pg_time'
     connection: postgres-1
-    query: "SELECT EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW()) AS sec_part;"
+    query: "SELECT EXTRACT(EPOCH FROM NOW())::bigint AS time, EXTRACT(MINUTE FROM NOW()) * 60 + EXTRACT(SECOND FROM NOW())::bigint AS sec_part;"
     columns: ['time', 'sec_part']
     time_type: timestamp
     description: 'Seconds part in current time'
@@ -139,6 +139,12 @@ charts:
       - 'wave'
       - {"query": "const", "columns": ["five:Constant 5", "ten:Constant 10"]}
     output_file: 'col-select.png'
+  - title: 'PG Time'
+    type: line_chart
+    xlabel: 'Time'
+    ylabel: 'SQL Expression'
+    queries:
+      - {"query": "pg_time", "columns": ["sec_part:seconds"]}
   - title: '3Points'
     type: line_chart
     xlabel: 'Timestamps'
