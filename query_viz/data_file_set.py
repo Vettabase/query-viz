@@ -28,7 +28,7 @@ class DataFileSet:
         data_file = cls._data_files.get(query_name)
         if data_file is not None:
             return data_file.get_point_count() > 0
-       else:
+        else:
             return False
     
     @classmethod
