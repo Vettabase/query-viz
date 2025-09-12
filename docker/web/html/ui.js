@@ -1,3 +1,5 @@
+console.log('ui.js file is loading and executing');
+
 // DOM element IDs
 const ELEMENT_IDS = {
     UPDATE_TIME: 'update-time',
