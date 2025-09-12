@@ -453,7 +453,7 @@ class QueryViz:
                     continue
                 
                 # Check if data file already exists
-                data_file = DataFileSet.get(query_config.name)
+                data_file = DataFileSet.is_ready(query_config.name)
                 if data_file.exists():
                     print(f"Skipping 'once' query '{query_config.name}': already executed")
                     continue
@@ -486,7 +486,7 @@ class QueryViz:
     
     def execute_query_thread(self, query_config):
         """Execute a single query in a loop"""
-        data_file = DataFileSet.get(query_config.name)
+        data_file = DataFileSet.is_ready(query_config.name)
         
         if (
                 query_config.time_type == 'elapsed_seconds' and
