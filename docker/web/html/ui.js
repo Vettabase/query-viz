@@ -115,11 +115,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const chartIdList = chartPaths.map(chartPath => getIdFromPath(chartPath));
         
         chartPaths.forEach((chartPath, index) => {
-            const chartId = chartIdList[index];
+            chartId = chartIdList[index];
             const cs = JSON.stringify(chartPath);
             
             if (chartCache[chartPath] && chartCache[chartPath].checksum === cs) {
-                // Chart unchanged → reuse
+                // re-insert cached elements right before the errorMessage in the current loop order
+                chartCache[chartPath].elements.forEach(el => {
+                    chartContainer.insertBefore(el, errorMessage);
+                });
                 newCache[chartPath] = chartCache[chartPath];
                 return;
             }
