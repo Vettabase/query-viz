@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentChartPaths = [];
     // Track if index has ever loaded successfully
     let hasIndexLoadedOnce = false;
+    // Cache of chart elements keyed by chartPath
+    let chartCache = {};
     
     function updateAutorefreshStatusIndicator(status) {
         statusIndicator.className = `autorefresh-status-indicator ${status}`;
@@ -106,28 +108,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createChartElements(chartPaths) {
-        // FIXME: We shouldn't recreate all charts when any of them changed. We should:
-        //        - Delete the charts that were removed
-        //        - Add new charts
-        //        - Recreate charts that changed
-        //        To know when a chart configuration changed, we should store
-        //        each chart configuration's checksum
-
         // Hide loading message just before loading charts
         hideLoadingMessage();
         
-        // Clear existing charts
-        const existingCharts = chartContainer.querySelectorAll('.chart-image');
-        existingCharts.forEach(chart => chart.remove());
-        
-        // Calculate each id only once and cache them in an array
+        const newCache = {};
         const chartIdList = chartPaths.map(chartPath => getIdFromPath(chartPath));
         
-        // Create new chart elements
         chartPaths.forEach((chartPath, index) => {
-            // Assign a (most likely) unique id
-            // by replacing the URL's special chars
-            chartId = chartIdList[index]
+            const chartId = chartIdList[index];
+            const cs = JSON.stringify(chartPath);
+            
+            if (chartCache[chartPath] && chartCache[chartPath].checksum === cs) {
+                // Chart unchanged → reuse
+                newCache[chartPath] = chartCache[chartPath];
+                return;
+            }
+            
+            // If chart existed but changed, remove old DOM elements
+            if (chartCache[chartPath]) {
+                chartCache[chartPath].elements.forEach(el => el.remove());
+            }
             
             // Button: Previous Chart
             has_prev = false
@@ -203,7 +203,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Insert before error message
             chartContainer.insertBefore(buttonBar, errorMessage);
             chartContainer.insertBefore(chartImage, errorMessage);
+
+            // Save to new cache
+            newCache[chartPath] = {
+                checksum: cs,
+                elements: [buttonBar, chartImage]
+            };
         });
+
+        // Destroy charts that were removed
+        Object.keys(chartCache).forEach(oldPath => {
+            if (!newCache[oldPath]) {
+                chartCache[oldPath].elements.forEach(el => el.remove());
+            }
+        });
+
+        chartCache = newCache;
     }
     
     function loadChartIndex() {
