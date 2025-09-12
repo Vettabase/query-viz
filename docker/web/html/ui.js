@@ -113,33 +113,76 @@ document.addEventListener('DOMContentLoaded', function() {
         //        To know when a chart configuration changed, we should store
         //        each chart configuration's checksum
 
+        // Get the current set of chart IDs on the page
+        const existingChartIds = new Set();
+        const existingElements = Array.from(chartContainer.querySelectorAll('.chart-button-bar, .chart-image'));
+        for (const el of existingElements) {
+            const chartId = el.id.split('_')[1];
+            if (chartId) {
+                existingChartIds.add(chartId);
+            }
+        }
+        
+        const newChartIds = new Set(chartPaths.map(getIdFromPath));
+
+        // Delete charts that are no longer in the index
+        existingElements.forEach(el => {
+            const chartId = el.id.split('_')[1];
+            if (chartId && !newChartIds.has(chartId)) {
+                el.remove();
+            }
+        });
+
         // Hide loading message just before loading charts
         hideLoadingMessage();
         
-        // Clear existing charts
-        const existingCharts = chartContainer.querySelectorAll('.chart-image');
-        existingCharts.forEach(chart => chart.remove());
-        
-        // Calculate each id only once and cache them in an array
-        const chartIdList = chartPaths.map(chartPath => getIdFromPath(chartPath));
-        
-        // Create new chart elements
+        // Create new or update existing chart elements
         chartPaths.forEach((chartPath, index) => {
-            // Assign a (most likely) unique id
-            // by replacing the URL's special chars
-            chartId = chartIdList[index]
+            const chartId = getIdFromPath(chartPath);
             
+            let buttonBar = chartContainer.querySelector(`#permalink_${chartId}`).parentElement;
+            let chartImage = chartContainer.querySelector(`#chart_${chartId}`);
+            
+            if (!buttonBar) {
+                // If the button bar doesn't exist, this is a new chart
+                
+                // Button bar
+                buttonBar = document.createElement('div');
+                buttonBar.className = 'chart-button-bar';
+                
+                // Image
+                chartImage = document.createElement('img');
+                chartImage.className = 'chart-image';
+                chartImage.alt = `Chart ${index + 1}`;
+                chartImage.id = 'chart_' + chartId;
+                chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
+                
+                // Handle image load error
+                chartImage.addEventListener('error', function() {
+                    showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
+                });
+                
+                // Handle image load success
+                chartImage.addEventListener('load', function() {
+                    hideError();
+                });
+
+                chartContainer.insertBefore(buttonBar, errorMessage);
+                chartContainer.insertBefore(chartImage, errorMessage);
+            }
+
+            // Rebuild the button bar for each element to handle dynamic prev/next
+            buttonBar.innerHTML = ''; // Clear existing buttons
+
             // Button: Previous Chart
-            has_prev = false
-            prevPermalink = null
             if (index > 0) {
-                has_prev = true
-                prevChartId = chartIdList[index - 1]
-                prevPermalink = document.createElement('a');
+                const prevChartId = getIdFromPath(chartPaths[index - 1]);
+                const prevPermalink = document.createElement('a');
                 prevPermalink.href = '#permalink_' + prevChartId;
                 prevPermalink.textContent = '◀ Prev';
                 prevPermalink.title = 'Move to previous chart';
                 prevPermalink.className = 'chart-button';
+                buttonBar.appendChild(prevPermalink);
             }
             
             // Button: Picrow
@@ -149,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
             permalink.textContent = '¶ Permalink';
             permalink.title = 'Permalink to this chart';
             permalink.className = 'chart-button';
+            buttonBar.appendChild(permalink);
             
             // Button: Download
             const downloadButton = document.createElement('a');
@@ -157,52 +201,18 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadButton.title = 'Download this chart';
             downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
             downloadButton.className = 'chart-button';
+            buttonBar.appendChild(downloadButton);
             
             // Button: Next Chart
-            has_next = false
-            nextPermalink = null
             if (index < chartPaths.length - 1) {
-                has_next = true
-                nextChartId = chartIdList[index + 1]
-                nextPermalink = document.createElement('a');
+                const nextChartId = getIdFromPath(chartPaths[index + 1]);
+                const nextPermalink = document.createElement('a');
                 nextPermalink.href = '#permalink_' + nextChartId;
                 nextPermalink.textContent = 'Next ▶';
                 nextPermalink.title = 'Move to next chart';
                 nextPermalink.className = 'chart-button';
-            }
-            
-            // Create buttonBar and insert the buttons generated above
-            const buttonBar = document.createElement('div');
-            buttonBar.className = 'chart-button-bar';
-            if (has_prev) {
-                buttonBar.appendChild(prevPermalink);
-            }
-            buttonBar.appendChild(permalink);
-            buttonBar.appendChild(downloadButton);
-            if (has_next) {
                 buttonBar.appendChild(nextPermalink);
             }
-            
-            // Create the img element
-            const chartImage = document.createElement('img');
-            chartImage.className = 'chart-image';
-            chartImage.alt = `Chart ${index + 1}`;
-            chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
-            chartImage.id = 'chart_' + chartId;
-            
-            // Handle image load error
-            chartImage.addEventListener('error', function() {
-                showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
-            });
-            
-            // Handle image load success
-            chartImage.addEventListener('load', function() {
-                hideError();
-            });
-            
-            // Insert before error message
-            chartContainer.insertBefore(buttonBar, errorMessage);
-            chartContainer.insertBefore(chartImage, errorMessage);
         });
     }
     
