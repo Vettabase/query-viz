@@ -32,7 +32,9 @@ class ChartGenerator:
     def generate_all_charts(self, chart_queries):
         """Generate all charts using Gnuplot"""
         script_file = self._generate_gnuplot_script(chart_queries)
-        return self._execute_gnuplot(script_file)
+        # A falsey value is expected when there is no data to plot
+        if script_file:
+            return self._execute_gnuplot(script_file)
     
     def _generate_gnuplot_script(self, chart_queries):
         """Generate Gnuplot script from template"""
@@ -101,7 +103,8 @@ class ChartGenerator:
                 line_index += 1
         
         if not plot_lines:
-            raise QueryVizError("No plot lines generated")
+            #raise QueryVizError("No plot lines generated")
+            return ''
         
         if self.plot_config['grid']:
             grid_command = "set grid" 
