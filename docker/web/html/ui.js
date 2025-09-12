@@ -44,6 +44,9 @@ const ERROR_MESSAGES = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INITIALIZATION DEBUG ===');
+    console.log('DOM loaded at:', new Date().toISOString());
+
     const updateTime = document.getElementById(ELEMENT_IDS.UPDATE_TIME);
     const refreshBtn = document.getElementById(ELEMENT_IDS.REFRESH_BTN);
     const errorMessage = document.getElementById(ELEMENT_IDS.ERROR_MESSAGE);
@@ -52,6 +55,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusIndicator = document.getElementById(ELEMENT_IDS.AUTOREFRESH_STATUS_INDICATOR);
     const loadingMessageBox = document.getElementById(ELEMENT_IDS.LOADING_MESSAGE_BOX);
     const chartContainer = document.querySelector('.chart-container');
+
+    console.log('DOM elements check:');
+    Object.entries(elements).forEach(([name, element]) => {
+        console.log(`  ${name}:`, element ? 'OK' : 'MISSING');
+    });
+
+    // configuration
+    console.log('Configuration:');
+    console.log('  CHART_INDEX path:', PATHS.CHART_INDEX);
+    console.log('  PLOTS_BASE path:', PATHS.PLOTS_BASE);
+    console.log('  Default refresh interval:', DEFAULTS.AUTO_REFRESH_INTERVAL);
+
+    console.log('=== END INITIALIZATION DEBUG ===');
     
     let chartRefreshInterval = null;
     let indexReloadInterval = null;
