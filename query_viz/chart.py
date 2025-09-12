@@ -45,7 +45,7 @@ class ChartGenerator:
         # Check if any query uses timestamp format
         has_timestamp = False
         for chart_query in chart_queries:
-            data_file = DataFileSet.get(chart_query.query_name)
+            data_file = DataFileSet.is_ready(chart_query.query_name)
             if data_file and data_file.time_type == 'timestamp':
                 has_timestamp = True
                 break
@@ -54,7 +54,7 @@ class ChartGenerator:
         xlabel = self.plot_config.get('xlabel')
         if not xlabel and chart_queries:
             # Use the first query's temporal column to get default description
-            first_data_file = DataFileSet.get(chart_queries[0].query_name)
+            first_data_file = DataFileSet.is_ready(chart_queries[0].query_name)
             if first_data_file and hasattr(first_data_file, 'time_type'):
                 from .temporal_column import TemporalColumnRegistry
                 temporal_column = TemporalColumnRegistry.create(first_data_file.time_type)
@@ -72,7 +72,7 @@ class ChartGenerator:
         line_index = 1
         
         for chart_query in chart_queries:
-            data_file = DataFileSet.get(chart_query.query_name)
+            data_file = DataFileSet.is_ready(chart_query.query_name)
             
             if not data_file:
                 print(f"Warning: No Data File found for query '{chart_query.query_name}'")
