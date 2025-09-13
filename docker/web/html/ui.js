@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle image load error
             chartImage.addEventListener('error', function() {
                 showError(ERROR_MESSAGES.CHART_UNAVAILABLE);
+                console.log('Image failed to load: ', this.src);
             });
             
             // Handle image load success
