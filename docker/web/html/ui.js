@@ -46,6 +46,10 @@ const ERROR_MESSAGES = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded fired');
+    console.log('Plots base path: ', PATHS.PLOTS_BASE);
+    console.log('Chart index path: ', PATHS.CHART_INDEX);
+    
     const updateTime = document.getElementById(ELEMENT_IDS.UPDATE_TIME);
     const refreshBtn = document.getElementById(ELEMENT_IDS.REFRESH_BTN);
     const errorMessage = document.getElementById(ELEMENT_IDS.ERROR_MESSAGE);
