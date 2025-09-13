@@ -197,20 +197,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Button: Picrow
-            const permalink = document.createElement('a');
-            permalink.href = '#permalink_' + thisChartId;
-            permalink.id = 'permalink_' + thisChartId;
-            permalink.textContent = '¶ Permalink';
-            permalink.title = 'Permalink to this chart';
-            permalink.className = 'chart-button';
+            const permalink = createChartButton('PICROW', chartPath, thisChartId, null);
             
             // Button: Download
-            const downloadButton = document.createElement('a');
-            downloadButton.href = `${PATHS.PLOTS_BASE}${chartPath}`;
-            downloadButton.textContent = '💾 Download';
-            downloadButton.title = 'Download this chart';
-            downloadButton.download = `${PATHS.PLOTS_BASE}${chartPath}`;
-            downloadButton.className = 'chart-button';
+            const downloadButton = createChartButton('DOWNLOAD', chartPath, thisChartId, null);
             
             // Button: Next Chart
             let nextPermalink = null
