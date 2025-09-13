@@ -166,15 +166,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function removeAllChartsFromContainer(chartContainer) {
+        // Remove chart elements and button bars that are children
+        // of the specified element
+        
         // Remove chart images by class name
         const existingCharts = chartContainer.querySelectorAll('.chart-image');
         existingCharts.forEach(chart => chart.remove());
         
         // Remove chart button bars by class name
         const chartButtonBars = document.querySelectorAll('.chart-button-bar');
-        chartButtonBars.forEach(bar => {
-            bar.remove();
-        });
+        chartButtonBars.forEach(bar => bar.remove());
     }
     
     function createChartList(chartPaths) {
