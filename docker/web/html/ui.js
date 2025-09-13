@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return button;
     }
     
-    function createChartElements(chartPaths) {
+    function createChartList(chartPaths) {
         // FIXME: We shouldn't recreate all charts when any of them changed. We should:
         //        - Delete the charts that were removed
         //        - Add new charts
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // First successful load OR chart list changed
                 if (!hasIndexLoadedOnce || chartsChanged) {
-                    createChartElements(currentChartPaths);
+                    createChartList(currentChartPaths);
                     
                     if (!hasIndexLoadedOnce) {
                         hasIndexLoadedOnce = true;
