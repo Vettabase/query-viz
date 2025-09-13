@@ -165,6 +165,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return button;
     }
     
+    function removeAllChartsFromContainer(chartContainer) {
+        // Remove chart images by class name
+        const existingCharts = chartContainer.querySelectorAll('.chart-image');
+        existingCharts.forEach(chart => chart.remove());
+        
+        // Remove chart button bars by class name
+        const chartButtonBars = document.querySelectorAll('.chart-button-bar');
+        chartButtonBars.forEach(bar => {
+            bar.remove();
+        });
+    }
+    
     function createChartList(chartPaths) {
         // FIXME: We shouldn't recreate all charts when any of them changed. We should:
         //        - Delete the charts that were removed
@@ -177,8 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideLoadingMessage();
         
         // Clear existing charts
-        const existingCharts = chartContainer.querySelectorAll('.chart-image');
-        existingCharts.forEach(chart => chart.remove());
+        removeAllChartsFromContainer(chartContainer);
         
         // Calculate each id only once and cache them in an array
         const chartIdList = chartPaths.map(chartPath => getIdFromPath(chartPath));
