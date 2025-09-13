@@ -111,6 +111,60 @@ document.addEventListener('DOMContentLoaded', function() {
         return chartPath.replace(/[^a-zA-Z0-9]/g, '_');
     }
     
+    function createChartButton(buttonType, chartPath, thisChartId, targetChartId) {
+        // optional DOM attributes
+        let download = null;
+        // DOM attributes to be set
+        let id = null,
+            href = null,
+            textContent = null,
+            title = null;
+        
+        // set DOM attributes based on the button type
+        switch (buttonType) {
+            case 'PREV':
+                id = 'button_prev_' + thisChartId;
+                href = '#permalink_' + targetChartId;
+                textContent = '◀ Prev';
+                title = 'Move to previous chart';
+                break;
+            case 'NEXT':
+                id = 'button_next_' + thisChartId;
+                href = '#permalink_' + targetChartId;
+                textContent = 'Next ▶';
+                title = 'Move to next chart';
+                break;
+            case 'PICROW':
+                id = 'permalink_' + thisChartId;
+                href = '#permalink_' + thisChartId;
+                textContent = '¶ Permalink';
+                title = 'Permalink to this chart';
+                break;
+            case 'DOWNLOAD':
+                id = 'download_' + thisChartId;
+                href = `${PATHS.PLOTS_BASE}${chartPath}`;
+                textContent = '💾 Download';
+                title = 'Download this chart';
+                download = `${PATHS.PLOTS_BASE}${chartPath}`;
+                break;
+        }
+        
+        // create an <a> element with the appropriate attributes
+        const button = document.createElement('a');
+        button.id = id;
+        button.href = href;
+        button.textContent = textContent;
+        button.title = title;
+        if (download) {
+            button.download = download;
+        }
+        
+        // DOM attributes that don't depend on the button type
+        button.className = 'chart-button';
+        
+        return button;
+    }
+    
     function createChartElements(chartPaths) {
         // FIXME: We shouldn't recreate all charts when any of them changed. We should:
         //        - Delete the charts that were removed
@@ -118,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //        - Recreate charts that changed
         //        To know when a chart configuration changed, we should store
         //        each chart configuration's checksum
-
+        
         // Hide loading message just before loading charts
         hideLoadingMessage();
         
@@ -133,25 +187,19 @@ document.addEventListener('DOMContentLoaded', function() {
         chartPaths.forEach((chartPath, index) => {
             // Assign a (most likely) unique id
             // by replacing the URL's special chars
-            chartId = chartIdList[index]
+            const thisChartId = chartIdList[index];
             
             // Button: Previous Chart
-            has_prev = false
-            prevPermalink = null
+            let prevPermalink = null;
             if (index > 0) {
-                has_prev = true
-                prevChartId = chartIdList[index - 1]
-                prevPermalink = document.createElement('a');
-                prevPermalink.href = '#permalink_' + prevChartId;
-                prevPermalink.textContent = '◀ Prev';
-                prevPermalink.title = 'Move to previous chart';
-                prevPermalink.className = 'chart-button';
+                let prevChartId = chartIdList[index - 1]
+                prevPermalink = createChartButton('PREV', chartPath, thisChartId, prevChartId)
             }
             
             // Button: Picrow
             const permalink = document.createElement('a');
-            permalink.href = '#permalink_' + chartId;
-            permalink.id = 'permalink_' + chartId;
+            permalink.href = '#permalink_' + thisChartId;
+            permalink.id = 'permalink_' + thisChartId;
             permalink.textContent = '¶ Permalink';
             permalink.title = 'Permalink to this chart';
             permalink.className = 'chart-button';
@@ -165,27 +213,21 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadButton.className = 'chart-button';
             
             // Button: Next Chart
-            has_next = false
-            nextPermalink = null
+            let nextPermalink = null
             if (index < chartPaths.length - 1) {
-                has_next = true
-                nextChartId = chartIdList[index + 1]
-                nextPermalink = document.createElement('a');
-                nextPermalink.href = '#permalink_' + nextChartId;
-                nextPermalink.textContent = 'Next ▶';
-                nextPermalink.title = 'Move to next chart';
-                nextPermalink.className = 'chart-button';
+                let nextChartId = chartIdList[index + 1]
+                nextPermalink = createChartButton('NEXT', chartPath, thisChartId, nextChartId)
             }
             
             // Create buttonBar and insert the buttons generated above
             const buttonBar = document.createElement('div');
             buttonBar.className = 'chart-button-bar';
-            if (has_prev) {
+            if (prevPermalink !== null) {
                 buttonBar.appendChild(prevPermalink);
             }
             buttonBar.appendChild(permalink);
             buttonBar.appendChild(downloadButton);
-            if (has_next) {
+            if (nextPermalink !== null) {
                 buttonBar.appendChild(nextPermalink);
             }
             
@@ -194,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chartImage.className = 'chart-image';
             chartImage.alt = `Chart ${index + 1}`;
             chartImage.style.marginBottom = index < chartPaths.length - 1 ? '20px' : '0';
-            chartImage.id = 'chart_' + chartId;
+            chartImage.id = 'chart_' + thisChartId;
             
             // Handle image load error
             chartImage.addEventListener('error', function() {
