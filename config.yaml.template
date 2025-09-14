@@ -188,6 +188,11 @@ initial_grace_period: 1m
 # For a format explanation, see below.
 grace_period_retry_interval: 5s
 
+# The Once Thread will start after this time interval has elapsed.
+# This provides time for the main retry thread to establish all necessary
+# connections. The Grace Period ends when a single connection is established.
+once_thread_delay: 1.5m
+
 # Default chart dimensions. Can be indicated as one string (800x600) or
 # separately (chart_width: 800, chart_height: 600).
 # Indicating both the options is not allowed.

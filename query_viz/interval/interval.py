@@ -36,6 +36,11 @@ class Interval:
             'min': 1,
             'max': None,
             'special_values': ['once']
+        },
+        'once_thread_delay': {
+            'min': 1,
+            'max': None,
+            'special_values': []
         }
     }
     
