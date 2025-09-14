@@ -615,14 +615,12 @@ class QueryViz:
             
             # Start once queries thread (if any exist)
             once_queries = [q for q in self.queries if q.interval == 'once']
+            once_thread_should_start = True
             if once_queries:
-                once_thread = threading.Thread(target=self.execute_once_queries_thread)
-                once_thread.daemon = False  # Non-daemon thread
-                once_thread.start()
-                self.threads.append(once_thread)
-                print(f"Started 'once' queries thread for {len(once_queries)} queries")
+                print(f"The Once Thread will start for {len(once_queries)} queries")
             else:
-                print("Not starting the 'once' thread")
+                once_thread_should_start = False
+                print("The Once Thread will not start because there are no Once Queries to run")
             
             # Start query threads
             started_threads = 0
@@ -644,8 +642,19 @@ class QueryViz:
             plot_interval = 30
             last_plot_time = 0
             
+            pre_loop_time = time.time()
+            
             while self.running:
                 current_time = time.time()
+                
+                if once_thread_should_start:
+                    if (current_time - pre_loop_time) >= self.config['once_thread_delay']:
+                        once_thread = threading.Thread(target=self.execute_once_queries_thread)
+                        once_thread.daemon = False
+                        once_thread.start()
+                        self.threads.append(once_thread)
+                        once_thread_should_start = False
+                        print(f"Started Once Thread")
                 
                 if current_time - last_plot_time >= plot_interval and self.timestamps:
                     self.generate_plots()
