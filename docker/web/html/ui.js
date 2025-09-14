@@ -186,6 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
         //        To know when a chart configuration changed, we should store
         //        each chart configuration's checksum
         
+        console.log('createChartList() was called');
+        
         // Hide loading message just before loading charts
         hideLoadingMessage();
         
@@ -200,6 +202,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Assign a (most likely) unique id
             // by replacing the URL's special chars
             const thisChartId = chartIdList[index];
+            
+            console.log('Generating chart and buttonbar for: ' + thisChartId);
             
             // Button: Previous Chart
             let prevPermalink = null;
