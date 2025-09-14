@@ -303,6 +303,10 @@ class QueryViz:
         # Validate grace period retry interval
         if 'grace_period_retry_interval' not in self.config:
             raise QueryVizError("'grace_period_retry_interval' is required")
+            
+        # Validate once thread delay
+        if 'once_thread_delay' not in self.config:
+            raise QueryVizError("'once_thread_delay' is required")
         
         # Validate database connection timeout
         if 'db_connection_timeout_seconds' not in self.config:
@@ -320,6 +324,7 @@ class QueryViz:
               'failed_connections_interval'
             , 'initial_grace_period'
             , 'grace_period_retry_interval'
+            , 'once_thread_delay'
         ]
         for setting in interval_settings:
             self.config[setting] = Interval(setting).setget(self.config[setting])
