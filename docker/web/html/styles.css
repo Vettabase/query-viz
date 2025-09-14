@@ -57,6 +57,24 @@ header h1 {
     margin-left: 15px;
 }
 
+.bottom-button-bar a:hover {
+    color: red;
+    text-decoration: underline;
+}
+
+.bottom-button-bar {
+    text-align: right;
+    margin-bottom: 5px;
+    margin-top: 15px;
+}
+
+.bottom-button-bar a {
+    color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+    margin-left: 15px;
+}
+
 .permalink {
     text-align: left;
 }
